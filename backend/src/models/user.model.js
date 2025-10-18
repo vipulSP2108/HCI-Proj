@@ -1,105 +1,72 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// Play entry schema (each A/S attempt)
+// Game-related schemas (unchanged)
 const playEntrySchema = new mongoose.Schema({
-  responsetime: {
-    type: Number, // 0 to levelspan (in seconds), -1 if exceeded
-    required: true
-  },
-  correct: {
-    type: Number, // 1 = correct, -1 = incorrect, 0 = not done (exceeded levelspan)
-    required: true,
-    enum: [-1, 0, 1]
-  }
+  responsetime: { type: Number, required: true },
+  correct: { type: Number, enum: [-1, 0, 1], required: true }
 }, { _id: false });
 
-// Game session schema (each time user plays)
 const gameSessionSchema = new mongoose.Schema({
-  time: {
-    type: Date,
-    default: Date.now,
-    required: true
-  },
-  levelspan: {
-    type: Number, // How much time user gets to select (in seconds)
-    required: true
-  },
+  time: { type: Date, default: Date.now, required: true },
+  levelspan: { type: Number, required: true },
   play: [playEntrySchema]
 }, { _id: false });
 
-// Game type schema
 const gameTypeSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    default: 'type1'
-  },
-  name: {
-    type: String,
-    default: 'Reaction Game'
-  },
+  type: { type: String, default: 'type1' },
+  name: { type: String, default: 'Reaction Game' },
   eachGameStats: [gameSessionSchema]
 }, { _id: false });
 
+// Main User Schema
 const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
-  },
-  phone: {
-    type: String,
-    required: true
-  },
-  type: {
-    type: String,
-    enum: ['doctor', 'patient', 'caretaker'],
-    required: true
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  currentlevelspan: {
-    type: Number,
-    default: 5 // Default 5 seconds
-  },
-  game: [gameTypeSchema],
-  level: {
-    type: Number,
-    default: 1
-  },
-  totalScore: {
-    type: Number,
-    default: 0
-  },
-  resetOTP: {
-    type: String,
-    default: null
-  },
-  resetOTPExpiry: {
-    type: Date,
-    default: null
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  }
-}, {
-  timestamps: true
-});
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password: { type: String, required: true, minlength: 6 },
+  phone: { type: String, required: true },
+  type: { type: String, enum: ['doctor', 'patient', 'caretaker'], required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  currentlevelspan: { type: Number, default: 5 },
 
+  // Detailed doctor and caretaker info
+  doctor: [{
+    doctorDegree: { type: String },
+    doctorName: { type: String },
+    doctorteli: { type: String },
+    doctoremail: { type: String }
+  }],
+  caretaker: [{
+    caretakerDegree: { type: String },
+    caretakerName: { type: String },
+    caretakerteli: { type: String },
+    caretakeremail: { type: String }
+  }],
+  
+  // Patient-specific details
+  patientDetails: {
+    weight: { type: Number },
+    height: { type: Number },
+    blood: { type: String },
+    diagnosis: { type: String }
+  },
+
+  // For doctors: a list of their caretakers
+  assignedCaretakers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  
+  // For caretakers: a list of their assigned patients
+  assignedPatients: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+  game: [gameTypeSchema],
+  level: { type: Number, default: 1 },
+  totalScore: { type: Number, default: 0 },
+  resetOTP: { type: String, default: null },
+  resetOTPExpiry: { type: Date, default: null },
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true });
+
+// Password hashing and comparison methods (unchanged)
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
