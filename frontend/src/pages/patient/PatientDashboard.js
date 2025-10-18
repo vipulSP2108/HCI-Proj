@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
 
 export default function PatientDashboard() {
@@ -77,6 +77,9 @@ export default function PatientDashboard() {
           </div>
 
           <nav className="mt-4 rounded-xl">
+            <Link to="/patient/setting">
+              <button className="btn">Edit Profile</button>
+            </Link>
             <SidebarItem icon={<Home size={18} />} label="Dashboard" active />
             <SidebarItem icon={<Calendar size={18} />} label="Appointment" />
             <SidebarItem icon={<FileText size={18} />} label="Record" />

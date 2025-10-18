@@ -27,8 +27,8 @@ const userSchema = new mongoose.Schema({
   type: { type: String, enum: ['doctor', 'patient', 'caretaker'], required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   currentlevelspan: { type: Number, default: 5 },
-  doctorDegree: { type: String },
-  doctorName: { type: String },
+  degree: { type: String },
+  name: { type: String },
 
   // Detailed doctor and caretaker info
   doctor: [{

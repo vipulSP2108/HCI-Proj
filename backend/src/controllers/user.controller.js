@@ -52,15 +52,28 @@ exports.getMyPatients = async (req, res) => {
     const doctor = await User.findById(req.user.id);
     if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
 
-    const users = await User.find({ createdBy: req.user.id }).select('-password -resetOTP -resetOTPExpiry').sort({ createdAt: -1 });
-    const patients = users.filter(u => u.type === 'patient');
-    const caretakers = users.filter(u => u.type === 'caretaker');
+    // Find patients whose _id is in doctor's assignedPatients
+    const patients = await User.find({ 
+      _id: { $in: doctor.assignedPatients },
+      type: 'patient'
+    })
+    .select('-password -resetOTP -resetOTPExpiry')
+    .sort({ createdAt: -1 });
+
+    // Optional: If you want caretakers separately
+    const caretakers = await User.find({ 
+      createdBy: req.user.id,
+      type: 'caretaker'
+    })
+    .select('-password -resetOTP -resetOTPExpiry')
+    .sort({ createdAt: -1 });
 
     res.json({ success: true, patients, caretakers });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error', error: error.message });
   }
 };
+
 
 exports.getUserDetails = async (req, res) => {
   try {
@@ -77,3 +90,61 @@ exports.getUserDetails = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error', error: error.message });
   }
 };
+
+// Get logged-in doctor details
+exports.getUserEditDetails = async (req, res) => {
+  try {
+
+    const user = await User.findById(req.user.id)
+    // .select('degree name phone email');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Return doctor details directly
+    res.json({ 
+      success: true, 
+      doctor: {
+        degree: user.degree || '',
+        name: user.name || '',
+        phone: user.phone || '',
+        email: user.email || ''
+      } 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch doctor details' });
+  }
+};
+
+
+// Update logged-in doctor details
+exports.updateUserDetails = async (req, res) => {
+  try {
+    console.log("asd");
+    const { degree, name, phone, email } = req.body;
+    const user = await User.findById(req.user.id);
+    // if (user.type !== 'doctor') {
+    //   return res.status(403).json({ success: false, message: 'Only doctors can update their details' });
+    // }
+
+    // Update existing fields directly on the user object
+    user.degree = degree;
+    user.name = name;
+    user.phone = phone;
+    user.email = email;
+
+    await user.save();
+
+    res.json({ success: true, message: 'Doctor details updated', doctor: {
+      degree: user.degree,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+    } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to update doctor details' });
+  }
+};
+
+s

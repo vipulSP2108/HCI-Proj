@@ -15,6 +15,8 @@ import CaretakerDashboard from './pages/caretaker/CaretakerDashboard';
 import GamePage from './pages/game/GamePage';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import CreatePatientForm from './components/admin/CreatePatientForm';
+import DoctorProfileForm from './pages/doctor/DoctorProfileForm';
+import PatientSetting from './pages/patient/PatientSetting';
 
 function App() {
   return (
@@ -33,6 +35,9 @@ function App() {
           <Route path="/patient/appointments" element={<ProtectedRoute allowedTypes={['patient']}><PatientAppointments/></ProtectedRoute>} />
           <Route path="/caretaker/dashboard" element={<ProtectedRoute allowedTypes={['caretaker']}><CaretakerDashboard /></ProtectedRoute>} />
           <Route path="/game" element={<ProtectedRoute allowedTypes={['patient', 'caretaker']}><GamePage /></ProtectedRoute>} />
+
+  <Route path="/doctor/profile" element={<ProtectedRoute allowedTypes={['doctor', 'patient']}><DoctorProfileForm /></ProtectedRoute>} />
+  <Route path="/patient/setting" element={<ProtectedRoute allowedTypes={['patient']}><PatientSetting /></ProtectedRoute>} />
 
 <Route path="/doctor/create-patient" element={
             <ProtectedRoute allowedTypes={["doctor"]}>

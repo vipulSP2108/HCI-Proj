@@ -64,6 +64,10 @@ const DoctorDashboard = () => {
               Create New Patient
             </button>
           </Link>
+          <Link to="/doctor/profile">
+  <button className="btn">Edit Profile</button>
+</Link>
+
 
         <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl shadow-2xl p-8 mb-6 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
