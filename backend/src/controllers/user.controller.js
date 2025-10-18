@@ -1,92 +1,58 @@
 const User = require('../models/user.model');
 
-exports.getMyPatients = async (req, res) => {
-  try {
-    // Example: fetch patients assigned to the logged-in doctor
-    const doctor = await User.findById(req.user.id).populate('assignedPatients');
-    res.json({ success: true, patients: doctor.assignedPatients });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Error fetching patients.' });
-  }
-};
-
 exports.createUser = async (req, res) => {
   try {
-    const { email, password, phone, type, doctorInfo, patientDetails, caretakerInfo } = req.body;
-    const doctorUser = await User.findById(req.user.id);
-
-    if (doctorUser.type !== 'doctor') {
-      return res.status(403).json({ success: false, message: 'Only doctors can create users.' });
-    }
+    const { email, password, phone, type } = req.body;
+    const doctor = await User.findById(req.user.id);
+    if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: 'User with this email already exists.' });
+    if (existingUser) return res.status(400).json({ success: false, message: 'Email exists' });
+
+    if (!['patient', 'caretaker'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'Invalid type' });
     }
 
-    const userFields = { email, password, phone, type, patientDetails, doctor: undefined, createdBy: doctorUser._id };
+    const user = new User({ email, password, phone, type, createdBy: req.user.id });
+    await user.save();
 
-    if (type === 'patient') {
-      userFields.patientDetails = patientDetails;
-      userFields.doctor = [{
-        doctorDegree: doctorUser.doctorDegree || '',
-        doctorName: doctorUser.name,
-        doctorteli: doctorUser.phone || '',
-        doctoremail: doctorUser.email || ''
-      }];
-    }
-
-    if (type === 'caretaker' && caretakerInfo) {
-      userFields.caretaker = [caretakerInfo];
-    }
-
-    console.log(userFields);
-
-    const newUser = new User(userFields);
-    await newUser.save();
-
-    if (type === 'patient') {
-      doctorUser.assignedPatients = doctorUser.assignedPatients || [];
-      doctorUser.assignedPatients.push(newUser._id);
-    } else if (type === 'caretaker') {
-      doctorUser.assignedCaretakers = doctorUser.assignedCaretakers || [];
-      doctorUser.assignedCaretakers.push(newUser._id);
-    }
-    await doctorUser.save();
-
-    res.status(201).json({ success: true, message: `${type} created and assigned successfully.`, user: newUser });
+    res.status(201).json({
+      success: true,
+      message: `${type} created`,
+      user: { id: user._id, email: user.email, phone: user.phone, type: user.type }
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error creating user.' });
+    res.status(500).json({ success: false, message: 'Create error', error: error.message });
   }
 };
 
-exports.assignCaretakerToPatient = async (req, res) => {
+exports.getMyPatients = async (req, res) => {
   try {
-    const { caretakerId, patientId } = req.body;
+    const doctor = await User.findById(req.user.id);
+    if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
 
-    await User.findByIdAndUpdate(caretakerId, { $addToSet: { assignedPatients: patientId } });
-    await User.findByIdAndUpdate(req.user.id, { $addToSet: { assignedCaretakers: caretakerId } });
+    const users = await User.find({ createdBy: req.user.id }).select('-password -resetOTP -resetOTPExpiry').sort({ createdAt: -1 });
+    const patients = users.filter(u => u.type === 'patient');
+    const caretakers = users.filter(u => u.type === 'caretaker');
 
-    res.json({ success: true, message: 'Caretaker assigned successfully.' });
+    res.json({ success: true, patients, caretakers });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Error assigning caretaker.' });
+    res.status(500).json({ success: false, message: 'Error', error: error.message });
   }
 };
 
-exports.getCaretakerWithPatients = async (req, res) => {
+exports.getUserDetails = async (req, res) => {
   try {
-    const caretaker = await User.findById(req.params.caretakerId)
-      .populate('assignedPatients', 'email phone patientDetails.diagnosis totalScore');
+    const user = await User.findById(req.params.userId).select('-password -resetOTP -resetOTPExpiry');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (!caretaker) {
-      return res.status(404).json({ success: false, message: 'Caretaker not found.' });
+    const requester = await User.findById(req.user.id);
+    if (requester.type !== 'doctor' && req.params.userId !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
     }
-    res.json({ success: true, caretaker });
+
+    res.json({ success: true, user });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Error fetching caretaker details.' });
+    res.status(500).json({ success: false, message: 'Error', error: error.message });
   }
 };
