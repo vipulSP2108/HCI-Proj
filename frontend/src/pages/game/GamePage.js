@@ -9,45 +9,79 @@ const GamePage = () => {
   const navigate = useNavigate();
 
   // Game state
-  const [currentlevelspan, setCurrentlevelspan] = useState(5);
+  const [currentLevelSpan, setCurrentLevelSpan] = useState(5);
+  const [currentNumSections, setCurrentNumSections] = useState(2);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentLetter, setCurrentLetter] = useState('');
+  const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
-  const [letterStartTime, setLetterStartTime] = useState(null);
+  const [sectionStartTime, setSectionStartTime] = useState(null);
   const [sessionStartTime, setSessionStartTime] = useState(null);
   const [showResult, setShowResult] = useState(null);
   const [attemptCount, setAttemptCount] = useState(0);
 
+  // Available keys and frequencies (piano-like notes: C4 to A5)
+  const keys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+  const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+
   // Settings modal
   const [showSettings, setShowSettings] = useState(false);
-  const [tempLevelspan, setTempLevelspan] = useState(5);
+  const [tempLevelSpan, setTempLevelSpan] = useState(5);
+  const [tempNumSections, setTempNumSections] = useState(2);
 
   // Timers
-  const letterTimerRef = useRef(null);
+  const sectionTimerRef = useRef(null);
   const audioContextRef = useRef(null);
 
   useEffect(() => {
-    loadLevelSpan();
+    loadSettings();
     return () => {
-      if (letterTimerRef.current) clearTimeout(letterTimerRef.current);
+      if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     };
   }, []);
 
-  const loadLevelSpan = async () => {
+  const loadSettings = async () => {
     try {
-      const response = await gameService.getLevelSpan();
-      setCurrentlevelspan(response.currentlevelspan);
-      setTempLevelspan(response.currentlevelspan);
+      const response = await gameService.getSettings(); // Assume this returns { currentlevelspan, currentnumsections }
+      setCurrentLevelSpan(response.currentlevelspan || 5);
+      setCurrentNumSections(response.currentnumsections || 2);
+      setTempLevelSpan(response.currentlevelspan || 5);
+      setTempNumSections(response.currentnumsections || 2);
     } catch (error) {
-      console.error('Failed to load levelspan:', error);
-      setCurrentlevelspan(5);
-      setTempLevelspan(5);
+      console.error('Failed to load settings:', error);
+      setCurrentLevelSpan(5);
+      setCurrentNumSections(2);
+      setTempLevelSpan(5);
+      setTempNumSections(2);
     }
   };
 
-  // Play audio feedback
-  const playSound = (type) => {
+  // Play piano-like sound for a specific key
+  const playPianoSound = (keyIndex) => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const audioContext = audioContextRef.current;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Piano-like: sine wave with envelope
+    oscillator.frequency.value = frequencies[keyIndex];
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1.5);
+  };
+
+  // Play feedback sounds
+  const playFeedbackSound = (type) => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -60,6 +94,12 @@ const GamePage = () => {
     gainNode.connect(audioContext.destination);
 
     if (type === 'correct') {
+      // Use piano sound for the current section on correct
+      if (currentSection !== null) {
+        playPianoSound(currentSection);
+        return;
+      }
+      // Fallback
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -89,74 +129,77 @@ const GamePage = () => {
     setPlayData([]);
     setAttemptCount(0);
     setSessionStartTime(Date.now());
-    showNextLetter();
+    showNextSection();
   };
 
-  const showNextLetter = () => {
-    const letters = ['A', 'S'];
-    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    setCurrentLetter(randomLetter);
-    setLetterStartTime(Date.now());
+  const showNextSection = () => {
+    const randomSection = Math.floor(Math.random() * currentNumSections);
+    setCurrentSection(randomSection);
+    setSectionStartTime(Date.now());
     setAttemptCount(prev => prev + 1);
 
     // Auto-mark as not done after levelspan seconds
-    letterTimerRef.current = setTimeout(() => {
+    sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
-        recordResponse('none', -1, 0, randomLetter);
-        playSound('notdone');
-        showNextLetter();
+        recordResponse('none', -1, 0, keys[randomSection]);
+        playFeedbackSound('notdone');
+        showNextSection();
       }
-    }, currentlevelspan * 1000);
+    }, currentLevelSpan * 1000);
   };
 
   const handleKeyPress = (key) => {
-    if (!isPlaying || isPaused || !currentLetter) return;
+    if (!isPlaying || isPaused || currentSection === null) return;
 
-    const responseTime = (Date.now() - letterStartTime) / 1000; // Convert to seconds
+    const responseTime = (Date.now() - sectionStartTime) / 1000; // Convert to seconds
     const userKey = key.toUpperCase();
+    const expectedKey = keys[currentSection];
 
     // Determine if correct
     let correct;
-    if (userKey === currentLetter) {
+    if (userKey === expectedKey) {
       correct = 1; // Correct
+    } else if (keys.slice(0, currentNumSections).map(k => k.toLowerCase()).includes(key.toLowerCase())) {
+      correct = -1; // Incorrect but valid key
     } else {
-      correct = -1; // Incorrect
+      return; // Ignore invalid keys
     }
 
-    if (letterTimerRef.current) {
-      clearTimeout(letterTimerRef.current);
+    if (sectionTimerRef.current) {
+      clearTimeout(sectionTimerRef.current);
     }
 
     // Round to 1 decimal place
     const roundedTime = Math.round(responseTime * 10) / 10;
 
-    recordResponse(userKey, roundedTime, correct, currentLetter);
+    recordResponse(userKey, roundedTime, correct, expectedKey);
 
-    // Play audio feedback
-    playSound(correct === 1 ? 'correct' : 'incorrect');
+    // Play feedback
+    playFeedbackSound(correct === 1 ? 'correct' : 'incorrect');
 
-    // Show visual feedback
+    // Show visual feedback on the section
     setShowResult(correct === 1 ? 'correct' : 'incorrect');
     setTimeout(() => setShowResult(null), 300);
 
-    // Show next letter
-    setTimeout(() => showNextLetter(), 100);
+    // Show next section
+    setTimeout(() => showNextSection(), 100);
   };
 
-  const recordResponse = (userResponse, responsetime, correct, shownLetter) => {
+  const recordResponse = (userResponse, responsetime, correct, shownKey) => {
     const entry = {
-      responsetime: responsetime, // 0 to currentlevelspan OR -1 if exceeded
+      responsetime: responsetime, // 0 to currentLevelSpan OR -1 if exceeded
       correct: correct // 1=correct, -1=incorrect, 0=not done
     };
 
     setPlayData(prev => [...prev, entry]);
 
-    console.log(`Letter: ${shownLetter}, User: ${userResponse}, Time: ${responsetime}s, Correct: ${correct}`);
+    console.log(`Key: ${shownKey}, User: ${userResponse}, Time: ${responsetime}s, Correct: ${correct}`);
   };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'a' || e.key === 'A' || e.key === 's' || e.key === 'S') {
+      const userKey = e.key.toLowerCase();
+      if (['a','s','d','f','g','h','j','k','l'].includes(userKey)) {
         e.preventDefault();
         handleKeyPress(e.key);
       }
@@ -167,12 +210,12 @@ const GamePage = () => {
     }
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, isPaused, currentLetter, letterStartTime]);
+  }, [isPlaying, isPaused, currentSection, sectionStartTime, currentNumSections]);
 
   const endGame = async () => {
     setIsPlaying(false);
-    setCurrentLetter('');
-    if (letterTimerRef.current) clearTimeout(letterTimerRef.current);
+    setCurrentSection(null);
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
 
     if (playData.length === 0) {
       alert('No data to save. Play at least one round!');
@@ -182,7 +225,8 @@ const GamePage = () => {
     // Save session to backend
     try {
       const response = await gameService.saveGameSession({
-        levelspan: currentlevelspan,
+        levelspan: currentLevelSpan,
+        numsections: currentNumSections,
         playData: playData
       });
 
@@ -203,38 +247,39 @@ const GamePage = () => {
 
   const pauseGame = () => {
     setIsPaused(true);
-    if (letterTimerRef.current) clearTimeout(letterTimerRef.current);
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
   };
 
   const resumeGame = () => {
     setIsPaused(false);
-    setLetterStartTime(Date.now());
+    setSectionStartTime(Date.now());
 
-    // Restart timer for current letter
-    letterTimerRef.current = setTimeout(() => {
+    // Restart timer for current section
+    sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
-        recordResponse('none', -1, 0, currentLetter);
-        playSound('notdone');
-        showNextLetter();
+        recordResponse('none', -1, 0, keys[currentSection]);
+        playFeedbackSound('notdone');
+        showNextSection();
       }
-    }, currentlevelspan * 1000);
+    }, currentLevelSpan * 1000);
   };
 
   const resetGame = () => {
     setIsPlaying(false);
     setIsPaused(false);
-    setCurrentLetter('');
+    setCurrentSection(null);
     setPlayData([]);
     setAttemptCount(0);
-    if (letterTimerRef.current) clearTimeout(letterTimerRef.current);
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
   };
 
   const saveSettings = async () => {
     try {
-      await gameService.updateLevelSpan(user.id, tempLevelspan);
-      setCurrentlevelspan(tempLevelspan);
+      await gameService.updateSettings(user.id, tempLevelSpan, tempNumSections);
+      setCurrentLevelSpan(tempLevelSpan);
+      setCurrentNumSections(tempNumSections);
       setShowSettings(false);
-      alert('Level span updated successfully!');
+      alert('Settings updated successfully!');
     } catch (error) {
       alert('Failed to update settings');
     }
@@ -245,6 +290,9 @@ const GamePage = () => {
   const incorrectCount = playData.filter(p => p.correct === -1).length;
   const notDoneCount = playData.filter(p => p.correct === 0).length;
 
+  // Current active keys
+  const activeKeys = keys.slice(0, currentNumSections);
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -252,8 +300,10 @@ const GamePage = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Reaction Game</h1>
-            <p className="text-gray-600">Press 'A' or 'S' based on what you see</p>
-            <p className="text-sm text-gray-500 mt-1">Level Span: {currentlevelspan} seconds</p>
+            <p className="text-gray-600">Press the key corresponding to the highlighted section</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Level Span: {currentLevelSpan} seconds | Sections: {currentNumSections}
+            </p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowSettings(true)} className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
@@ -295,27 +345,43 @@ const GamePage = () => {
 
         {/* Game Area */}
         <div className="bg-white rounded-xl shadow-2xl p-8 mb-6">
-          {/* Letter Display */}
-          <div className="relative h-64 flex items-center justify-center mb-8 border-4 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-            {currentLetter && isPlaying && !isPaused ? (
-              <div className={`game-letter text-9xl font-bold ${
-                showResult === 'correct' ? 'text-success-500' :
-                showResult === 'incorrect' ? 'text-error-500' :
-                'text-primary-600'
-              } transition-colors duration-200`}>
-                {currentLetter}
-              </div>
-            ) : !isPlaying ? (
-              <div className="text-center">
-                <p className="text-3xl text-gray-400 mb-4 font-bold">Ready to Play?</p>
-                <div className="space-y-2 text-lg text-gray-600">
-                  <p>🎯 Press <span className="font-bold text-primary-600">'A'</span> when you see 'A'</p>
-                  <p>🎯 Press <span className="font-bold text-primary-600">'S'</span> when you see 'S'</p>
-                  <p className="text-sm text-gray-500 mt-4">You have {currentlevelspan} seconds to respond</p>
+          {/* Sections Display */}
+          <div className="relative h-64 mb-8 border-4 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+            <div className="h-full flex">
+              {activeKeys.map((key, index) => {
+                const isActive = currentSection === index;
+                const resultClass = showResult === 'correct' ? 'ring-4 ring-green-500' :
+                  showResult === 'incorrect' ? 'ring-4 ring-red-500' : '';
+                const bgClass = isActive ? 'bg-black' : 'bg-white';
+                const textClass = isActive ? 'text-white' : 'text-gray-400';
+                const fontSize = currentNumSections <= 3 ? 'text-9xl' : currentNumSections <= 6 ? 'text-7xl' : 'text-5xl';
+
+                return (
+                  <div
+                    key={index}
+                    className={`flex-1 flex items-center justify-center border-r border-gray-200 last:border-r-0 transition-all duration-200 hover:bg-gray-50 ${bgClass} ${resultClass}`}
+                  >
+                    <div className={`${fontSize} font-bold ${textClass} transition-colors duration-200`}>
+                      {key}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {!isPlaying ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
+                <div className="text-center">
+                  <p className="text-3xl text-gray-400 mb-4 font-bold">Ready to Play?</p>
+                  <div className="space-y-2 text-lg text-gray-600">
+                    <p>🎯 Press the key shown on the highlighted (black) section</p>
+                    <p className="text-sm text-gray-500 mt-4">You have {currentLevelSpan} seconds to respond</p>
+                  </div>
                 </div>
               </div>
             ) : isPaused ? (
-              <div className="text-4xl text-warning-500 font-bold">⏸️ PAUSED</div>
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
+                <div className="text-4xl text-warning-500 font-bold">⏸️ PAUSED</div>
+              </div>
             ) : null}
           </div>
 
@@ -354,15 +420,16 @@ const GamePage = () => {
           </div>
 
           {/* Keyboard Hint */}
-          <div className="mt-8 flex gap-6 justify-center">
-            <div className="bg-gradient-to-br from-primary-100 to-primary-200 px-8 py-4 rounded-xl shadow-lg border-2 border-primary-300">
-              <p className="text-sm text-primary-700 mb-1 text-center font-semibold">Press</p>
-              <p className="text-4xl font-bold text-primary-800">A</p>
-            </div>
-            <div className="bg-gradient-to-br from-secondary-100 to-secondary-200 px-8 py-4 rounded-xl shadow-lg border-2 border-secondary-300">
-              <p className="text-sm text-secondary-700 mb-1 text-center font-semibold">Press</p>
-              <p className="text-4xl font-bold text-secondary-800">S</p>
-            </div>
+          <div className="mt-8 flex justify-center flex-wrap gap-2">
+            {activeKeys.map((key) => (
+              <div
+                key={key}
+                className="bg-gradient-to-br from-primary-100 to-primary-200 px-4 py-3 rounded-lg shadow-lg border-2 border-primary-300 min-w-[60px] text-center"
+              >
+                <p className="text-xs text-primary-700 font-semibold">Press</p>
+                <p className="text-2xl font-bold text-primary-800">{key}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -412,15 +479,15 @@ const GamePage = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Level Span (seconds): <span className="text-primary-600 text-2xl">{tempLevelspan}</span>
+                    Level Span (seconds): <span className="text-primary-600 text-2xl">{tempLevelSpan}</span>
                   </label>
                   <input
                     type="range"
                     min="1"
                     max="10"
                     step="1"
-                    value={tempLevelspan}
-                    onChange={(e) => setTempLevelspan(parseInt(e.target.value))}
+                    value={tempLevelSpan}
+                    onChange={(e) => setTempLevelSpan(parseInt(e.target.value))}
                     className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -428,7 +495,28 @@ const GamePage = () => {
                     <span>10s (Easier)</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-3">
-                    This is how many seconds you'll have to respond to each letter.
+                    This is how many seconds you'll have to respond to each section.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Number of Sections: <span className="text-primary-600 text-2xl">{tempNumSections}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="9"
+                    step="1"
+                    value={tempNumSections}
+                    onChange={(e) => setTempNumSections(parseInt(e.target.value))}
+                    className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2 (Easier)</span>
+                    <span>9 (Harder)</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Number of sections/keys to use (A,S,D,F,G,H,J,K,L).
                   </p>
                 </div>
               </div>
@@ -441,7 +529,8 @@ const GamePage = () => {
                 </button>
                 <button 
                   onClick={() => {
-                    setTempLevelspan(currentlevelspan);
+                    setTempLevelSpan(currentLevelSpan);
+                    setTempNumSections(currentNumSections);
                     setShowSettings(false);
                   }} 
                   className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
