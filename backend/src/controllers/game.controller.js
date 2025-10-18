@@ -261,16 +261,20 @@ exports.getBasicStats = async (req, res) => {
     const sessions = gameType ? gameType.eachGameStats.slice(-7) : [];
 
     const basicSessions = sessions.map(session => {
+
       const correct = session.play.filter(p => p.correct === 1).length;
       const incorrect = session.play.filter(p => p.correct === -1).length;
       const notDone = session.play.filter(p => p.correct === 0).length;
+      const responsetime = session.play.reduce((sum, p) => sum + p.responsetime, 0);
 
       return {
+        session: session,
         time: session.time,
         correct,
         incorrect,
+        responsetime,
         notDone,
-        total: session.play.length
+        total: session.play.length,
       };
     });
 
@@ -282,7 +286,8 @@ exports.getBasicStats = async (req, res) => {
         totalScore: user.totalScore,
         level: user.level,
         currentlevelspan: user.currentlevelspan,
-        recentSessions: basicSessions
+        // responsetime,
+        recentSessions: basicSessions,
       }
     });
   } catch (error) {
