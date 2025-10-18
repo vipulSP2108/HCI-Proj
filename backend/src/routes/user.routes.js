@@ -9,6 +9,7 @@ router.get('/my-patients', protect, doctorOnly, userController.getMyPatients);
 
 router.get('/get-user-details', protect, userController.getUserEditDetails);
 
+router.get('/full-details/:userId?', protect, userController.getUserFullDetails);
 router.get('/:userId', protect, userController.getUserDetails);
 router.put('/user-details', protect, userController.updateUserDetails);
 

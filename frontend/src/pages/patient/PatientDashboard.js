@@ -19,12 +19,33 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
+import { userService } from '../../services/userService';
 
-export default function PatientDashboard() {
+export default function PatientDashboard({ userId }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState(null);
+
+  // Modal & Selected Doctor state
+  const [isDoctorModalOpen, setIsDoctorModalOpen] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await userService.getUserFullDetails(userId);
+        if (data.success) setUserData(data.user);
+        else setError('Failed to load user info');
+      } catch {
+        setError('Error fetching data');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userId]);
 
   useEffect(() => {
     loadStats();
@@ -44,6 +65,18 @@ export default function PatientDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Handle doctor selection from modal
+  const handleDoctorSelect = (doctor) => {
+    setUserData((prev) => ({
+      ...prev,
+      doctor: [doctor],
+    }));
+    setIsDoctorModalOpen(false);
+
+    // Optional: Add API call here to save selected doctor on backend
+    // e.g. await userService.updateDoctor(userId, doctor.id);
   };
 
   if (loading) {
@@ -68,18 +101,15 @@ export default function PatientDashboard() {
             <img
               src="https://via.placeholder.com/40"
               alt="Profile"
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 bg-black rounded-full"
             />
             <div>
-              <h1 className="text-lg font-semibold text-[#2B91D4]">{user?.name ? user?.email : "Your Name"}</h1>
+              <h1 className="text-lg font-semibold text-[#2B91D4]">{userData?.name || "Your Name"}</h1>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
           </div>
 
           <nav className="mt-4 rounded-xl">
-            <Link to="/patient/setting">
-              <button className="btn">Edit Profile</button>
-            </Link>
             <SidebarItem icon={<Home size={18} />} label="Dashboard" active />
             <SidebarItem icon={<Calendar size={18} />} label="Appointment" />
             <SidebarItem icon={<FileText size={18} />} label="Record" />
@@ -89,14 +119,16 @@ export default function PatientDashboard() {
         </div>
 
         <div className="border-t py-4 pt-5 space-y-2">
-          <SidebarItem icon={<Settings size={18} />} label="Settings" />
+          <Link to="/patient/setting">
+            <SidebarItem icon={<Settings size={18} />} label="Settings" />
+          </Link>
+
           <SidebarItem icon={<LogOut size={18} />} label="Help center" />
         </div>
       </aside>
 
       {/* Main content */}
       <main className="flex-1 px-8 pt-4">
-
         {/* Top Bar */}
         <div className="flex justify-end pb-10">
           <div className="flex items-center space-x-3">
@@ -114,14 +146,11 @@ export default function PatientDashboard() {
           </div>
         </div>
 
-
-
-
         <div className="grid grid-cols-3 gap-6">
           {/* Doctor & Data */}
           <div className="col-span-2 space-y-6">
             <div>
-              <h1 className="text-2xl font-semibold">Hello, {user?.name ? user?.name : "Your Name"}!</h1>
+              <h1 className="text-2xl font-semibold">Hello, {userData?.name || "Your Name"}!</h1>
               <p className="text-gray-500">Have are you feeling today?</p>
             </div>
             <div className="space-y-6">
@@ -132,22 +161,34 @@ export default function PatientDashboard() {
                     <div className="flex justify-between">
                       <div className="flex space-x-2 items-center">
                         <img
-                        src="https://via.placeholder.com/40"
-                        className="w-10 h-10 rounded-full bg-black"
-                        alt="Doctor"
-                      />
-                      <div>
-                        <p className="text-base font-bold text-gray-900">{user?.doctor ? user?.doctor : "Your Doctor"}</p>
-                        <p className="text-sm font-normal text-gray-500">{user?.doctorDegree ? user?.doctorDegree : "Doctor Degree"}</p>
-                      </div>
+                          src="https://via.placeholder.com/40"
+                          className="w-10 h-10 rounded-full bg-black"
+                          alt="Doctor"
+                        />
+                        <div>
+                          <p className="text-base font-bold text-gray-900">
+                            {userData?.doctor[0]?.doctorName || "Your Doctor"}
+                          </p>
+                          <p className="text-sm font-normal text-gray-500">
+                            {userData?.doctor[0]?.doctorDegree || "Doctor Degree"}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="flex space-x-2">
-                        <div className=" bg-[#EBECF5] rounded-lg flex items-center p-2"><MessageSquare size={20} className="text-[#6FD2EE] cursor-pointer" /></div>
-                        <div teli={user?.doctorteli ? user?.doctorteli : "Doctor Degree"} className=" bg-[#EBECF5] rounded-lg flex items-center p-2"><PhoneCall size={20} className="text-[#6FD2EE] cursor-pointer" /></div>
+                        <div className="bg-[#EBECF5] rounded-lg flex items-center p-2">
+                          <MessageSquare size={20} className="text-[#6FD2EE] cursor-pointer" />
                         </div>
+                        <a
+                          href={`tel:${userData?.doctor[0]?.doctorphone}`}
+                          className="bg-[#EBECF5] rounded-lg flex items-center p-2"
+                        >
+                          <PhoneCall size={20} className="text-[#6FD2EE] cursor-pointer" />
+                        </a>
+                      </div>
                     </div>
                   }
+                  onChange={() => setIsDoctorModalOpen(true)}
                 />
                 <InfoCard
                   title="Your data"
@@ -155,19 +196,19 @@ export default function PatientDashboard() {
                     <div className="flex justify-between text-sm">
                       <div className="text-center">
                         <p className="text-sm font-normal text-gray-500">Weight:</p>
-                        <p className="text-base font-bold text-gray-900">58 kg</p>
+                        <p className="text-base font-bold text-gray-900">{userData?.patientDetails.weight || "NA"} kg</p>
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-normal text-gray-500">Height:</p>
-                        <p className="text-base font-bold text-gray-900">175 cm</p>
+                        <p className="text-base font-bold text-gray-900">{userData?.patientDetails.height || "NA"} cm</p>
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-normal text-gray-500">Blood:</p>
-                        <p className="text-base font-bold text-gray-900">A+</p>
+                        <p className="text-base font-bold text-gray-900">{userData?.patientDetails.blood?.toUpperCase() || "NA"}</p>
                       </div>
                     </div>
-
                   }
+                  onChange={() => navigate('/patient/setting')}
                 />
               </div>
 
@@ -212,6 +253,15 @@ export default function PatientDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Doctor Selection Modal */}
+      {isDoctorModalOpen && (
+        <DoctorModal
+          doctors={userData?.doctor || []}
+          onClose={() => setIsDoctorModalOpen(false)}
+          onSelect={handleDoctorSelect}
+        />
+      )}
     </div>
   );
 }
@@ -227,12 +277,12 @@ const SidebarItem = ({ icon, label, active }) => (
   </div>
 );
 
-const InfoCard = ({ title, content }) => (
+const InfoCard = ({ title, content, onChange }) => (
   <div className="bg-white p-5 rounded-xl shadow-sm relative">
     <div className="flex justify-between items-center mb-2">
       <p className="text-lg font-semibold text-gray-900 pb-2">{title}</p>
-      <div className=" flex items-center gap-2">
-        <Edit3 size={14} className="text-[#6FD2EE] cursor-pointer" />
+      <div className="flex items-center gap-2 cursor-pointer" onClick={onChange}>
+        <Edit3 size={14} className="text-[#6FD2EE]" />
         <p className="text-[#6FD2EE] font-semibold text-sm">Change</p>
       </div>
     </div>
@@ -259,6 +309,33 @@ const ReminderItem = ({ title, date }) => (
     <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
       <span>{date}</span>
       <Edit3 size={14} />
+    </div>
+  </div>
+);
+
+// Doctor selection modal component
+const DoctorModal = ({ doctors, onClose, onSelect }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-auto">
+      <h2 className="text-xl font-semibold mb-4">Select Your Doctor</h2>
+      <ul>
+        {doctors.map((doc, idx) => (
+          <li
+            key={idx}
+            className="p-3 cursor-pointer hover:bg-blue-100 rounded"
+            onClick={() => onSelect(doc)}
+          >
+            <p className="font-bold">{doc.doctorName}</p>
+            <p className="text-sm text-gray-600">{doc.doctorDegree}</p>
+          </li>
+        ))}
+      </ul>
+      <button
+        onClick={onClose}
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Close
+      </button>
     </div>
   </div>
 );

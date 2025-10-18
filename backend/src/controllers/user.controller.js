@@ -16,8 +16,8 @@ exports.createUser = async (req, res) => {
     if (type === 'patient') {
       userFields.patientDetails = patientDetails;
       userFields.doctor = [{
-        doctorDegree: doctor.doctorDegree || '',
-        doctorName: doctor.doctorName || doctor.email,
+        doctorDegree: doctor.degree || '',
+        doctorName: doctor.name, // || doctor.email,
         doctorphone: doctor.phone || '',
         doctoremail: doctor.email || ''
       }];
@@ -147,4 +147,23 @@ exports.updateUserDetails = async (req, res) => {
   }
 };
 
-s
+// Get user full details, including assigned caretakers and patients
+exports.getUserFullDetails = async (req, res) => {
+  try {
+    const userId = req.params.userId || req.user.id;
+
+    const user = await User.findById(userId)
+      .select('-password -resetOTP -resetOTPExpiry')
+      .populate('assignedCaretakers', 'email phone caretaker caretakeremail')
+      .populate('assignedPatients', 'email phone patientDetails diagnosis')
+      .lean();
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    user.level = user.calculateLevel ? user.calculateLevel() : user.level;
+
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching user details' });
+  }
+};
