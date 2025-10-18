@@ -44,13 +44,13 @@ const GamePage = () => {
     try {
       const response = await gameService.getSettings(); // Assume this returns { currentlevelspan, currentnumsections }
       setCurrentLevelSpan(response.currentlevelspan || 5);
-      setCurrentNumSections(response.currentnumsections || 2);
+      setCurrentNumSections(response.currentnumsections || 7);
       setTempLevelSpan(response.currentlevelspan || 5);
-      setTempNumSections(response.currentnumsections || 2);
+      setTempNumSections(response.currentnumsections || 7);
     } catch (error) {
       console.error('Failed to load settings:', error);
       setCurrentLevelSpan(5);
-      setCurrentNumSections(2);
+      setCurrentNumSections(7);
       setTempLevelSpan(5);
       setTempNumSections(2);
     }
@@ -163,6 +163,43 @@ const GamePage = () => {
       correct = -1; // Incorrect but valid key
     } else {
       return; // Ignore invalid keys
+    }
+
+    if (sectionTimerRef.current) {
+      clearTimeout(sectionTimerRef.current);
+    }
+
+    // Round to 1 decimal place
+    const roundedTime = Math.round(responseTime * 10) / 10;
+
+    recordResponse(userKey, roundedTime, correct, expectedKey);
+
+    // Play feedback
+    playFeedbackSound(correct === 1 ? 'correct' : 'incorrect');
+
+    // Show visual feedback on the section
+    setShowResult(correct === 1 ? 'correct' : 'incorrect');
+    setTimeout(() => setShowResult(null), 300);
+
+    // Show next section
+    setTimeout(() => showNextSection(), 100);
+  };
+
+  const handleSectionClick = (clickedIndex) => {
+    if (!isPlaying || isPaused || currentSection === null) return;
+
+    const responseTime = (Date.now() - sectionStartTime) / 1000; // Convert to seconds
+    const userKey = keys[clickedIndex];
+    const expectedKey = keys[currentSection];
+
+    // Determine if correct
+    let correct;
+    if (clickedIndex === currentSection) {
+      correct = 1; // Correct
+    } else if (clickedIndex < currentNumSections) {
+      correct = -1; // Incorrect but valid section
+    } else {
+      return; // Ignore invalid sections (shouldn't happen)
     }
 
     if (sectionTimerRef.current) {
@@ -300,16 +337,16 @@ const GamePage = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Reaction Game</h1>
-            <p className="text-gray-600">Press the key corresponding to the highlighted section</p>
+            <p className="text-gray-600">Press the key or click the section corresponding to the highlighted section</p>
             <p className="text-sm text-gray-500 mt-1">
               Level Span: {currentLevelSpan} seconds | Sections: {currentNumSections}
             </p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowSettings(true)} className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+            <button onClick={() => setShowSettings(true)} className="p-3 bg-gray-100 hover:bg-gray-500 rounded-lg transition">
               <Settings className="w-6 h-6 text-gray-700" />
             </button>
-            <button onClick={() => navigate(-1)} className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+            <button onClick={() => navigate(-1)} className="p-3 bg-gray-100 hover:bg-gray-500 rounded-lg transition">
               <Home className="w-6 h-6 text-gray-700" />
             </button>
           </div>
@@ -359,7 +396,8 @@ const GamePage = () => {
                 return (
                   <div
                     key={index}
-                    className={`flex-1 flex items-center justify-center border-r border-gray-200 last:border-r-0 transition-all duration-200 hover:bg-gray-50 ${bgClass} ${resultClass}`}
+                    className={`flex-1 flex items-center justify-center border-r border-gray-200 last:border-r-0 transition-all duration-200 ${isActive&& 'hover:bg-gray-800'} hover:bg-gray-300 cursor-pointer ${bgClass} ${resultClass}`}
+                    onClick={() => handleSectionClick(index)}
                   >
                     <div className={`${fontSize} font-bold ${textClass} transition-colors duration-200`}>
                       {key}
@@ -373,7 +411,7 @@ const GamePage = () => {
                 <div className="text-center">
                   <p className="text-3xl text-gray-400 mb-4 font-bold">Ready to Play?</p>
                   <div className="space-y-2 text-lg text-gray-600">
-                    <p>🎯 Press the key shown on the highlighted (black) section</p>
+                    <p>🎯 Press the key or click the highlighted (black) section</p>
                     <p className="text-sm text-gray-500 mt-4">You have {currentLevelSpan} seconds to respond</p>
                   </div>
                 </div>
