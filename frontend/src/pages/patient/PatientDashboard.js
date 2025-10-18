@@ -14,6 +14,7 @@ import {
   Search,
   PhoneCall,
   MessageSquareDashed,
+  ChevronDown,
 } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -23,6 +24,8 @@ import { userService } from '../../services/userService';
 
 export default function PatientDashboard({ userId }) {
   const { user, logout } = useAuth();
+  // console.log(user);
+
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -140,7 +143,7 @@ export default function PatientDashboard({ userId }) {
                 className="bg-[#EBECF5] text-black pl-9 pr-5 py-2 rounded-full border border-gray-400 text-sm focus:outline-none placeholder:text-gray-400"
               />
             </div>
-            <button className="p-2 rounded-full border border-gray-400 rounded-full">
+            <button className="p-2 rounded-full border border-gray-400">
               <Bell className="text-gray-400" size={18} />
             </button>
           </div>
@@ -153,7 +156,7 @@ export default function PatientDashboard({ userId }) {
               <h1 className="text-2xl font-semibold">Hello, {userData?.name || "Your Name"}!</h1>
               <p className="text-gray-500">Have are you feeling today?</p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <InfoCard
                   title="Your Doctor"
@@ -232,16 +235,19 @@ export default function PatientDashboard({ userId }) {
 
           {/* Reminders */}
           <div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="bg-white rounded-lg p-5 shadow-sm">
               <div className="flex justify-between items-center mb-3">
                 <p className="font-semibold">Remind me</p>
-                <button className="text-sm text-blue-600">This week</button>
+                <div className=" flex gap-1">
+                  <button className="text-sm text-[#6FD2EE]">This week</button>
+                <ChevronDown size={20} className="text-[#6FD2EE] cursor-pointer" />
+                </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div className="bg-blue-600 h-2 rounded-full w-2/5"></div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1 rounded-lg bg-[#EBECF5] p-1">
                 <ReminderItem title="Order drugs" date="07.06.2020" />
                 <ReminderItem title="Start course" date="10.06.2020" />
                 <ReminderItem title="Blood test" date="12.06.2020" />
@@ -278,7 +284,7 @@ const SidebarItem = ({ icon, label, active }) => (
 );
 
 const InfoCard = ({ title, content, onChange }) => (
-  <div className="bg-white p-5 rounded-xl shadow-sm relative">
+  <div className="bg-white p-5 rounded-lg shadow-sm relative">
     <div className="flex justify-between items-center mb-2">
       <p className="text-lg font-semibold text-gray-900 pb-2">{title}</p>
       <div className="flex items-center gap-2 cursor-pointer" onClick={onChange}>
@@ -299,16 +305,19 @@ const CardButton = ({ icon, title, subtitle }) => (
 );
 
 const ReminderItem = ({ title, date }) => (
-  <div className="flex justify-between items-center text-sm">
-    <div className="flex items-center space-x-2">
-      <div className="bg-blue-100 p-1 rounded">
-        <ClipboardList size={14} className="text-blue-600" />
+  <div className="flex justify-between items-center p-2 rounded-lg text-sm bg-white">
+    <div className="flex items-center gap-2">
+      <div className="bg-[#EBECF5] p-3 rounded">
+        <ClipboardList size={30} className="text-[#2663EB]" />
       </div>
-      <p>{title}</p>
+      <div>
+        <p className=" text-sm font-bold">{title}</p>
+        <p className=" text-xs font-medium">{date}</p>
+      </div>
     </div>
     <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
-      <span>{date}</span>
-      <Edit3 size={14} />
+      {/* <span>{date}</span> */}
+      <Edit3 color="#6FD2EE" size={18} />
     </div>
   </div>
 );
