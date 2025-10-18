@@ -8,6 +8,8 @@ import OTPVerificationPage from './pages/auth/OTPVerificationPage';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientAnalytics from './pages/doctor/PatientAnalytics';
 import PatientDashboard from './pages/patient/PatientDashboard';
+import PatientAppointments from './pages/patient/PatientAppointments';
+
 import CaretakerDashboard from './pages/caretaker/CaretakerDashboard';
 import GamePage from './pages/game/GamePage';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -25,6 +27,7 @@ function App() {
           <Route path="/doctor/dashboard" element={<ProtectedRoute allowedTypes={['doctor']}><DoctorDashboard /></ProtectedRoute>} />
           <Route path="/doctor/patient/:patientId" element={<ProtectedRoute allowedTypes={['doctor']}><PatientAnalytics /></ProtectedRoute>} />
           <Route path="/patient/dashboard" element={<ProtectedRoute allowedTypes={['patient']}><PatientDashboard /></ProtectedRoute>} />
+          <Route path="/patient/appointments" element={<ProtectedRoute allowedTypes={['patient']}><PatientAppointments/></ProtectedRoute>} />
           <Route path="/caretaker/dashboard" element={<ProtectedRoute allowedTypes={['caretaker']}><CaretakerDashboard /></ProtectedRoute>} />
           <Route path="/game" element={<ProtectedRoute allowedTypes={['patient', 'caretaker']}><GamePage /></ProtectedRoute>} />
 

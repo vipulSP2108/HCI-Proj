@@ -1,10 +1,26 @@
+import {
+  Bell,
+  Calendar,
+  ClipboardList,
+  FileText,
+  Home,
+  LogOut,
+  MessageSquare,
+  Settings,
+  User,
+  Phone,
+  Mail,
+  Edit3,
+  Search,
+  PhoneCall,
+  MessageSquareDashed,
+} from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
-import { Play, LogOut, TrendingUp, Clock, Target, Award } from 'lucide-react';
 
-const PatientDashboard = () => {
+export default function PatientDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
@@ -39,205 +55,207 @@ const PatientDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl shadow-2xl p-8 mb-6 text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="flex min-h-screen bg-[#EBECF5] text-gray-800">
+      {/* Sidebar */}
+      <aside className="w-64 rounded-e-[40px] bg-white shadow-lg flex flex-col justify-between">
+        <div className="p-0">
+          <div className="p-6 flex items-center space-x-2">
+            <div className="bg-[#2B91D4] h-8 w-8 rounded-lg"></div>
+            <span className="text-xl font-bold">App Name</span>
+          </div>
+
+          <div className="px-6 pt-6 pb-2 flex items-center space-x-3">
+            <img
+              src="https://via.placeholder.com/40"
+              alt="Profile"
+              className="w-10 h-10 rounded-full"
+            />
             <div>
-              <h1 className="text-4xl font-bold mb-2">Patient Dashboard</h1>
-              <p className="text-primary-100 text-lg">{user?.email}</p>
-              <p className="text-primary-200 text-sm mt-2">
-                Response Time: <span className="font-semibold text-white">{stats?.currentlevelspan || 5} seconds</span>
-              </p>
+              <h1 className="text-lg font-semibold text-[#2B91D4]">{user?.name ? user?.email : "Your Name"}</h1>
+              <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
-            <button 
-              onClick={handleLogout} 
-              className="flex items-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition shadow-lg"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
+          </div>
+
+          <nav className="mt-4 rounded-xl">
+            <SidebarItem icon={<Home size={18} />} label="Dashboard" active />
+            <SidebarItem icon={<Calendar size={18} />} label="Appointment" />
+            <SidebarItem icon={<FileText size={18} />} label="Record" />
+            <SidebarItem icon={<MessageSquare size={18} />} label="Chat" />
+            <SidebarItem icon={<ClipboardList size={18} />} label="Calendar" />
+          </nav>
+        </div>
+
+        <div className="border-t py-4 pt-5 space-y-2">
+          <SidebarItem icon={<Settings size={18} />} label="Settings" />
+          <SidebarItem icon={<LogOut size={18} />} label="Help center" />
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 px-8 pt-4">
+
+        {/* Top Bar */}
+        <div className="flex justify-end pb-10">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Global search"
+                className="bg-[#EBECF5] text-black pl-9 pr-5 py-2 rounded-full border border-gray-400 text-sm focus:outline-none placeholder:text-gray-400"
+              />
+            </div>
+            <button className="p-2 rounded-full border border-gray-400 rounded-full">
+              <Bell className="text-gray-400" size={18} />
             </button>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Stats Cards Column */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Main Stats */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-primary-600" />
-                Your Stats
-              </h2>
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border-2 border-primary-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600 font-semibold">Level</p>
-                    <Award className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <p className="text-5xl font-bold text-primary-600">{stats?.level || 1}</p>
-                </div>
 
-                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-lg p-4 border-2 border-secondary-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600 font-semibold">Total Score</p>
-                    <Target className="w-5 h-5 text-secondary-600" />
-                  </div>
-                  <p className="text-5xl font-bold text-secondary-600">{stats?.totalScore || 0}</p>
-                </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border-2 border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600 font-semibold">Sessions Played</p>
-                    <Play className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-5xl font-bold text-green-600">{stats?.recentSessions?.length || 0}</p>
-                </div>
 
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600 font-semibold">Response Time</p>
-                    <Clock className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <p className="text-4xl font-bold text-orange-600">{stats?.currentlevelspan || 5}s</p>
-                  <p className="text-xs text-gray-500 mt-1">Time allowed per attempt</p>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Doctor & Data */}
+          <div className="col-span-2 space-y-6">
+            <div>
+              <h1 className="text-2xl font-semibold">Hello, {user?.name ? user?.name : "Your Name"}!</h1>
+              <p className="text-gray-500">Have are you feeling today?</p>
+            </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <InfoCard
+                  title="Your Doctor"
+                  content={
+                    <div className="flex justify-between">
+                      <div className="flex space-x-2 items-center">
+                        <img
+                        src="https://via.placeholder.com/40"
+                        className="w-10 h-10 rounded-full bg-black"
+                        alt="Doctor"
+                      />
+                      <div>
+                        <p className="text-base font-bold text-gray-900">{user?.doctor ? user?.doctor : "Your Doctor"}</p>
+                        <p className="text-sm font-normal text-gray-500">{user?.doctorDegree ? user?.doctorDegree : "Doctor Degree"}</p>
+                      </div>
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <div className=" bg-[#EBECF5] rounded-lg flex items-center p-2"><MessageSquare size={20} className="text-[#6FD2EE] cursor-pointer" /></div>
+                        <div teli={user?.doctorteli ? user?.doctorteli : "Doctor Degree"} className=" bg-[#EBECF5] rounded-lg flex items-center p-2"><PhoneCall size={20} className="text-[#6FD2EE] cursor-pointer" /></div>
+                        </div>
+                    </div>
+                  }
+                />
+                <InfoCard
+                  title="Your data"
+                  content={
+                    <div className="flex justify-between text-sm">
+                      <div className="text-center">
+                        <p className="text-sm font-normal text-gray-500">Weight:</p>
+                        <p className="text-base font-bold text-gray-900">58 kg</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-normal text-gray-500">Height:</p>
+                        <p className="text-base font-bold text-gray-900">175 cm</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-normal text-gray-500">Blood:</p>
+                        <p className="text-base font-bold text-gray-900">A+</p>
+                      </div>
+                    </div>
+
+                  }
+                />
+              </div>
+
+              {/* Middle Section */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm flex">
+                <div className="w-1/3 flex justify-center items-center">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png"
+                    alt="Doctor Illustration"
+                    className="w-32 h-32 object-contain"
+                  />
+                </div>
+                <div className="w-2/3 grid grid-cols-2 gap-4">
+                  <CardButton icon="🧠" title="Diagnostic" subtitle="List of diseases" />
+                  <CardButton icon="💊" title="Drugs" subtitle="Archive of tests" />
+                  <CardButton icon="📝" title="Tests" subtitle="Prescribed medicine" />
                 </div>
               </div>
             </div>
-
-            {/* Play Game Button */}
-            <button 
-              onClick={() => navigate('/game')} 
-              className="w-full flex items-center justify-center gap-3 px-8 py-8 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl font-bold text-2xl hover:from-success-600 hover:to-success-700 transition shadow-2xl transform hover:scale-105"
-            >
-              <Play className="w-10 h-10" />
-              Play Game
-            </button>
           </div>
 
-          {/* Recent Sessions Column */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Sessions</h2>
-              {stats?.recentSessions && stats.recentSessions.length > 0 ? (
-                <div className="space-y-4">
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
-                      <p className="text-xs text-green-700 font-semibold mb-1">Total Correct</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {stats.recentSessions.reduce((sum, s) => sum + s.correct, 0)}
-                      </p>
-                    </div>
-                    <div className="bg-red-50 rounded-lg p-3 text-center border border-red-200">
-                      <p className="text-xs text-red-700 font-semibold mb-1">Total Incorrect</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        {stats.recentSessions.reduce((sum, s) => sum + s.incorrect, 0)}
-                      </p>
-                    </div>
-                    <div className="bg-yellow-50 rounded-lg p-3 text-center border border-yellow-200">
-                      <p className="text-xs text-yellow-700 font-semibold mb-1">Total Not Done</p>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {stats.recentSessions.reduce((sum, s) => sum + s.notDone, 0)}
-                      </p>
-                    </div>
-                  </div>
+          {/* Reminders */}
+          <div>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <p className="font-semibold">Remind me</p>
+                <button className="text-sm text-blue-600">This week</button>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div className="bg-blue-600 h-2 rounded-full w-2/5"></div>
+              </div>
 
-                  {/* Session Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b-2 border-gray-200 bg-gray-50">
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Attempts</th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">✓ Correct</th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">✗ Incorrect</th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">⊘ Not Done</th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Accuracy</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {stats.recentSessions.slice().reverse().map((session, index) => {
-                          const accuracy = session.correct + session.incorrect > 0
-                            ? ((session.correct / (session.correct + session.incorrect)) * 100).toFixed(1)
-                            : 0;
-
-                          return (
-                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                              <td className="py-3 px-4 text-sm text-gray-600">
-                                {new Date(session.time).toLocaleDateString()}
-                                <span className="block text-xs text-gray-400">
-                                  {new Date(session.time).toLocaleTimeString()}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-semibold text-sm">
-                                  {session.total}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-semibold text-sm">
-                                  {session.correct}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-semibold text-sm">
-                                  {session.incorrect}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-semibold text-sm">
-                                  {session.notDone}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className={`font-bold text-lg ${
-                                  accuracy >= 80 ? 'text-green-600' :
-                                  accuracy >= 60 ? 'text-yellow-600' :
-                                  'text-red-600'
-                                }`}>
-                                  {accuracy}%
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Performance Indicator */}
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-800 font-semibold mb-2">💡 Quick Tip:</p>
-                    <p className="text-sm text-blue-700">
-                      Try to respond within <span className="font-bold">{stats.currentlevelspan} seconds</span> to avoid "Not Done" entries. 
-                      Practice regularly to improve your accuracy and response time!
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="mb-6">
-                    <Play className="w-24 h-24 text-gray-300 mx-auto" />
-                  </div>
-                  <p className="text-xl text-gray-400 mb-4 font-semibold">No sessions yet!</p>
-                  <p className="text-gray-500 mb-6">Start playing to see your progress and statistics</p>
-                  <button 
-                    onClick={() => navigate('/game')} 
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg hover:from-primary-600 hover:to-secondary-600 transition shadow-lg font-semibold text-lg"
-                  >
-                    <Play className="w-6 h-6" />
-                    Play Your First Game
-                  </button>
-                </div>
-              )}
+              <div className="space-y-3">
+                <ReminderItem title="Order drugs" date="07.06.2020" />
+                <ReminderItem title="Start course" date="10.06.2020" />
+                <ReminderItem title="Blood test" date="12.06.2020" />
+                <ReminderItem title="Diagnostic" date="12.06.2020" />
+                <ReminderItem title="Took tests" date="10.06.2020" />
+                <ReminderItem title="Consultation" date="10.06.2020" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
-};
+}
 
-export default PatientDashboard;
+/* Components */
+const SidebarItem = ({ icon, label, active }) => (
+  <div
+    className={`flex mx-2 rounded-full items-center space-x-3 px-4 py-2 cursor-pointer hover:bg-blue-50 ${active ? "text-blue-50 bg-blue-600 font-medium" : ""
+      }`}
+  >
+    <span className={`text-gray-500 ${active ? "text-blue-50 bg-blue-600 font-medium" : ""}`}>{icon}</span>
+    <span className="text-sm">{label}</span>
+  </div>
+);
+
+const InfoCard = ({ title, content }) => (
+  <div className="bg-white p-5 rounded-xl shadow-sm relative">
+    <div className="flex justify-between items-center mb-2">
+      <p className="text-lg font-semibold text-gray-900 pb-2">{title}</p>
+      <div className=" flex items-center gap-2">
+        <Edit3 size={14} className="text-[#6FD2EE] cursor-pointer" />
+        <p className="text-[#6FD2EE] font-semibold text-sm">Change</p>
+      </div>
+    </div>
+    {content}
+  </div>
+);
+
+const CardButton = ({ icon, title, subtitle }) => (
+  <div className="border rounded-xl p-4 flex flex-col justify-center hover:bg-blue-50 cursor-pointer">
+    <div className="text-3xl mb-2">{icon}</div>
+    <p className="font-medium">{title}</p>
+    <p className="text-xs text-gray-500">{subtitle}</p>
+  </div>
+);
+
+const ReminderItem = ({ title, date }) => (
+  <div className="flex justify-between items-center text-sm">
+    <div className="flex items-center space-x-2">
+      <div className="bg-blue-100 p-1 rounded">
+        <ClipboardList size={14} className="text-blue-600" />
+      </div>
+      <p>{title}</p>
+    </div>
+    <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
+      <span>{date}</span>
+      <Edit3 size={14} />
+    </div>
+  </div>
+);
