@@ -1,8 +1,7 @@
 const User = require('../models/user.model');
-
 exports.createUser = async (req, res) => {
   try {
-    const { email, password, phone, type } = req.body;
+    const { email, password, phone, type, doctorInfo, caretakerInfo, patientDetails } = req.body;
     const doctor = await User.findById(req.user.id);
     if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
 
@@ -13,8 +12,30 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid type' });
     }
 
-    const user = new User({ email, password, phone, type, createdBy: req.user.id });
+    const userFields = { email, password, phone, type, createdBy: doctor._id };
+    if (type === 'patient') {
+      userFields.patientDetails = patientDetails;
+      userFields.doctor = [{
+        doctorDegree: doctor.doctorDegree || '',
+        doctorName: doctor.doctorName || doctor.email,
+        doctorphone: doctor.phone || '',
+        doctoremail: doctor.email || ''
+      }];
+    }
+
+    const user = new User(userFields);
     await user.save();
+
+    // If user is a patient, push the patient _id to doctor's assignedPatients array
+    if (type === 'patient') {
+      doctor.assignedPatients.push(user._id);
+      await doctor.save();
+    }
+
+    if (type === 'caretaker') {
+      doctor.assignedCaretakers.push(user._id);
+      await doctor.save();
+    }
 
     res.status(201).json({
       success: true,
