@@ -742,6 +742,30 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             Play Game
           </button>
 
+          <button
+            onClick={() => navigate('/game2')}
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+          >
+            <Play className="w-7 h-7" />
+            Play Game2 
+          </button>
+
+          <button
+            onClick={() => navigate('/game3')}
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+          >
+            <Play className="w-7 h-7" />
+            Play Game3
+          </button>
+
+          <button
+            onClick={() => navigate('/game4')}
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+          >
+            <Play className="w-7 h-7" />
+            Play Game4
+          </button>
+
           {/* Total Counts Bar Chart - UPDATED with colors */}
           <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">Total Counts</h3>

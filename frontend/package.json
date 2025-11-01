@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "private": true,
   "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/hands": "^0.4.1675469240",
+    "@mediapipe/pose": "^0.5.1675469404",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "axios": "^1.5.0",
