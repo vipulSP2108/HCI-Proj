@@ -10,4 +10,8 @@ export const userService = {
     const url = userId ? `/users/full-details/${userId}` : '/users/full-details';
     return (await api.get(url)).data;
   }
+  ,
+  assignPatient: async ({ caretakerId, patientId }) => (await api.post('/users/assign-patient', { caretakerId, patientId })).data,
+  unassignPatient: async ({ caretakerId, patientId }) => (await api.post('/users/unassign-patient', { caretakerId, patientId })).data,
+  getCaretakerPatients: async () => (await api.get('/users/caretaker/patients')).data,
 };

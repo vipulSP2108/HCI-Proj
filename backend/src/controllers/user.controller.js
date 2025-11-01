@@ -148,6 +148,59 @@ exports.updateUserDetails = async (req, res) => {
 };
 
 // Get user full details, including assigned caretakers and patients
+exports.assignPatientToCaretaker = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.user.id);
+    if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
+    const { caretakerId, patientId } = req.body;
+    const caretaker = await User.findById(caretakerId);
+    const patient = await User.findById(patientId);
+    if (!caretaker || caretaker.type !== 'caretaker') return res.status(400).json({ success: false, message: 'Invalid caretaker' });
+    if (!patient || patient.type !== 'patient') return res.status(400).json({ success: false, message: 'Invalid patient' });
+
+    if (!doctor.assignedCaretakers.some(id => id.toString() === caretakerId)) {
+      doctor.assignedCaretakers.push(caretakerId);
+    }
+    if (!doctor.assignedPatients.some(id => id.toString() === patientId)) {
+      doctor.assignedPatients.push(patientId);
+    }
+    if (!caretaker.assignedPatients.some(id => id.toString() === patientId)) {
+      caretaker.assignedPatients.push(patientId);
+    }
+    await Promise.all([doctor.save(), caretaker.save()]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Assign failed', error: e.message });
+  }
+};
+
+exports.unassignPatientFromCaretaker = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.user.id);
+    if (doctor.type !== 'doctor') return res.status(403).json({ success: false, message: 'Doctors only' });
+    const { caretakerId, patientId } = req.body;
+    const caretaker = await User.findById(caretakerId);
+    if (!caretaker || caretaker.type !== 'caretaker') return res.status(400).json({ success: false, message: 'Invalid caretaker' });
+    caretaker.assignedPatients = caretaker.assignedPatients.filter(p => p.toString() !== patientId);
+    doctor.assignedPatients = doctor.assignedPatients.filter(p => p.toString() !== patientId);
+    await Promise.all([doctor.save(), caretaker.save()]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Unassign failed', error: e.message });
+  }
+};
+
+exports.getCaretakerPatients = async (req, res) => {
+  try {
+    const caretaker = await User.findById(req.user.id);
+    if (caretaker.type !== 'caretaker') return res.status(403).json({ success: false, message: 'Caretakers only' });
+    const patients = await User.find({ _id: { $in: caretaker.assignedPatients }, type: 'patient' }).select('email phone patientDetails');
+    res.json({ success: true, patients });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Fetch failed', error: e.message });
+  }
+};
+
 exports.getUserFullDetails = async (req, res) => {
   try {
     const userId = req.params.userId || req.user.id;

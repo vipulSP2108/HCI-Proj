@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import { userService } from '../../services/userService';
 
 const DoctorCaretakerManagement = () => {
   const [caretakers, setCaretakers] = useState([]);
@@ -8,10 +8,16 @@ const DoctorCaretakerManagement = () => {
   const [selectedPatient, setSelectedPatient] = useState('');
 
   useEffect(() => {
-    // These endpoints need to be created in your user controller to fetch
-    // only caretakers or only patients for the logged-in doctor
-    api.get('/users/my-caretakers').then(res => setCaretakers(res.data.caretakers));
-    api.get('/users/my-patients-list').then(res => setPatients(res.data.patients));
+    const load = async () => {
+      try {
+        const res = await userService.getMyPatients();
+        setCaretakers(res.caretakers || []);
+        setPatients(res.patients || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
   }, []);
 
   const handleAssign = async () => {
@@ -19,7 +25,7 @@ const DoctorCaretakerManagement = () => {
       return alert('Please select a caretaker and a patient.');
     }
     try {
-      await api.post('/users/assign-caretaker', { caretakerId: selectedCaretaker, patientId: selectedPatient });
+      await userService.assignPatient({ caretakerId: selectedCaretaker, patientId: selectedPatient });
       alert('Patient assigned successfully!');
       setSelectedPatient(''); // Reset dropdown
     } catch (error) {

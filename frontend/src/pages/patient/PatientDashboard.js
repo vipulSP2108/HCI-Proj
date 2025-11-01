@@ -439,6 +439,11 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             <p className="text-gray-500">How are you feeling today?</p>
           </div>
           <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button onClick={()=>navigate('/chat')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><MessageSquare size={18}/>Chat</button>
+              <button onClick={()=>navigate('/reminders')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Bell size={18}/>Reminders</button>
+              <button onClick={()=>navigate('/patient/appointments')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Calendar size={18}/>Appointments</button>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <InfoCard
                 title="Your Doctor"

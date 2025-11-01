@@ -9,6 +9,10 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientAnalytics from './pages/doctor/PatientAnalytics';
 import PatientDashboard from './pages/patient/PatientDashboard';
 import PatientAppointments from './pages/patient/PatientAppointments';
+import ChatPage from './pages/common/ChatPage';
+import RemindersPage from './pages/common/RemindersPage';
+import AvailabilityPage from './pages/doctor/AvailabilityPage';
+import SchedulePage from './pages/doctor/SchedulePage';
 import DoctorCaretakerManagement from './pages/doctor/DoctorCaretakerManagement';
 
 import CaretakerDashboard from './pages/caretaker/CaretakerDashboard';
@@ -36,6 +40,10 @@ function App() {
           <Route path="/doctor/patient/:patientId" element={<ProtectedRoute allowedTypes={['doctor']}><PatientAnalytics /></ProtectedRoute>} />
           <Route path="/patient/dashboard" element={<ProtectedRoute allowedTypes={['patient']}><PatientDashboard /></ProtectedRoute>} />
           <Route path="/patient/appointments" element={<ProtectedRoute allowedTypes={['patient']}><PatientAppointments/></ProtectedRoute>} />
+          <Route path="/chat" element={<ProtectedRoute allowedTypes={['doctor','patient','caretaker']}><ChatPage/></ProtectedRoute>} />
+          <Route path="/reminders" element={<ProtectedRoute allowedTypes={['doctor','patient','caretaker']}><RemindersPage/></ProtectedRoute>} />
+          <Route path="/doctor/availability" element={<ProtectedRoute allowedTypes={['doctor']}><AvailabilityPage/></ProtectedRoute>} />
+          <Route path="/doctor/schedule" element={<ProtectedRoute allowedTypes={['doctor']}><SchedulePage/></ProtectedRoute>} />
           <Route path="/caretaker/dashboard" element={<ProtectedRoute allowedTypes={['caretaker']}><CaretakerDashboard /></ProtectedRoute>} />
           <Route path="/game" element={<ProtectedRoute allowedTypes={['patient', 'caretaker']}><GamePage /></ProtectedRoute>} />
 

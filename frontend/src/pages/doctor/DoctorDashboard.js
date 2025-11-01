@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
-import { Users, UserPlus, LogOut, Activity } from 'lucide-react';
+import { reminderService } from '../../services/reminderService';
+import { Users, UserPlus, LogOut, Activity, MessageSquare, Bell, Calendar } from 'lucide-react';
 
 const DoctorDashboard = () => {
   const { user, logout } = useAuth();
@@ -13,6 +14,15 @@ const DoctorDashboard = () => {
   const [formData, setFormData] = useState({ email: '', password: '', phone: '', type: 'patient' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Assignment state
+  const [assignCaretakerId, setAssignCaretakerId] = useState('');
+  const [assignPatientId, setAssignPatientId] = useState('');
+
+  // Reminders mini panel state
+  const [selectedReminderPatient, setSelectedReminderPatient] = useState('');
+  const [reminders, setReminders] = useState([]);
+  const [reminderForm, setReminderForm] = useState({ title: '', text: '', date: '', time: '', isRecurring: false });
 
   useEffect(() => {
     loadUsers();
@@ -48,6 +58,27 @@ const DoctorDashboard = () => {
 
   const viewPatientAnalytics = (patientId) => {
     navigate(`/doctor/patient/${patientId}`);
+  };
+
+  const refreshReminders = async (pid) => {
+    if (!pid) { setReminders([]); return; }
+    try {
+      const res = await reminderService.listForPatient(pid);
+      setReminders(res.reminders || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const createReminder = async () => {
+    if (!selectedReminderPatient) return alert('Select a patient');
+    await reminderService.create({ patientId: selectedReminderPatient, ...reminderForm });
+    setReminderForm({ title: '', text: '', date: '', time: '', isRecurring: false });
+    refreshReminders(selectedReminderPatient);
+  };
+
+  const assignPatient = async () => {
+    if (!assignCaretakerId || !assignPatientId) return alert('Select caretaker and patient');
+    await userService.assignPatient({ caretakerId: assignCaretakerId, patientId: assignPatientId });
+    alert('Assigned');
   };
 
   const handleLogout = () => {
@@ -97,6 +128,15 @@ const DoctorDashboard = () => {
           </div>
         </div>
 
+        {/* Quick actions */}
+        <div className="grid md:grid-cols-4 gap-4 mb-6">
+          <button onClick={()=>navigate('/doctor/manage-caretakers')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Users className="w-5 h-5"/>Assign Caretaker</button>
+          <button onClick={()=>navigate('/chat')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><MessageSquare className="w-5 h-5"/>Open Chat</button>
+          <button onClick={()=>navigate('/reminders')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Bell className="w-5 h-5"/>Reminders</button>
+          <button onClick={()=>navigate('/doctor/availability')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Calendar className="w-5 h-5"/>Availability</button>
+          <button onClick={()=>navigate('/doctor/schedule')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Calendar className="w-5 h-5"/>Schedule</button>
+        </div>
+
         {/* Create User Form */}
         {showCreateForm && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -131,6 +171,22 @@ const DoctorDashboard = () => {
           </div>
         )}
 
+        {/* Inline Assign Patient to Caretaker */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Assign Patient to Caretaker</h2>
+          <div className="grid md:grid-cols-3 gap-3">
+            <select className="border p-2 rounded" value={assignCaretakerId} onChange={e=>setAssignCaretakerId(e.target.value)}>
+              <option value="">Select Caretaker</option>
+              {caretakers.map(c => <option key={c._id} value={c._id}>{c.email}</option>)}
+            </select>
+            <select className="border p-2 rounded" value={assignPatientId} onChange={e=>setAssignPatientId(e.target.value)}>
+              <option value="">Select Patient</option>
+              {patients.map(p => <option key={p._id} value={p._id}>{p.email}</option>)}
+            </select>
+            <button onClick={assignPatient} className="bg-blue-600 text-white px-4 py-2 rounded">Assign</button>
+          </div>
+        </div>
+
         {/* Patients Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -157,6 +213,41 @@ const DoctorDashboard = () => {
                 No patients created yet.
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Mini Reminders Panel */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Bell className="w-6 h-6 text-yellow-600" /> Reminders (Quick)
+          </h2>
+          <div className="grid md:grid-cols-4 gap-3 items-end mb-4">
+            <select className="border p-2 rounded md:col-span-1" value={selectedReminderPatient} onChange={e=>{ setSelectedReminderPatient(e.target.value); refreshReminders(e.target.value); }}>
+              <option value="">Select Patient</option>
+              {patients.map(p => <option key={p._id} value={p._id}>{p.email}</option>)}
+            </select>
+            <input className="border p-2 rounded" placeholder="Title" value={reminderForm.title} onChange={e=>setReminderForm({...reminderForm, title:e.target.value})} />
+            <input type="date" className="border p-2 rounded" value={reminderForm.date} onChange={e=>setReminderForm({...reminderForm, date:e.target.value})} />
+            <div className="flex gap-2">
+              <input type="time" className="border p-2 rounded" value={reminderForm.time} onChange={e=>setReminderForm({...reminderForm, time:e.target.value})} />
+              <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={reminderForm.isRecurring} onChange={e=>setReminderForm({...reminderForm, isRecurring:e.target.checked})} />Daily</label>
+            </div>
+          </div>
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-sm text-gray-500">{reminders.length} reminders</div>
+            <button onClick={createReminder} className="bg-green-600 text-white px-4 py-2 rounded">Add</button>
+          </div>
+          <div className="space-y-2 max-h-64 overflow-auto">
+            {reminders.map(r => (
+              <div key={r._id} className="border rounded p-2 text-sm flex justify-between">
+                <div>
+                  <div className="font-medium">{r.title}</div>
+                  <div className="text-gray-600">{r.text}</div>
+                </div>
+                <div className="text-gray-500">{new Date(r.date).toLocaleDateString()} {r.time}</div>
+              </div>
+            ))}
+            {reminders.length===0 && <div className="text-gray-400 text-sm">No reminders selected</div>}
           </div>
         </div>
 

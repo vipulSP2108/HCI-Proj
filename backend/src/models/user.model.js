@@ -63,7 +63,14 @@ const userSchema = new mongoose.Schema({
   totalScore: { type: Number, default: 0 },
   resetOTP: { type: String, default: null },
   resetOTPExpiry: { type: Date, default: null },
-  isActive: { type: Boolean, default: true }
+isActive: { type: Boolean, default: true },
+
+  // Doctor availability settings
+  availability: {
+    startTime: { type: String, default: '09:00' },
+    endTime: { type: String, default: '17:00' },
+    slotMinutes: { type: Number, default: 30 }
+  }
 }, { timestamps: true });
 
 // Password hashing and comparison methods (unchanged)

@@ -28,6 +28,9 @@ connectDB();
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/game', require('./routes/game.routes'));
+app.use('/api/chat', require('./routes/chat.routes'));
+app.use('/api/reminders', require('./routes/reminder.routes'));
+app.use('/api/appointments', require('./routes/appointment.routes'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server running' });
