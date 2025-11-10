@@ -40,6 +40,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
 import { userService } from '../../services/userService';
 import { Play, TrendingUp, Clock, Target, Award } from 'lucide-react';
+import ChatPage from '../common/ChatPage';
+import PatientAppointments from './PatientAppointments';
 
 export default function PatientDashboard({ userId }) {
   const { user, logout } = useAuth();
@@ -114,7 +116,7 @@ export default function PatientDashboard({ userId }) {
   return (
     <div className="flex min-h-screen bg-[#EBECF5] text-gray-800">
       {/* Sidebar - fixed, collapsible */}
-      <aside className={`fixed top-0 left-0 h-screen rounded-e-[40px] bg-white shadow-lg flex flex-col justify-between overflow-hidden z-10 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      <aside className={`fixed top-0 left-0 h-screen bg-white shadow-lg flex flex-col justify-between overflow-hidden z-10 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
         <div className="p-0 flex flex-col h-full">
           {/* Toggle Button */}
           <button
@@ -212,7 +214,7 @@ export default function PatientDashboard({ userId }) {
       </aside>
 
       {/* Main content - scrollable, offset by sidebar */}
-      <div className={`h-screen overflow-y-auto px-8 pt-4 flex-1 transition-all duration-300 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <main className="flex-1">
           {activeSection === 'Dashboard' && <DashboardContent
             userData={userData}
@@ -221,9 +223,9 @@ export default function PatientDashboard({ userId }) {
             setIsDoctorModalOpen={setIsDoctorModalOpen}
             navigate={navigate}
           />}
-          {activeSection === 'Appointment' && <AppointmentContent />}
+          {activeSection === 'Appointment' && <PatientAppointments />}
           {activeSection === 'Record' && <RecordContent />}
-          {activeSection === 'Chat' && <ChatContent />}
+          {activeSection === 'Chat' && <ChatPage />}
           {activeSection === 'Calendar' && <CalendarContent />}
           {activeSection === 'Settings' && <SettingsContent
             userData={userData}
