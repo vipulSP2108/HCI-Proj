@@ -58,18 +58,27 @@ exports.complete = async (req, res) => {
 
     // Auto-generate next day instance if recurring
     if (reminder.isRecurring) {
-      const nextDate = new Date(reminder.date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      await Reminder.create({
-        patient: reminder.patient,
-        createdBy: req.user.id,
-        title: reminder.title,
-        text: reminder.text,
-        date: nextDate,
-        time: reminder.time,
-        isRecurring: true
-      });
-    }
+  // Get tomorrow’s date based on today
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // If you have a specific reminder time (e.g. "14:30"), set it here
+  if (reminder.time) {
+    const [hours, minutes] = reminder.time.split(':').map(Number);
+    tomorrow.setHours(hours, minutes, 0, 0);
+  }
+
+  await Reminder.create({
+    patient: reminder.patient,
+    createdBy: req.user.id,
+    title: reminder.title,
+    text: reminder.text,
+    date: tomorrow,
+    time: reminder.time,
+    isRecurring: true
+  });
+}
+
 
     res.json({ success: true });
   } catch (e) {

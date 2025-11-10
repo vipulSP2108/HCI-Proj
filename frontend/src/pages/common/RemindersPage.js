@@ -10,6 +10,8 @@ const RemindersPage = () => {
   const [patients, setPatients] = useState([]);
   const [form, setForm] = useState({ title: '', text: '', date: '', time: '', isRecurring: false });
 
+  console.log(reminders);
+  
   const isDoctor = user?.type === 'doctor';
   const isCaretaker = user?.type === 'caretaker';
 

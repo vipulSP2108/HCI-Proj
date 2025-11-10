@@ -34,11 +34,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
 import { userService } from '../../services/userService';
+import { reminderService } from '../../services/reminderService';
 import { Play, TrendingUp, Clock, Target, Award } from 'lucide-react';
 import ChatPage from '../common/ChatPage';
 import PatientAppointments from './PatientAppointments';
@@ -222,6 +223,7 @@ export default function PatientDashboard({ userId }) {
             stats={stats}
             setIsDoctorModalOpen={setIsDoctorModalOpen}
             navigate={navigate}
+            userId={userId}
           />}
           {activeSection === 'Appointment' && <PatientAppointments />}
           {activeSection === 'Record' && <RecordContent />}
@@ -263,8 +265,11 @@ const SidebarItem = ({ icon, label, active, onClick, collapsed }) => (
 );
 
 // Extracted Dashboard content into its own component
-const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate }) => {
+const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate, userId }) => {
   const [selectedSession, setSelectedSession] = useState(0);
+  const [reminders, setReminders] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [editingReminder, setEditingReminder] = useState(null);
 
   // Computations for charts - moved inside DashboardContent
   const recentSessions = stats?.recentSessions || (stats?.play ? [stats] : []);
@@ -413,6 +418,66 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
   };
 
   console.log(selectedSessionData)
+
+  // Fetch reminders
+  useEffect(() => {
+    const fetchReminders = async () => {
+      try {
+        const res = await reminderService.listForPatient(userId);
+        setReminders(res.reminders || []);
+      } catch (err) {
+        console.error('Failed to fetch reminders:', err);
+      }
+    };
+    fetchReminders();
+  }, [userId]);
+
+  // Filter reminders based on period
+  const filteredReminders = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    let start = todayStr;
+    let end;
+
+    if (selectedPeriod === 'today') {
+      end = todayStr;
+    } else if (selectedPeriod === 'week') {
+      const dayOfWeek = now.getDay(); // 0 = Sunday
+      const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+      const endOfWeek = new Date(now);
+      endOfWeek.setDate(now.getDate() + daysToSunday);
+      end = endOfWeek.toISOString().split('T')[0];
+    } else { // month
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      end = endOfMonth.toISOString().split('T')[0];
+    }
+
+    const filtered = reminders
+      .filter(r => {
+        const rDateStr = new Date(r.date).toISOString().split('T')[0];
+        return rDateStr >= start && rDateStr <= end;
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    return filtered;
+  }, [reminders, selectedPeriod]);
+
+  const activeReminders = filteredReminders.filter(r => r.status !== 'completed');
+  const completedReminders = filteredReminders.filter(r => r.status === 'completed');
+  const totalReminders = filteredReminders.length;
+  const percentage = totalReminders > 0 ? Math.round((completedReminders.length / totalReminders) * 100) : 0;
+
+  const handleSaveEdit = useCallback(async (updatedForm) => {
+    if (!editingReminder) return;
+    try {
+      await reminderService.update(editingReminder._id, updatedForm);
+      const res = await reminderService.listForPatient(userId);
+      setReminders(res.reminders || []);
+      setEditingReminder(null);
+    } catch (err) {
+      console.error('Failed to update reminder:', err);
+    }
+  }, [editingReminder, userId]);
 
   return (
     <>
@@ -722,22 +787,50 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
           <div className="bg-white rounded-lg p-5 shadow-sm mb-4">
             <div className="flex justify-between items-center mb-3">
               <p className="font-semibold">Remind me</p>
-              <div className="flex gap-1">
-                <button className="text-sm text-[#6FD2EE]">This week</button>
+              <div className="flex items-center gap-1">
+                <select
+                  className="text-sm text-[#6FD2EE] bg-transparent border-none focus:outline-none cursor-pointer"
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                >
+                  <option value="today">Today</option>
+                  <option value="week">This week</option>
+                  <option value="month">This month</option>
+                </select>
                 <ChevronDown size={20} className="text-[#6FD2EE] cursor-pointer" />
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div className="bg-blue-600 h-2 rounded-full w-2/5"></div>
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${percentage}%` }}
+              ></div>
             </div>
 
             <div className="space-y-1 rounded-lg bg-[#EBECF5] p-1 max-h-48 overflow-y-auto">
-              <ReminderItem title="Order drugs" date="07.06.2020" />
-              <ReminderItem title="Start course" date="10.06.2020" />
-              <ReminderItem title="Blood test" date="12.06.2020" />
-              <ReminderItem title="Diagnostic" date="12.06.2020" />
-              <ReminderItem title="Took tests" date="10.06.2020" />
-              <ReminderItem title="Consultation" date="10.06.2020" />
+              {activeReminders.map((r) => (
+                <ReminderItem
+                  key={r._id}
+                  reminder={r}
+                  onEdit={() => setEditingReminder(r)}
+                />
+              ))}
+              {completedReminders.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-300">
+                  <p className="text-xs text-gray-500 mb-2">Completed</p>
+                  {completedReminders.map((r) => (
+                    <ReminderItem
+                      key={r._id}
+                      reminder={r}
+                      onEdit={() => setEditingReminder(r)}
+                      isCompleted
+                    />
+                  ))}
+                </div>
+              )}
+              {activeReminders.length === 0 && completedReminders.length === 0 && (
+                <p className="text-xs text-gray-500 text-center py-2">No reminders</p>
+              )}
             </div>
           </div>
 
@@ -797,7 +890,114 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
           </div>
         </div>
       </div>
+
+      {/* Edit Reminder Modal */}
+      {editingReminder && (
+        <EditReminderModal
+          reminder={editingReminder}
+          onClose={() => setEditingReminder(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
     </>
+  );
+};
+
+// Updated ReminderItem component
+const ReminderItem = ({ reminder, onEdit, isCompleted }) => {
+  const dateStr = new Date(reminder.date).toLocaleDateString('en-GB'); // DD.MM.YYYY format
+  return (
+    <div className={`flex justify-between items-center p-2 rounded-lg text-sm ${isCompleted ? 'bg-blue-100' : 'bg-white'}`}>
+      <div className="flex items-center gap-2">
+        <div className="bg-[#EBECF5] p-3 rounded">
+          <ClipboardList size={30} className="text-[#2663EB]" />
+        </div>
+        <div>
+          <p className="text-sm font-bold">{reminder.title}</p>
+          {reminder.text && <p className="text-xs text-gray-600">{reminder.text}</p>}
+          <p className="text-xs font-medium">{dateStr} {reminder.time}</p>
+        </div>
+      </div>
+      <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
+        <Edit3
+          color="#6FD2EE"
+          size={18}
+          onClick={() => onEdit && onEdit(reminder)}
+        />
+      </div>
+    </div>
+  );
+};
+
+// Edit Reminder Modal Component
+const EditReminderModal = ({ reminder, onClose, onSave }) => {
+  const [form, setForm] = useState({
+    title: reminder.title || '',
+    text: reminder.text || '',
+    date: new Date(reminder.date).toISOString().split('T')[0],
+    time: reminder.time || '',
+    isRecurring: reminder.isRecurring || false,
+  });
+
+  const handleSave = () => {
+    onSave(form);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-auto">
+        <h2 className="text-xl font-semibold mb-4">Edit Reminder</h2>
+        <input
+          className="border p-2 w-full rounded mb-2"
+          placeholder="Title"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+        />
+        <textarea
+          className="border p-2 w-full rounded mb-2"
+          placeholder="Text"
+          value={form.text}
+          onChange={(e) => setForm({ ...form, text: e.target.value })}
+          rows={3}
+        />
+        <div className="flex gap-2 mb-4">
+          <input
+            type="date"
+            className="border p-2 rounded flex-1"
+            value={form.date}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+          />
+          <input
+            type="time"
+            className="border p-2 rounded flex-1"
+            value={form.time}
+            onChange={(e) => setForm({ ...form, time: e.target.value })}
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm mb-4">
+          <input
+            type="checkbox"
+            checked={form.isRecurring}
+            onChange={(e) => setForm({ ...form, isRecurring: e.target.checked })}
+          />
+          Daily recurring
+        </label>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            Close
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -877,23 +1077,6 @@ const CardButton = ({ icon, title, subtitle }) => (
     <div className="text-3xl mb-2">{icon}</div>
     <p className="font-medium">{title}</p>
     <p className="text-xs text-gray-500">{subtitle}</p>
-  </div>
-);
-
-const ReminderItem = ({ title, date }) => (
-  <div className="flex justify-between items-center p-2 rounded-lg text-sm bg-white">
-    <div className="flex items-center gap-2">
-      <div className="bg-[#EBECF5] p-3 rounded">
-        <ClipboardList size={30} className="text-[#2663EB]" />
-      </div>
-      <div>
-        <p className="text-sm font-bold">{title}</p>
-        <p className="text-xs font-medium">{date}</p>
-      </div>
-    </div>
-    <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
-      <Edit3 color="#6FD2EE" size={18} />
-    </div>
   </div>
 );
 
