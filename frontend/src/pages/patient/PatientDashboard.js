@@ -32,6 +32,7 @@ import {
   MessageSquareDashed,
   ChevronDown,
   ChevronLeft,
+  Flame,
   ChevronRight,
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -134,7 +135,7 @@ export default function PatientDashboard({ userId }) {
           {/* Logo */}
           <div className={`p-6 flex items-center space-x-2 transition-opacity`}>
             <div className="bg-[#2B91D4] h-8 w-8 rounded-lg"></div>
-            {!isCollapsed && <span className="text-xl font-bold">App Name</span>}
+            {!isCollapsed && <span className="text-xl font-bold">Young Tempo</span>}
           </div>
 
           {/* Profile */}
@@ -215,7 +216,7 @@ export default function PatientDashboard({ userId }) {
       </aside>
 
       {/* Main content - scrollable, offset by sidebar */}
-      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <main className="flex-1">
           {activeSection === 'Dashboard' && <DashboardContent
             userData={userData}
@@ -256,7 +257,7 @@ export default function PatientDashboard({ userId }) {
 // Updated SidebarItem to accept onClick, active, and collapsed props
 const SidebarItem = ({ icon, label, active, onClick, collapsed }) => (
   <div
-    className={`flex ${collapsed ? 'justify-center' : 'items-center space-x-3'} mx-2 my-1 rounded-full px-4 py-2 cursor-pointer hover:bg-blue-50 transition-all ${active ? "text-white bg-blue-600 font-medium" : ""}`}
+    className={`flex ${collapsed ? 'justify-center' : 'items-center space-x-3'} mx-2 my-1 rounded-full px-4 py-2 cursor-pointer hover:bg-blue-50 transition-all ${active ? "text-white bg-blue-600 font-medium hover:bg-blue-500" : ""}`}
     onClick={onClick}
   >
     <span className={`text-gray-500 ${active ? "text-white" : ""} flex-shrink-0`}>{icon}</span>
@@ -273,7 +274,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
 
   // Computations for charts - moved inside DashboardContent
   const recentSessions = stats?.recentSessions || (stats?.play ? [stats] : []);
-  const today = new Date('2025-10-18'); // Use provided current date
+  const today = new Date('2025-11-16'); // Use provided current date
   const totals = {
     correct: recentSessions.reduce((sum, s) => sum + (s.correct || 0), 0),
     incorrect: recentSessions.reduce((sum, s) => sum + (s.incorrect || 0), 0),
@@ -302,13 +303,16 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
     dailyData[dateStr].totalResponseTime += session.responsetime || 0;
   });
 
-  // Last 7 chronological sessions
-  const last7Chron = [...recentSessions]
+  // Last 7 chronological sessions ascending for charts
+  const last7ChronAsc = [...recentSessions]
     .sort((a, b) => new Date(a.time) - new Date(b.time))
     .slice(-7);
 
-  // Accuracy and Response Time data for last 7 games
-  const accuracyData = last7Chron.map((session) => {
+  // Descending for select (most recent first)
+  const last7ChronDesc = [...last7ChronAsc].reverse();
+
+  // Accuracy and Response Time data for last 7 games (using asc for chronological order)
+  const accuracyData = last7ChronAsc.map((session) => {
     const total = (session.correct || 0) + (session.incorrect || 0);
     const accuracy = total > 0 ? ((session.correct || 0) / total) * 100 : 0;
     const avgResponseTime = (session.total || total) > 0 ? (session.responsetime || 0) / (session.total || total) : 2.5;
@@ -321,20 +325,20 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
   });
 
   // Average accuracy over last 7 sessions
-  const avgAcc7Sessions = last7Chron.length > 0 ? last7Chron.reduce((sum, s) => {
+  const avgAcc7Sessions = last7ChronAsc.length > 0 ? last7ChronAsc.reduce((sum, s) => {
     const total = (s.correct || 0) + (s.incorrect || 0);
     return sum + (total > 0 ? ((s.correct || 0) / total * 100) : 0);
-  }, 0) / last7Chron.length : 0;
+  }, 0) / last7ChronAsc.length : 0;
 
   // Average response time over last 7 games
-  const avgResponseTime7Games = last7Chron.reduce((sum, session) => {
+  const avgResponseTime7Games = last7ChronAsc.reduce((sum, session) => {
     const total = session.total || ((session.correct || 0) + (session.incorrect || 0) + (session.notDone || 0));
     const avg = total > 0 ? (session.responsetime || 0) / total : 2.5;
     return sum + avg;
-  }, 0) / last7Chron.length;
+  }, 0) / last7ChronAsc.length;
 
-  // Counts data for last 7 games
-  const last7Data = last7Chron.map((session) => ({
+  // Counts data for last 7 games (using asc)
+  const last7Data = last7ChronAsc.map((session) => ({
     date: new Date(session.time).toLocaleDateString(),
     correct: session.correct || 0,
     incorrect: session.incorrect || 0,
@@ -371,8 +375,8 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
     };
   });
 
-  // Selected session detailed data
-  const selectedSessionData = last7Chron[selectedSession];
+  // Selected session detailed data (using desc, index 0 is most recent)
+  const selectedSessionData = last7ChronDesc[selectedSession];
   const attemptData = selectedSessionData?.session.play ? selectedSessionData.session.play.map((p, i) => ({
     attempt: i + 1,
     responseTime: p.responsetime,
@@ -479,11 +483,74 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
     }
   }, [editingReminder, userId]);
 
+  const handleMarkDone = useCallback(async (reminderId) => {
+    try {
+      await reminderService.complete(reminderId);
+      const res = await reminderService.listForPatient(userId);
+      setReminders(res.reminders || []);
+    } catch (err) {
+      console.error('Failed to complete reminder:', err);
+    }
+  }, [userId]);
+
   return (
     <>
       {/* Top Bar */}
       <div className="flex justify-end pb-10">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 mt-4 ">
+          <div className="flex justify-center w-full">
+            <div className="w-full flex justify-center py-3 bg-white px-2 rounded-full items-center">
+
+              {/* Calculate the number of days played (attempts > 0) in the initial 7 days */}
+              {/* This is a simple metric to display next to the fire icon */}
+              {(() => {
+                const daysPlayed = streakData.slice(0, 7).filter(day => day.attempts > 0).length;
+
+                return (
+                  <h3 className="text-sm font-bold text-gray-700 text-center flex items-center">
+                    {/* Display the metric next to the fire icon */}
+
+
+                    <span className="text-xl mr-1">🔥</span>
+                      {/* <Flame size={40} className="fill text-[#f00] cursor-pointer" /> */}
+                      <span
+                        className=" inset-0 flex items-center justify-center text-xl font-black"
+                        style={{ color: daysPlayed > 0 ? '#FF8C00' : '#4B5563' }}
+                      >
+                         {daysPlayed}
+                      </span>
+
+                    {/* <span className="ml-1 text-gray-500 font-normal">Days</span> */}
+                  </h3>
+                );
+              })()}
+
+              {/* <div className="flex space-x-0.5 ml-auto">
+      {streakData.slice(0, 7).map((day, index) => {
+        let bgColor;
+        if (day.attempts === 0) {
+          bgColor = '#EF4444'; // red for no game played
+        } else {
+          // Calculate intensity based on attempts
+          const intensity = Math.min(day.attempts / 30, 1);
+          // Map intensity (0 to 1) to lightness (80% to 20%)
+          const lightness = 80 - intensity * 60;
+          bgColor = `hsl(152, 69%, ${lightness}%)`;
+        }
+        return (
+          <div
+            key={index}
+            className="w-7 h-7 rounded-full transition-colors flex items-center justify-center text-xs font-bold text-white shadow-md"
+            style={{ backgroundColor: bgColor }}
+            title={`${day.date}: ${day.attempts} attempts`}
+          >
+            {day.attempts}
+          </div>
+        );
+      })}
+    </div> */}
+            </div>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
@@ -506,11 +573,6 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             <p className="text-gray-500">How are you feeling today?</p>
           </div>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <button onClick={()=>navigate('/chat')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><MessageSquare size={18}/>Chat</button>
-              <button onClick={()=>navigate('/reminders')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Bell size={18}/>Reminders</button>
-              <button onClick={()=>navigate('/patient/appointments')} className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg shadow hover:bg-gray-50"><Calendar size={18}/>Appointments</button>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <InfoCard
                 title="Your Doctor"
@@ -541,6 +603,8 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                         className="bg-[#EBECF5] rounded-lg flex items-center p-2"
                       >
                         <PhoneCall size={20} className="text-[#6FD2EE] cursor-pointer" />
+
+
                       </a>
                     </div>
                   </div>
@@ -568,6 +632,30 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                 onChange={() => navigate('/patient/setting')}
               />
             </div>
+
+            {/* Streak Balls - Added at the top, just the balls, no text */}
+            {/* <div className="w-full flex justify-center py-4">
+              <div className="flex space-x-0.5">
+                {streakData.map((day, index) => {
+                  let bgColor;
+                  if (day.attempts === 0) {
+                    bgColor = '#EF4444'; // red for no game played
+                  } else {
+                    const intensity = Math.min(day.attempts / 30, 1);
+                    const lightness = 80 - intensity * 60; // light green (80%) to dark green (20%)
+                    bgColor = `hsl(152, 69%, ${lightness}%)`;
+                  }
+                  return (
+                    <div
+                      key={index}
+                      className="w-4 h-4 rounded-full transition-colors"
+                      style={{ backgroundColor: bgColor }}
+                      title={`${day.date}: ${day.attempts} attempts`}
+                    />
+                  );
+                })}
+              </div>
+            </div> */}
 
             {/* Middle Section - Stats Cards */}
             <div className="bg-white rounded-2xl p-3 shadow-sm flex">
@@ -624,8 +712,6 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Sessions</h2>
                 {recentSessions.length > 0 ? (
                   <div className="space-y-6">
-                    {/* Summary Bar Graph - UPDATED with colors */}
-
                     {/* Accuracy & Response Time Line Graph for Last 7 Games with Averages */}
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-700 mb-4">Accuracy & Avg Response Time: Last 7 Games</h3>
@@ -698,14 +784,14 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-700">Detailed Plot: Last Game Performance</h3>
-                        <select 
-                          className="p-1 border rounded text-sm" 
-                          value={selectedSession} 
+                        <select
+                          className="p-1 border rounded text-sm"
+                          value={selectedSession}
                           onChange={e => setSelectedSession(parseInt(e.target.value))}
                         >
-                          {last7Chron.map((s, i) => (
+                          {last7ChronDesc.map((s, i) => (
                             <option key={i} value={i}>
-                              Game {last7Chron.length - i} ({new Date(s.time).toLocaleDateString()})
+                              Game {i + 1} ({new Date(s.time).toLocaleDateString()})
                             </option>
                           ))}
                         </select>
@@ -726,31 +812,6 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                         <p className="text-gray-500 text-center">No detailed play data available for this session.</p>
                       )}
                     </div>
-
-                    {/* Streak for Last 15 Days - UPDATED with intensity */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Submission Streak: Last 15 Days</h3>
-                      <div className="flex justify-center space-x-1">
-                        {streakData.map((day, index) => {
-                          let bgColor = '#D1D5DB'; // gray-300 for 0
-                          if (day.attempts > 0) {
-                            // Scale green intensity: 20% lightness at 1 attempt, 80% at 30 (HSL for emerald green)
-                            const lightness = 20 + (day.attempts / 30) * 60; // 20-80%
-                            bgColor = `hsl(152, 69%, ${lightness}%)`; // Tailwind's green hsl base
-                          }
-                          return (
-                            <div
-                              key={index}
-                              className="w-6 h-6 rounded-full transition-colors"
-                              style={{ backgroundColor: bgColor }}
-                              title={`${day.date}: ${day.attempts} attempts`}
-                            />
-                          );
-                        })}
-                      </div>
-                      <p className="text-sm text-gray-500 text-center mt-2">Color intensity = attempts that day (left: today, right: 15 days ago; max 30 attempts)</p>
-                    </div>
-
 
                     {/* Performance Indicator */}
                     <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -797,7 +858,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                   <option value="week">This week</option>
                   <option value="month">This month</option>
                 </select>
-                <ChevronDown size={20} className="text-[#6FD2EE] cursor-pointer" />
+                {/* <ChevronDown size={20} className="text-[#6FD2EE] cursor-pointer" /> */}
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
@@ -813,6 +874,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                   key={r._id}
                   reminder={r}
                   onEdit={() => setEditingReminder(r)}
+                  onMarkDone={handleMarkDone}
                 />
               ))}
               {completedReminders.length > 0 && (
@@ -839,23 +901,23 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
           >
             <Play className="w-7 h-7" />
-            Play Game
+            Piano Reaction Game
           </button>
 
-          <button
+          {/* <button
             onClick={() => navigate('/game2')}
             className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
           >
             <Play className="w-7 h-7" />
             Play Game2 
-          </button>
+          </button> */}
 
           <button
             onClick={() => navigate('/game3')}
             className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
           >
             <Play className="w-7 h-7" />
-            Play Game3
+            Shape Tracing
           </button>
 
           <button
@@ -863,7 +925,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
           >
             <Play className="w-7 h-7" />
-            Play Game4
+            Arm – Fruit Fetch
           </button>
 
           {/* Total Counts Bar Chart - UPDATED with colors */}
@@ -904,26 +966,35 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
 };
 
 // Updated ReminderItem component
-const ReminderItem = ({ reminder, onEdit, isCompleted }) => {
+const ReminderItem = ({ reminder, onEdit, onMarkDone, isCompleted }) => {
   const dateStr = new Date(reminder.date).toLocaleDateString('en-GB'); // DD.MM.YYYY format
   return (
-    <div className={`flex justify-between items-center p-2 rounded-lg text-sm ${isCompleted ? 'bg-blue-100' : 'bg-white'}`}>
-      <div className="flex items-center gap-2">
-        <div className="bg-[#EBECF5] p-3 rounded">
+    <div className={`p-2 rounded-lg text-sm ${isCompleted ? 'bg-blue-100' : 'bg-white'}`}>
+      <div className="flex items-start gap-2 mb-2">
+        <div className="bg-[#EBECF5] p-3 rounded flex-shrink-0">
           <ClipboardList size={30} className="text-[#2663EB]" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-bold">{reminder.title}</p>
           {reminder.text && <p className="text-xs text-gray-600">{reminder.text}</p>}
           <p className="text-xs font-medium">{dateStr} {reminder.time}</p>
         </div>
       </div>
-      <div className="flex items-center space-x-1 text-gray-400 cursor-pointer">
-        <Edit3
-          color="#6FD2EE"
-          size={18}
+      <div className="flex justify-end gap-2">
+        <button
+          className="text-[#6FD2EE] flex-1 text-xs hover:underline px-2 py-1 rounded"
           onClick={() => onEdit && onEdit(reminder)}
-        />
+        >
+          Edit
+        </button>
+        {!isCompleted && (
+          <button
+            className="bg-green-500 flex-1 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            onClick={() => onMarkDone && onMarkDone(reminder._id)}
+          >
+            Done
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1001,30 +1072,12 @@ const EditReminderModal = ({ reminder, onClose, onSave }) => {
   );
 };
 
-// Placeholder for AppointmentContent - create a new component file for this
-const AppointmentContent = () => (
-  <div>
-    <h1 className="text-2xl font-semibold">Appointments</h1>
-    <p>Content for managing appointments goes here.</p>
-    {/* Add your appointment-specific UI and logic here */}
-  </div>
-);
-
 // Placeholder for RecordContent - create a new component file for this
 const RecordContent = () => (
   <div>
     <h1 className="text-2xl font-semibold">Records</h1>
     <p>Content for viewing medical records goes here.</p>
     {/* Add your record-specific UI and logic here */}
-  </div>
-);
-
-// Placeholder for ChatContent - create a new component file for this
-const ChatContent = () => (
-  <div>
-    <h1 className="text-2xl font-semibold">Chat</h1>
-    <p>Content for chat interface goes here.</p>
-    {/* Add your chat-specific UI and logic here */}
   </div>
 );
 
@@ -1049,15 +1102,62 @@ const SettingsContent = ({ userData, navigate }) => (
 
 // Placeholder for HelpCenterContent - create a new component file for this
 const HelpCenterContent = ({ handleLogout }) => (
-  <div>
-    <h1 className="text-2xl font-semibold">Help Center</h1>
-    <p>Content for help center goes here.</p>
-    {/* Add FAQs, support links, etc. */}
-    <button onClick={handleLogout} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">
-      Logout
-    </button>
+  <div className="p-6 max-w-3xl mx-auto bg-white">
+    <h1 className="text-3xl font-bold mb-4">Help Center</h1>
+
+    <section className="mb-6">
+      <h2 className="text-2xl font-semibold mb-2">Frequently Asked Questions (FAQs)</h2>
+      <ul className="list-disc list-inside space-y-1">
+        <li>
+          <strong>How do I reset my password?</strong> - Go to your profile settings and click "Change Password".
+        </li>
+        <li>
+          <strong>How do I contact support?</strong> - Use our <a href="/contact" className="text-blue-600 underline">contact form</a> or email support@example.com.
+        </li>
+        <li>
+          <strong>Where can I find tutorials?</strong> - Check our <a href="/tutorials" className="text-blue-600 underline">Tutorials Page</a> for step-by-step guides.
+        </li>
+      </ul>
+    </section>
+
+    <section className="mb-6">
+      <h2 className="text-2xl font-semibold mb-2">Support Links</h2>
+      <ul className="list-disc list-inside space-y-1">
+        <li><a href="/documentation" className="text-blue-600 underline">Documentation</a></li>
+        <li><a href="/community" className="text-blue-600 underline">Community Forum</a></li>
+        <li><a href="/status" className="text-blue-600 underline">System Status</a></li>
+      </ul>
+    </section>
+
+    <section className="mb-6">
+      <h2 className="text-2xl font-semibold mb-2">Terms & Conditions</h2>
+      <p className="mb-2">
+        By using our service, you agree to our <a href="/terms" className="text-blue-600 underline">Terms & Conditions</a> and <a href="/privacy" className="text-blue-600 underline">Privacy Policy</a>.
+      </p>
+      <p>
+        Make sure to read these carefully before using the platform.
+      </p>
+    </section>
+
+    <section className="mb-6">
+      <h2 className="text-2xl font-semibold mb-2">Need More Help?</h2>
+      <p>If you still have questions, reach out to our support team. We're happy to help!</p>
+      <a href="/contact" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Contact Support
+      </a>
+    </section>
+
+    <div className="mt-8">
+      <button
+        onClick={handleLogout}
+        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+      >
+        Logout
+      </button>
+    </div>
   </div>
 );
+
 
 const InfoCard = ({ title, content, onChange }) => (
   <div className="bg-white p-5 rounded-lg shadow-sm relative">

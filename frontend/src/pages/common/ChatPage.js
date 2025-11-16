@@ -250,9 +250,10 @@ const ChatPage = () => {
               >
                 <div>
                   <h3 className="font-semibold text-gray-800">
-                    {chat.participants
-                      .map((p) => p.email || p.name || "Unknown")
-                      .join(", ")}
+                    {chat.type
+                      // .map((p) => p.email || p.name || "Unknown")
+                      // .join(", ")
+                      }
                   </h3>
                   <p className="text-sm text-gray-500 truncate w-48">
                     {chat.messages?.slice(-1)[0]?.text || "No messages yet"}

@@ -782,7 +782,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   return (
     <div style={styles.container}>
       <aside style={styles.panel}>
-        <h1 style={styles.title}>🍎 Arm Orchard – Fruit Fetch</h1>
+        <h1 style={styles.title}>🍎 Arm  – Fruit Fetch</h1>
         <p style={styles.muted}>
           Upper limb rehabilitation game: Reach → Grasp (close hand) → Transport → Release (open hand) into basket. 5-minute therapeutic session.
         </p>

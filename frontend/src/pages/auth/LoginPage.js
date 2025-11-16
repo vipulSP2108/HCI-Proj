@@ -39,86 +39,84 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all hover:scale-105 duration-300">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full mb-4">
-            <LogIn className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-8 w-full max-w-md shadow-sm">
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#69CBEE] text-white mb-3">
+            <LogIn className="w-7 h-7" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-800">Welcome Back</h2>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h2 className="text-2xl font-semibold text-gray-800">Welcome Back</h2>
+          <p className="text-gray-500 text-sm mt-1">Sign in to continue</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none"
                 placeholder="you@example.com"
                 required
               />
             </div>
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none"
                 placeholder="••••••••"
                 required
               />
             </div>
           </div>
 
+          {/* Error Box */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center">
-              <span className="mr-2">⚠️</span>
+            <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded text-sm">
               {error}
             </div>
           )}
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-lg font-semibold hover:from-primary-600 hover:to-secondary-600 transition transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg"
+            className="w-full bg-[#2F71EB] hover:bg-[#2763CF] text-white py-2 rounded-md text-sm font-medium transition disabled:opacity-50"
           >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
-                Signing in...
-              </span>
-            ) : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="mt-6 space-y-3 text-center">
-          <Link to="/forgot-password" className="block text-primary-600 hover:text-primary-700 text-sm font-medium transition">
+        {/* Footer */}
+        <div className="mt-5 text-center space-y-2">
+          <Link to="/forgot-password" className="text-[#2F71EB] hover:underline text-sm">
             Forgot your password?
           </Link>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">New here?</span>
-            </div>
+
+          <div className="text-xs text-gray-400 flex items-center justify-center">
+            <span className="border-t border-gray-300 flex-grow mr-2"></span>
+            New here?
+            <span className="border-t border-gray-300 flex-grow ml-2"></span>
           </div>
-          <Link to="/register" className="block text-primary-600 hover:text-primary-700 text-sm font-medium transition">
+
+          <Link to="/register" className="text-[#2F71EB] hover:underline text-sm">
             Create a Doctor Account
           </Link>
         </div>
