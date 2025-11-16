@@ -2,20 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { gameService } from '../../services/gameService';
-import { Play, Pause, RotateCcw, Home, Settings, Volume2, VolumeX, ArrowRight } from 'lucide-react';
+import { Play, Pause, RotateCcw, Home, Settings, ArrowRight } from 'lucide-react';
 import GameImage1 from "./1.png";
 import GameImage2 from "./2.png";
 import GameImage3 from "./3.png";
 
-// --- NEW ONBOARDING SCREEN COMPONENT (TTS AUDIO IMPLEMENTED) ---
+const PRIMARY_BLUE = "#2766EB";
+  const LIGHT_BLUE = "#67C8EE";
+  
+// --- Onboarding Screen ---
 const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const synthRef = useRef(window.speechSynthesis);
   const utteranceRef = useRef(null);
 
-  const PRIMARY_BLUE = "#2766EB";
-  const LIGHT_BLUE = "#67C8EE";
+  
 
   const instructionText = `
     Welcome! This is how to play the Piano Reaction Game. 
@@ -80,10 +82,11 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
 
   useEffect(() => {
     initializeTTS();
-    setTimeout(startSpeaking, 500);
+    const timer = setTimeout(startSpeaking, 500);
 
     return () => {
       synthRef.current.cancel();
+      clearTimeout(timer);
     };
   }, []);
 
@@ -167,29 +170,29 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
   );
 };
 
-// --- EXISTING PLAYING GAME COMPONENT (COLORS DEFINED AND ADJUSTED) ---
-const PlayingGame = ({ 
-  // ... (props remain the same)
-  currentLevelSpan, 
-  currentNumSections, 
-  isPaused, 
-  onPause, 
-  onResume, 
-  onEnd, 
-  onReset, 
-  currentSection, 
-  feedbackSection, 
-  feedbackType, 
-  attemptCount, 
-  correctCount, 
-  incorrectCount, 
-  notDoneCount, 
-  accuracy, 
-  activeKeys, 
-  noteNames, 
-  keys, 
-  handleSectionClick, 
-  handleKeyPress 
+// --- Playing Game ---
+const PlayingGame = ({
+  currentLevelSpan,
+  currentNumSections,
+  isPaused,
+  onPause,
+  onResume,
+  onEnd,
+  onReset,
+  currentSection,
+  feedbackSection,
+  feedbackType,
+  attemptCount,
+  correctCount,
+  incorrectCount,
+  notDoneCount,
+  accuracy,
+  activeKeys,
+  noteNames,
+  keys,
+  handleSectionClick,
+  handleKeyPress,
+  isMobile
 }) => {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -198,41 +201,31 @@ const PlayingGame = ({
     };
   }, []);
 
-  // Defined LIGHT_BLUE here to resolve the no-undef error
   const PRIMARY_BLUE = '#2766EB';
   const LIGHT_BLUE = '#67C8EE';
 
   return (
     <div className="fixed inset-0 bg-white flex flex-col overflow-hidden z-50">
-      {/* Minimal Header - Only essential controls */}
+      {/* Header */}
       <div className="shadow-lg p-3 flex items-center justify-between" style={{ backgroundColor: PRIMARY_BLUE, color: 'white' }}>
         <h1 className="text-xl font-bold">Piano Reaction Game</h1>
         <div className="flex gap-2">
           <button 
             onClick={isPaused ? onResume : onPause} 
-            className={`p-2 rounded-lg transition ${
-              isPaused 
-                ? 'bg-green-500 hover:bg-green-600 text-white' 
-                : 'bg-red-400 hover:bg-red-500 text-white' 
-            }`}
+            className={`p-2 rounded-lg transition ${isPaused ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-red-400 hover:bg-red-500 text-white'}`}
           >
             {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
           </button>
-          <button 
-            onClick={onEnd} 
-            className="p-2 bg-white hover:bg-gray-200 text-gray-800 rounded-lg transition font-semibold"
-          >
+          <button onClick={onEnd} className="p-2 bg-white hover:bg-gray-200 text-gray-800 rounded-lg transition font-semibold">
             💾 Save
           </button>
-          <button 
-            onClick={onReset} 
-            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
-          >
+          <button onClick={onReset} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition">
             <RotateCcw className="w-5 h-5" />
           </button>
         </div>
       </div>
-      {/* Compact Stats - Using Green, Red, Yellow for feedback counts */}
+
+      {/* Stats */}
       <div className="grid grid-cols-4 gap-2 p-3 bg-white border-b">
         <div className="text-center">
           <p className="text-xs text-gray-600">Attempts</p>
@@ -251,9 +244,9 @@ const PlayingGame = ({
           <p className="text-lg font-bold" style={{ color: '#CCB000' }}>{notDoneCount}</p>
         </div>
       </div>
-      {/* Full-Screen Game Area */}
+
+      {/* Piano Sections */}
       <div className="flex-1 flex flex-col p-4">
-        {/* Piano Sections - Larger for touch */}
         <div className="flex-1 relative mb-6 border-4 border-gray-200 rounded-xl bg-gradient-to-br from-white to-gray-50 overflow-hidden">
           <div className="h-full flex flex-col-reverse md:flex-row">
             {activeKeys.map((key, index) => {
@@ -265,12 +258,20 @@ const PlayingGame = ({
                 feedbackType === 'notdone' ? 'ring-4 ring-yellow-500/50' : '' : '';
               const bgClass = isActive ? 'bg-black' : 'bg-white';
               const textClass = isActive ? 'text-white' : 'text-gray-400';
-              const fontSize = currentNumSections <= 3 ? 'text-6xl md:text-9xl' : currentNumSections <= 6 ? 'text-4xl md:text-7xl' : 'text-3xl md:text-5xl';
+
+              // Highlight "J" and "B" columns on mobile bigger and blue
+              const isJB = (key === 'J' || noteNames[index] === 'B') && isMobile;
+              const fontSize = isJB ? 'text-6xl' : 
+                currentNumSections <= 3 ? 'text-5xl md:text-8xl' :
+                currentNumSections <= 6 ? 'text-4xl md:text-7xl' : 'text-2xl md:text-5xl';
+              const extraMobileStyleClass = isJB ? "bg-blue-300/40 scale-105 shadow-lg" : "";
+
               return (
                 <div
                   key={index}
-                  className={`w-full md:flex-1 flex flex-col items-center justify-center border-b md:border-r border-gray-200 last:border-b-0 md:last:border-r-0 md:last:border-b-0 transition-all duration-200 ${isActive ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} hover:bg-gray-300 cursor-pointer ${bgClass} ${resultClass} flex-1`}
+                  className={`w-full md:flex-1 flex flex-col items-center justify-center border-b md:border-r border-gray-200 last:border-b-0 md:last:border-r-0 md:last:border-b-0 transition-all duration-200 ${isActive ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} hover:bg-gray-300 cursor-pointer ${bgClass} ${resultClass} flex-1 ${extraMobileStyleClass}`}
                   onClick={() => handleSectionClick(index)}
+                  style={isJB ? { minHeight: '110px', minWidth: '90px' } : {}}
                 >
                   <div className={`${fontSize} font-bold ${textClass} transition-colors duration-200 mb-1`}>
                     {key}
@@ -278,32 +279,41 @@ const PlayingGame = ({
                   <span className={`text-xs md:text-sm font-mono ${isActive ? 'text-white/80' : 'text-gray-500'} transition-colors duration-200`}>
                     {noteNames[index]}
                   </span>
+                  {isJB && <span className="block text-sm text-blue-900 font-bold mt-2">Tap J / B</span>}
                 </div>
               );
             })}
           </div>
-          {isPaused ? (
+
+          {isPaused && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
               <div className="text-3xl md:text-4xl text-yellow-500 font-bold">⏸️ PAUSED</div>
             </div>
-          ) : null}
+          )}
         </div>
-        {/* Mobile-Friendly Keyboard Hint - Blue/White scheme */}
+
+        {/* Mobile-Friendly Keyboard Hint */}
         <div className="flex justify-center flex-wrap gap-2">
-          {activeKeys.map((key, index) => (
-            <div
-              key={key}
-              className="px-4 py-3 rounded-lg shadow-lg border-2 min-w-[60px] text-center touch-manipulation"
-              style={{ backgroundColor: LIGHT_BLUE, borderColor: PRIMARY_BLUE }}
-            >
-              <p className="text-xs text-white font-semibold">Tap</p>
-              <p className="text-2xl font-bold text-white">{key}</p>
-              <p className="text-xs text-white/80">{noteNames[index]}</p>
-            </div>
-          ))}
+          {activeKeys.map((key, index) => {
+            const isJB = (key === 'J' || noteNames[index] === 'B') && isMobile;
+            return (
+              <div
+                key={key}
+                className={`px-2 py-3 rounded-lg shadow-lg border-2 text-center touch-manipulation ${isJB ? "bg-blue-500 scale-105" : ""}`}
+                style={{ backgroundColor: isJB ? "#baf5fe" : LIGHT_BLUE, borderColor: PRIMARY_BLUE }}
+              >
+                <p className="text-xs text-white font-semibold">Tap</p>
+                <p className="text-2xl font-bold text-white">{key}</p>
+                <p className="text-xs text-white/80">{noteNames[index]}</p>
+                {isJB && <span className="block text-sm text-blue-900 font-bold mt-2">J / B big!</span>}
+              </div>
+            );
+          })}
         </div>
+
       </div>
-      {/* Handle key presses - passed from parent */}
+
+      {/* Handle key presses - invisible focus */}
       {isPaused ? null : (
         <div 
           tabIndex={-1} 
@@ -322,14 +332,22 @@ const PlayingGame = ({
   );
 };
 
-// --- UPDATED GAME PAGE COMPONENT (COLORS ADJUSTED) ---
+
+// --- Main Game Page Component ---
 const GamePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // --- STATE FOR ONBOARDING ---
-  const [isOnboarding, setIsOnboarding] = useState(true); 
-  // ---------------------------------
-  // Game state
+
+  // Detect if mobile screen for responsive keys
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
+  useEffect(() => {
+    const resizeListener = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', resizeListener);
+    return () => window.removeEventListener('resize', resizeListener);
+  }, []);
+
+  // State variables
+  const [isOnboarding, setIsOnboarding] = useState(true);
   const [currentLevelSpan, setCurrentLevelSpan] = useState(5);
   const [currentNumSections, setCurrentNumSections] = useState(2);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -337,50 +355,54 @@ const GamePage = () => {
   const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
   const [sectionStartTime, setSectionStartTime] = useState(null);
-  const [sessionStartTime, setSessionStartTime] = useState(null);
   const [attemptCount, setAttemptCount] = useState(0);
-  // Feedback state
   const [feedbackSection, setFeedbackSection] = useState(null);
   const [feedbackType, setFeedbackType] = useState(null);
-  // Available keys and frequencies (piano-like notes: C4 to A5)
-  const keys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
-  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'];
-  const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
-  // Settings modal
   const [showSettings, setShowSettings] = useState(false);
   const [tempLevelSpan, setTempLevelSpan] = useState(5);
   const [tempNumSections, setTempNumSections] = useState(2);
-  // Timers
+
+  const keysAll = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+  // const noteNamesAll = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'];
+  const noteNamesAll = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+
+  const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+
   const sectionTimerRef = useRef(null);
   const audioContextRef = useRef(null);
-  
-  const PRIMARY_BLUE = '#2766EB';
-  const LIGHT_BLUE = '#67C8EE';
 
+  // Load settings on mount
   useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await gameService.getSettings();
+        setCurrentLevelSpan(response.currentlevelspan || 5);
+        setCurrentNumSections(response.currentnumsections || 7);
+        setTempLevelSpan(response.currentlevelspan || 5);
+        setTempNumSections(response.currentnumsections || 7);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+        setCurrentLevelSpan(5);
+        setCurrentNumSections(7);
+        setTempLevelSpan(5);
+        setTempNumSections(7);
+      }
+    };
     loadSettings();
     return () => {
       if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     };
   }, []);
 
-  const loadSettings = async () => {
-    try {
-      const response = await gameService.getSettings(); 
-      setCurrentLevelSpan(response.currentlevelspan || 5);
-      setCurrentNumSections(response.currentnumsections || 7);
-      setTempLevelSpan(response.currentlevelspan || 5);
-      setTempNumSections(response.currentnumsections || 7);
-    } catch (error) {
-      console.error('Failed to load settings:', error);
-      setCurrentLevelSpan(5);
-      setCurrentNumSections(7);
-      setTempLevelSpan(5);
-      setTempNumSections(7);
-    }
-  };
+  // Active keys limited by mobile for fewer keys on phone
+  const activeKeys = isMobile
+    ? keysAll.slice(0, Math.min(currentNumSections, 4)) // max 6 keys on mobile
+    : keysAll.slice(0, currentNumSections);
+  const noteNames = isMobile
+    ? noteNamesAll.slice(0, Math.min(currentNumSections, 4))
+    : noteNamesAll.slice(0, currentNumSections);
 
-  // Play piano-like sound for a specific key (UNCHANGED)
+  // --- Audio helpers ---
   const playPianoSound = (keyIndex) => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -398,8 +420,7 @@ const GamePage = () => {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 1.5);
   };
-  
-  // Play feedback sounds (UNCHANGED)
+
   const playFeedbackSound = (type) => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -437,24 +458,30 @@ const GamePage = () => {
     }
   };
 
+  // Start game core
   const startGame = () => {
     setIsPlaying(true);
     setIsPaused(false);
     setPlayData([]);
     setAttemptCount(0);
-    setSessionStartTime(Date.now());
+    setCurrentSection(null);
+    setFeedbackSection(null);
+    setFeedbackType(null);
+    setSectionStartTime(Date.now());
     showNextSection();
   };
 
+  // Show next piano section randomly
   const showNextSection = () => {
-    const randomSection = Math.floor(Math.random() * currentNumSections);
+    const randomSection = Math.floor(Math.random() * activeKeys.length);
     setCurrentSection(randomSection);
     setSectionStartTime(Date.now());
-    setAttemptCount(prev => prev + 1);
+    setAttemptCount(old => old + 1);
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
-        recordResponse('none', -1, 0, keys[randomSection]);
-        setFeedbackSection(currentSection);
+        recordResponse('none', -1, 0, keysAll[randomSection]);
+        setFeedbackSection(randomSection);
         setFeedbackType('notdone');
         playFeedbackSound('notdone');
         setTimeout(() => {
@@ -465,24 +492,23 @@ const GamePage = () => {
       }
     }, currentLevelSpan * 1000);
   };
-  
+
+  // Key press handler (keyboard or click)
   const handleKeyPress = (key) => {
     if (!isPlaying || isPaused || currentSection === null) return;
-    const responseTime = (Date.now() - sectionStartTime) / 1000; 
+    const responseTime = (Date.now() - sectionStartTime) / 1000;
     const userKey = key.toUpperCase();
-    const expectedKey = keys[currentSection];
-    const userIndex = keys.indexOf(userKey);
+    const expectedKey = keysAll[currentSection];
+    const userIndex = keysAll.indexOf(userKey);
     let correct;
     if (userKey === expectedKey) {
-      correct = 1; 
-    } else if (keys.slice(0, currentNumSections).map(k => k.toLowerCase()).includes(key.toLowerCase())) {
-      correct = -1; 
+      correct = 1;
+    } else if (activeKeys.map(k => k.toLowerCase()).includes(key.toLowerCase())) {
+      correct = -1;
     } else {
-      return; 
+      return; // ignore keys outside range
     }
-    if (sectionTimerRef.current) {
-      clearTimeout(sectionTimerRef.current);
-    }
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     const roundedTime = Math.round(responseTime * 10) / 10;
     recordResponse(userKey, roundedTime, correct, expectedKey);
     playFeedbackSound(correct === 1 ? 'correct' : 'incorrect');
@@ -494,25 +520,22 @@ const GamePage = () => {
       showNextSection();
     }, 300);
   };
-  
+
   const handleSectionClick = (clickedIndex) => {
     if (!isPlaying || isPaused || currentSection === null) return;
-    const responseTime = (Date.now() - sectionStartTime) / 1000; 
-    const userKey = keys[clickedIndex];
-    const expectedKey = keys[currentSection];
+    const responseTime = (Date.now() - sectionStartTime) / 1000;
+    const userKey = keysAll[clickedIndex];
     let correct;
     if (clickedIndex === currentSection) {
-      correct = 1; 
-    } else if (clickedIndex < currentNumSections) {
-      correct = -1; 
+      correct = 1;
+    } else if (clickedIndex < activeKeys.length) {
+      correct = -1;
     } else {
-      return; 
+      return;
     }
-    if (sectionTimerRef.current) {
-      clearTimeout(sectionTimerRef.current);
-    }
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     const roundedTime = Math.round(responseTime * 10) / 10;
-    recordResponse(userKey, roundedTime, correct, expectedKey);
+    recordResponse(userKey, roundedTime, correct, keysAll[currentSection]);
     playFeedbackSound(correct === 1 ? 'correct' : 'incorrect');
     setFeedbackSection(clickedIndex);
     setFeedbackType(correct === 1 ? 'correct' : 'incorrect');
@@ -525,15 +548,16 @@ const GamePage = () => {
 
   const recordResponse = (userResponse, responsetime, correct, shownKey) => {
     const entry = {
-      responsetime: responsetime, 
-      correct: correct 
+      responsetime,
+      correct
     };
     setPlayData(prev => [...prev, entry]);
     console.log(`Key: ${shownKey}, User: ${userResponse}, Time: ${responsetime}s, Correct: ${correct}`);
   };
 
+  // Keydown listener for full window keyboard control
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const onKeyDown = e => {
       const userKey = e.key.toLowerCase();
       if (['a','s','d','f','g','h','j','k','l'].includes(userKey)) {
         e.preventDefault();
@@ -541,11 +565,12 @@ const GamePage = () => {
       }
     };
     if (isPlaying && !isPaused) {
-      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', onKeyDown);
     }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, isPaused, currentSection, sectionStartTime, currentNumSections]);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isPlaying, isPaused, currentSection, sectionStartTime, activeKeys]);
 
+  // End game and save session
   const endGame = async () => {
     setIsPlaying(false);
     setCurrentSection(null);
@@ -558,7 +583,7 @@ const GamePage = () => {
       const response = await gameService.saveGameSession({
         levelspan: currentLevelSpan,
         numsections: currentNumSections,
-        playData: playData
+        playData
       });
       alert(`Game session saved!\nScore: ${response.sessionScore}\nTotal Score: ${response.totalScore}\nLevel: ${response.level}`);
       const playAgain = window.confirm('Play another round?');
@@ -583,7 +608,7 @@ const GamePage = () => {
     setSectionStartTime(Date.now());
     sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
-        recordResponse('none', -1, 0, keys[currentSection]);
+        recordResponse('none', -1, 0, keysAll[currentSection]);
         setFeedbackSection(currentSection);
         setFeedbackType('notdone');
         playFeedbackSound('notdone');
@@ -605,6 +630,7 @@ const GamePage = () => {
     if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
   };
 
+  // Save settings function
   const saveSettings = async () => {
     try {
       await gameService.updateSettings(user.id, tempLevelSpan, tempNumSections);
@@ -617,27 +643,24 @@ const GamePage = () => {
     }
   };
 
-  // Calculate stats from current playData
+  // Stats calculation
   const correctCount = playData.filter(p => p.correct === 1).length;
   const incorrectCount = playData.filter(p => p.correct === -1).length;
   const notDoneCount = playData.filter(p => p.correct === 0).length;
   const accuracy = correctCount + incorrectCount > 0
     ? Math.round((correctCount / (correctCount + incorrectCount)) * 100)
     : 0;
-  // Current active keys
-  const activeKeys = keys.slice(0, currentNumSections);
 
-  // --- RENDERING LOGIC ---
+  // --- Rendering ---
   if (isOnboarding) {
-    // The OnboardingScreen receives the current level span for TTS and instruction display.
     return <OnboardingScreen onNext={() => setIsOnboarding(false)} currentLevelSpan={currentLevelSpan} />;
   }
 
   if (isPlaying) {
     return (
-      <PlayingGame 
+      <PlayingGame
         currentLevelSpan={currentLevelSpan}
-        currentNumSections={currentNumSections}
+        currentNumSections={activeKeys.length}
         isPaused={isPaused}
         onPause={pauseGame}
         onResume={resumeGame}
@@ -653,13 +676,15 @@ const GamePage = () => {
         accuracy={accuracy}
         activeKeys={activeKeys}
         noteNames={noteNames}
-        keys={keys}
+        keys={keysAll}
         handleSectionClick={handleSectionClick}
         handleKeyPress={handleKeyPress}
+        isMobile={isMobile}
       />
     );
   }
-  // This is the main setup screen (after onboarding, before playing)
+
+  // Main setup screen after onboarding, before playing
   return (
     <div className="min-h-screen p-2 md:p-4 bg-white">
       <div className="max-w-6xl mx-auto">
@@ -681,6 +706,7 @@ const GamePage = () => {
             </button>
           </div>
         </div>
+
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-4 md:mb-6">
           <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border">
@@ -701,43 +727,38 @@ const GamePage = () => {
           </div>
           <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border" style={{ borderColor: PRIMARY_BLUE }}>
             <p className="text-xs md:text-sm text-gray-600">Accuracy</p>
-            <p className="text-2xl md:text-3xl font-bold text-gray-800">
-              {accuracy}%
-            </p>
+            <p className="text-2xl md:text-3xl font-bold text-gray-800">{accuracy}%</p>
           </div>
         </div>
+
         {/* Game Area */}
         <div className="bg-white rounded-xl shadow-2xl p-4 md:p-8 mb-4 md:mb-6">
           {/* Sections Display */}
           <div className="relative h-[60vh] md:h-64 mb-6 md:mb-8 border-4 border-gray-200 rounded-xl bg-white overflow-hidden">
             <div className="h-full flex flex-col-reverse md:flex-row">
               {activeKeys.map((key, index) => {
-                const isActive = currentSection === index;
-                const isFeedback = index === feedbackSection;
-                const resultClass = isFeedback ?
-                  feedbackType === 'correct' ? 'ring-4 ring-green-500/50 scale-105' :
-                  feedbackType === 'incorrect' ? 'ring-4 ring-red-500/50 scale-105' :
-                  feedbackType === 'notdone' ? 'ring-4 ring-yellow-500/50' : '' : '';
-                const bgClass = isActive ? 'bg-black' : 'bg-white';
-                const textClass = isActive ? 'text-white' : 'text-gray-400';
+                const isActive = false;
+                const isFeedback = false;
+                const bgClass = 'bg-white';
+                const textClass = 'text-gray-400';
                 const fontSize = currentNumSections <= 3 ? 'text-6xl md:text-9xl' : currentNumSections <= 6 ? 'text-4xl md:text-7xl' : 'text-3xl md:text-5xl';
+
                 return (
                   <div
                     key={index}
-                    className={`w-full md:flex-1 flex flex-col items-center justify-center border-b md:border-r border-gray-200 last:border-b-0 md:last:border-r-0 md:last:border-b-0 transition-all duration-200 ${isActive ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} hover:bg-gray-300 cursor-pointer ${bgClass} ${resultClass}`}
-                    onClick={() => handleSectionClick(index)}
+                    className={`w-full md:flex-1 flex flex-col items-center justify-center border-b md:border-r border-gray-200 last:border-b-0 md:last:border-r-0 md:last:border-b-0 ${bgClass} flex-1`}
                   >
-                    <div className={`${fontSize} font-bold ${textClass} transition-colors duration-200 mb-1`}>
+                    <div className={`${fontSize} font-bold ${textClass} mb-1`}>
                       {key}
                     </div>
-                    <span className={`text-xs md:text-sm font-mono ${isActive ? 'text-white/80' : 'text-gray-500'} transition-colors duration-200`}>
+                    <span className="text-xs md:text-sm font-mono text-gray-500">
                       {noteNames[index]}
                     </span>
                   </div>
                 );
               })}
             </div>
-            {!isPlaying ? (
+            {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
                 <div className="text-center p-4">
                   <p className="text-2xl md:text-3xl text-gray-400 mb-4 font-bold">Ready to Play?</p>
@@ -747,8 +768,9 @@ const GamePage = () => {
                   </div>
                 </div>
               </div>
-            ) : null}
+            )}
           </div>
+
           {/* Controls */}
           <div className="flex gap-2 md:gap-4 justify-center flex-wrap">
             {!isPlaying ? (
@@ -762,21 +784,27 @@ const GamePage = () => {
               </button>
             ) : null}
           </div>
-          {/* Keyboard Hint - Adjusted for mobile as tap hints */}
+
+          {/* Keyboard Hint - Responsive */}
           <div className="mt-4 md:mt-8 flex justify-center flex-col md:flex-row gap-2">
-            {activeKeys.map((key, index) => (
-              <div
-                key={key}
-                className="px-3 md:px-4 py-2 md:py-3 rounded-lg shadow-lg border-2 min-w-[50px] md:min-w-[60px] text-center"
-                style={{ backgroundColor: LIGHT_BLUE, borderColor: PRIMARY_BLUE }}
-              >
-                <p className="text-xs text-white font-semibold">Tap</p>
-                <p className="text-xl md:text-2xl font-bold text-white">{key}</p>
-                <p className="text-xs text-white/80">{noteNames[index]}</p>
-              </div>
-            ))}
+            {activeKeys.map((key, index) => {
+              const isJB = (key === 'J' || noteNames[index] === 'B') && isMobile;
+              return (
+                <div
+                  key={key}
+                  className={`px-3 md:px-4 py-2 md:py-3 rounded-lg shadow-lg border-2 min-w-[50px] md:min-w-[60px] text-center ${isJB ? "bg-blue-500 scale-105" : ""}`}
+                  style={{ backgroundColor: isJB ? "#baf5fe" : LIGHT_BLUE, borderColor: PRIMARY_BLUE }}
+                >
+                  <p className="text-xs text-white font-semibold">Tap</p>
+                  <p className="text-xl md:text-2xl font-bold text-white">{key}</p>
+                  <p className="text-xs text-white/80">{noteNames[index]}</p>
+                  {isJB && <span className="block text-sm text-blue-900 font-bold mt-2">J / B big!</span>}
+                </div>
+              );
+            })}
           </div>
         </div>
+
         {/* Current Session Data Preview */}
         {playData.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 border-t">
@@ -814,7 +842,8 @@ const GamePage = () => {
             )}
           </div>
         )}
-        {/* Settings Modal (Colors Adjusted) */}
+
+        {/* Settings Modal */}
         {showSettings && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-4 md:p-6 max-w-md w-full shadow-2xl">
