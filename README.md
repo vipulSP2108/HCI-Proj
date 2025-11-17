@@ -25,14 +25,19 @@ These videos demonstrate the intended real-world use of the system during physic
 2️⃣ Piano Reaction Game — Real Exercise Demo
 
 <!-- <video src="PianoReactionGame.mp4" autoplay loop muted playsinline width="400"></video> -->
-<video src="./PianoReactionGame.mp4" controls autoplay loop muted playsinline width="400">
+<!-- <video src="./PianoReactionGame.mp4" controls autoplay loop muted playsinline width="400">
   Your browser does not support the video element.
   <a href="./PianoReactionGame.mp4">Download / open the video</a>
-</video>
+</video> -->
+
+
+https://github.com/user-attachments/assets/c5c461f2-54d6-4329-a62c-08cb835a3b5b
+
 
 3️⃣ Shape Tracing — Real Exercise Demo
 
-<video src="ShapeTracing.mp4" autoplay loop muted playsinline width="400"></video>
+<!-- <video src="ShapeTracing.mp4" autoplay loop muted playsinline width="400"></video> -->
+https://github.com/user-attachments/assets/983f3891-c87e-4132-bb23-13b75d11c15c
 
 ## Full App Navigation Demo
 
