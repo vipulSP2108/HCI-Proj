@@ -13,6 +13,33 @@ Key features include:
 
 The app is built for healthcare providers and patients, emphasizing user-friendly navigation and data privacy.
 
+## Real-Life Exercise Game Demonstration
+
+Below are actual recordings of senior citizens performing the exercise-based games integrated into the app.
+These videos demonstrate the intended real-world use of the system during physical therapy and rehabilitation.
+
+1️⃣ Arm Fruit Fetch — Real Exercise Demo
+
+<video src="Arm-FruitFetch.mp4" autoplay loop muted playsinline width="400"></video>
+
+2️⃣ Piano Reaction Game — Real Exercise Demo
+
+<!-- <video src="PianoReactionGame.mp4" autoplay loop muted playsinline width="400"></video> -->
+<video src="./PianoReactionGame.mp4" controls autoplay loop muted playsinline width="400">
+  Your browser does not support the video element.
+  <a href="./PianoReactionGame.mp4">Download / open the video</a>
+</video>
+
+3️⃣ Shape Tracing — Real Exercise Demo
+
+<video src="ShapeTracing.mp4" autoplay loop muted playsinline width="400"></video>
+
+## Full App Navigation Demo
+
+A Complite walkthrough over all the application and 3 user senarios
+
+<video src="DemoNavigations.mp4" controls playsinline width="600"></video>
+
 ## Tech Stack
 
 - **Frontend**: React.js with Tailwind CSS for styling and responsive layouts.
