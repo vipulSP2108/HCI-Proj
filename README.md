@@ -1,184 +1,112 @@
-# Healthcare Gamification App v2.1 - Updated Schema
+# Healthcare Gamification App
 
-## 🎯 NEW DATA STRUCTURE
+## Overview
 
-### User Schema
-```javascript
-{
-  _id: ObjectId,
-  email: String,
-  password: String (hashed),
-  phone: String,
-  type: "doctor" | "patient" | "caretaker",
-  createdBy: ObjectId,
-  currentlevelspan: Number, // Time user gets to respond (1-10 seconds)
+The Healthcare Gamification App is an interactive web application designed to engage **senior citizen** in managing their health through gamified elements. Patients can track consultations, access educational content, participate in health-related chats, and play mini-games to earn rewards and badges. The app promotes proactive healthcare by integrating appointment scheduling, personalized doctor recommendations, and progress tracking.
 
-  game: [{
-    type: "type1",
-    name: "Reaction Game",
-    eachGameStats: [{
-      time: Date,  // When game session started
-      levelspan: Number,  // levelspan used for this session
-      play: [{
-        responsetime: Number,  // 0 to levelspan OR -1 if exceeded
-        correct: Number  // 1=correct, -1=incorrect, 0=not done
-      }]
-    }]
-  }],
+Key features include:
+- **User Dashboard**: A easy sidebar-navigated interface with sections for Home (overview stats), Consults (appointment history), Learn (health tips and quizzes), Chat (real-time messaging with doctors), and Play Game (interactive challenges).
+- **Appointment Scheduling**: Calendar view starting from the upcoming week (today + 7 days onward), with time slots for morning (9 AM - 12 PM), afternoon (2 PM - 5 PM), and evening (6 PM - 9 PM). Prevents booking past dates.
+- **Gamification Elements**: Earn points for completing learns, chats, and games; unlock badges for milestones like consistent check-ins.
+- **Doctor Views**: Manage patient schedules, view analytics, and approve consultations.
+- **Responsive Design**: Built with Tailwind CSS for seamless mobile and desktop experience.
 
-  level: Number,
-  totalScore: Number,
-  resetOTP: String,
-  resetOTPExpiry: Date,
-  isActive: Boolean
-}
-```
+The app is built for healthcare providers and patients, emphasizing user-friendly navigation and data privacy.
 
-### Response Time Logic
-- **levelspan**: How many seconds user has to press A or S
-- **responsetime**: 
-  - If user responds within levelspan: 0 to levelspan (e.g., 2.2 seconds)
-  - If user exceeds levelspan: -1
-- **correct**:
-  - `1`: Correct response
-  - `-1`: Incorrect response
-  - `0`: Not done (exceeded levelspan)
+## Tech Stack
 
-### Example Data
-```javascript
-{
-  currentlevelspan: 5,
-  game: [{
-    type: "type1",
-    name: "Reaction Game",
-    eachGameStats: [{
-      time: "2025-10-17T20:47:35.341Z",
-      levelspan: 5,
-      play: [
-        { responsetime: 2.2, correct: 1 },  // Correct in 2.2s
-        { responsetime: 2.1, correct: -1 }, // Incorrect in 2.1s
-        { responsetime: -1, correct: 0 },   // Not done (exceeded 5s)
-        { responsetime: 1.5, correct: 1 }   // Correct in 1.5s
-      ]
-    }]
-  }]
-}
-```
+- **Frontend**: React.js with Tailwind CSS for styling and responsive layouts.
+- **Backend**: Node.js with Express (serverless functions on Vercel).
+- **Database**: Supabase (for user auth, appointments, and gamification data).
+- **Other Tools**: React Router for navigation, react-toastify for notifications, and Linking API for external resources.
 
-## 📊 VISUALIZATIONS
+## Deployment
 
-### Doctor View (PatientAnalytics Page)
+- **Frontend**: Hosted on Vercel at [https://hci-proj-q8al.vercel.app/](https://hci-proj-q8al.vercel.app/).
+- **Backend**: Also hosted on Vercel as serverless API endpoints (e.g., `/api/games`, `/api/appointments`, `/api/users`, `/api/reminders`).
 
-1. **Response Time Scatter Plot**
-   - X-axis: Attempt number (1, 2, 3, ...)
-   - Y-axis: Response time (0 to levelspan)
-   - Color coded:
-     - Green dots: Correct (responsetime >= 0, correct = 1)
-     - Red dots: Incorrect (responsetime >= 0, correct = -1)
-     - Yellow dots: Not done (responsetime = -1, correct = 0)
-   - Shows exact response time for each attempt
+Access the live demo directly via the frontend URL. No additional setup required for hosted version.
 
-2. **Correct/Incorrect/NotDone Bar Chart**
-   - Per session comparison
-   - Stacked or grouped bars
+## Local Setup & Running the App
 
-3. **Distribution Pie Chart**
-   - Overall: Correct vs Incorrect vs Not Done
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+- Git
 
-4. **Average Response Time Line Chart**
-   - Shows improvement over sessions
+### Steps
 
-## 🎮 GAME MECHANICS
+1. **Clone the Repository**:
+   ```
+   git clone https://github.com/yourusername/healthcare-gamification-app.git
+   cd healthcare-gamification-app
+   ```
 
-1. Letter 'A' or 'S' appears on screen
-2. Timer starts (based on currentlevelspan)
-3. User has currentlevelspan seconds to press correct key
-4. System records:
-   - Actual response time (e.g., 2.2s)
-   - Whether correct/incorrect/not done
-5. If time exceeds levelspan → responsetime = -1, correct = 0
-6. Audio feedback plays
-7. Next letter appears
+2. **Install Dependencies**:
+   - For Frontend (in `/frontend` directory):
+     ```
+     npm install
+     ```
+   - For Backend (in `/backend` directory):
+     ```
+     npm install
+     ```
 
-## ⚙️ SETTINGS
+3. **Environment Setup**:
+   - Create a `.env` file in both frontend and backend directories.
+   - To obtain the actual environment variable values, please contact me at **[vipul.patil@iitgn.ac.in](mailto:vipul.patil@iitgn.ac.in)**.
+     ```
+     MONGODB_URI = # contact me at **vipul.patil@iitgn.ac.in**.
+     JWT_SECRET = # contact me at **vipul.patil@iitgn.ac.in**.
+     PORT = 5001
+     NODE_ENV = development
+     ```
 
-### currentlevelspan (Editable by Doctor & Caretaker)
-- Range: 1-10 seconds
-- Determines how long user has to respond
-- Can be adjusted per patient
-- Affects difficulty
+4. **Run the Backend**:
+   ```
+   cd backend
+   npm run dev
+   ```
+   - Server starts at `http://localhost:3001` (or port specified in `.env`).
 
-## 🎨 UI FEATURES
+5. **Run the Frontend**:
+   ```
+   cd frontend
+   npm start
+   ```
+   - App opens at `http://localhost:5173` (or port specified in `.env`).
 
-- Beautiful gradient backgrounds
-- Recharts visualizations
-- Lucide-react icons
-- Responsive design
-- Real-time feedback
+### Troubleshooting
+- If you encounter CORS issues, ensure backend allows frontend origin in middleware.
+- For appointment scheduling errors, verify date logic restricts to future weeks only.
+- Check console for toast notifications on successful logins or bookings.
 
-## 🚀 SETUP
+## Sample Login Credentials
 
-```bash
-# Backend
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with MongoDB and Gmail
-npm run dev
+The app supports three user roles: Patient, Doctor, and Admin. Use these for testing (passwords are simple for demo purposes; change in production).
 
-# Frontend
-cd frontend
-npm install
-npm start
-```
+| Role    | Username/Email          | Password | Notes |
+|---------|-------------------------|----------|-------|
+| Patient | patient@gmail.com    | Patient@123 | Access dashboard, book appointments, play games. Starts with sample stats (e.g., 150 points, 3 badges). |
+| Doctor  | doctor@gmail.com     | Doctor@123  | View patient schedules, chat history, approve consults. |
+| Caretaker   | admin@gmail.com      | Caretaker@123   | Full access: Manage users, view analytics, edit gamification rules. |
 
-## 📝 API ENDPOINTS
+- Login via the `/login` route.
+- After login, redirect to `/dashboard` based on role.
+- Forgot password? Use the reset flow (emails via Supabase).
 
-### Game Routes
-- `PUT /api/game/levelspan/:userId` - Update levelspan
-- `GET /api/game/levelspan/:userId?` - Get levelspan
-- `POST /api/game/save-session` - Save game session
-- `GET /api/game/analytics/:userId` - Get detailed analytics (doctor)
-- `GET /api/game/stats/:userId?` - Get basic stats
+## Contributing
 
-### Request Example
-```javascript
-// Save game session
-POST /api/game/save-session
-{
-  "levelspan": 5,
-  "playData": [
-    { "responsetime": 2.2, "correct": 1 },
-    { "responsetime": 2.1, "correct": -1 },
-    { "responsetime": -1, "correct": 0 }
-  ]
-}
-```
+1. Fork the repo.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit changes (`git commit -m 'Add some amazing feature'`).
+4. Push to branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
 
-## 🎯 KEY FEATURES
+## Contact
 
-✅ Updated schema matching your exact requirements
-✅ Response time tracking (0 to levelspan or -1)
-✅ Correct values: 1, -1, 0
-✅ currentlevelspan editable by doctor/caretaker
-✅ Proper visualization of response times
-✅ Session-by-session tracking
-✅ Audio feedback
-✅ Beautiful charts
+For issues or feedback, open a GitHub issue or email [vipul.patil@iitgn.ac.in](mailto:vipul.patil@iitgn.ac.in).
 
-## 📦 SCORING
+---
 
-- Correct (+1): +10 points
-- Incorrect (-1): -5 points  
-- Not done (0): 0 points
-- Total score affects level
-
-## 🔒 SECURITY
-
-- Same as v2.0
-- JWT authentication
-- Password hashing
-- OTP email (5 min expiry)
-- Role-based access
-
-Ready to use! Just configure MongoDB and Gmail credentials.
+*Last Updated: November 17, 2025*
