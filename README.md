@@ -119,9 +119,9 @@ The app supports three user roles: Patient, Doctor, and Admin. Use these for tes
 
 | Role    | Username/Email          | Password | Notes |
 |---------|-------------------------|----------|-------|
-| Patient | patient@gmail.com    | Patient@123 | Access dashboard, book appointments, play games. Starts with sample stats (e.g., 150 points, 3 badges). |
-| Doctor  | doctor@gmail.com     | Doctor@123  | View patient schedules, chat history, approve consults. |
-| Caretaker   | admin@gmail.com      | Caretaker@123   | Full access: Manage users, view analytics, edit gamification rules. |
+| Patient | patient@gmail.com    | a@gmail.com | Access dashboard, book appointments, play games. Starts with sample stats (e.g., 150 points, 3 badges). |
+| Doctor  | doctor@gmail.com     | vipul%colab25  | View patient schedules, chat history, approve consults. |
+| Caretaker   | admin@gmail.com      | aa@gmail.com   | Full access: Manage users, view analytics, edit gamification rules. |
 
 - Login via the `/login` route.
 - After login, redirect to `/dashboard` based on role.
