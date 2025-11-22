@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { appointmentService } from '../../services/appointmentService';
 
-const fmt = (d) => d.toISOString().slice(0,10);
+const fmt = (d) => d.toISOString().slice(0, 10);
 
 const SchedulePage = () => {
   const [days, setDays] = useState([]);
@@ -13,7 +13,7 @@ const SchedulePage = () => {
 
   useEffect(() => {
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const arr = [];
     for (let offset = -1; offset <= 7; offset++) {
       const d = new Date(today);
@@ -37,25 +37,27 @@ const SchedulePage = () => {
         for (const d of arr) {
           try {
             const dayAvail = await appointmentService.getAvailability({ date: fmt(d) });
+            console.log("dayAvail", dayAvail)
             perDayAvailability.set(fmt(d), dayAvail.availability?.slots || []);
           } catch (e) {
             perDayAvailability.set(fmt(d), []);
           }
         }
 
+
         const synthesized = [];
         const genSlots = (startTime, endTime, slotMinutes) => {
           const out = [];
-          const [sh, sm] = (startTime||'09:00').split(':').map(Number);
-          const [eh, em] = (endTime||'17:00').split(':').map(Number);
-          let cur = sh*60+sm;
-          const end = eh*60+em;
+          const [sh, sm] = (startTime || '09:00').split(':').map(Number);
+          const [eh, em] = (endTime || '17:00').split(':').map(Number);
+          let cur = sh * 60 + sm;
+          const end = eh * 60 + em;
           while (cur + slotMinutes <= end) {
-            const sH = String(Math.floor(cur/60)).padStart(2,'0');
-            const sM = String(cur%60).padStart(2,'0');
+            const sH = String(Math.floor(cur / 60)).padStart(2, '0');
+            const sM = String(cur % 60).padStart(2, '0');
             const eTot = cur + slotMinutes;
-            const eH = String(Math.floor(eTot/60)).padStart(2,'0');
-            const eM = String(eTot%60).padStart(2,'0');
+            const eH = String(Math.floor(eTot / 60)).padStart(2, '0');
+            const eM = String(eTot % 60).padStart(2, '0');
             out.push({ startTime: `${sH}:${sM}`, endTime: `${eH}:${eM}` });
             cur += slotMinutes;
           }
@@ -65,7 +67,7 @@ const SchedulePage = () => {
         const baseSlots = genSlots(baseAvail.startTime, baseAvail.endTime, baseAvail.slotMinutes);
         for (const d of arr) {
           const key = fmt(d);
-          const availSlots = new Set((perDayAvailability.get(key) || []).map(s=>`${s.startTime}-${s.endTime}`));
+          const availSlots = new Set((perDayAvailability.get(key) || []).map(s => `${s.startTime}-${s.endTime}`));
           baseSlots.forEach(slot => {
             const slotKey = `${slot.startTime}-${slot.endTime}`;
             if (!availSlots.has(slotKey)) {
@@ -73,6 +75,7 @@ const SchedulePage = () => {
             }
           });
         }
+        // console.log("synthesized", synthesized)
         setAppointments(synthesized);
       } catch (e) {
         setAppointments([]);
@@ -81,19 +84,21 @@ const SchedulePage = () => {
     load();
   }, []);
 
+  // console.log(appointments)
+
   const timeSlots = useMemo(() => {
     const out = [];
-    const [sh, sm] = (availability.startTime||'09:00').split(':').map(Number);
-    const [eh, em] = (availability.endTime||'17:00').split(':').map(Number);
+    const [sh, sm] = (availability.startTime || '09:00').split(':').map(Number);
+    const [eh, em] = (availability.endTime || '17:00').split(':').map(Number);
     const step = availability.slotMinutes || 30;
-    let cur = sh*60+sm;
-    const end = eh*60+em;
+    let cur = sh * 60 + sm;
+    const end = eh * 60 + em;
     while (cur + step <= end) {
-      const sH = String(Math.floor(cur/60)).padStart(2,'0');
-      const sM = String(cur%60).padStart(2,'0');
+      const sH = String(Math.floor(cur / 60)).padStart(2, '0');
+      const sM = String(cur % 60).padStart(2, '0');
       const eTot = cur + step;
-      const eH = String(Math.floor(eTot/60)).padStart(2,'0');
-      const eM = String(eTot%60).padStart(2,'0');
+      const eH = String(Math.floor(eTot / 60)).padStart(2, '0');
+      const eM = String(eTot % 60).padStart(2, '0');
       out.push({ startTime: `${sH}:${sM}`, endTime: `${eH}:${eM}` });
       cur += step;
     }
@@ -124,7 +129,7 @@ const SchedulePage = () => {
       <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200">
         <div className="text-xl font-semibold">Schedule</div>
         <button
-          onClick={()=>setShowModal(true)}
+          onClick={() => setShowModal(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           Set Availability
@@ -136,23 +141,23 @@ const SchedulePage = () => {
         <div className="inline-grid min-w-full" style={{ gridTemplateColumns: `150px repeat(${days.length}, 1fr)` }}>
           {/* Header */}
           <div className="p-2 bg-gray-100 border-b border-gray-200 sticky top-0 z-10"></div>
-          {days.map((d,i)=>(
+          {days.map((d, i) => (
             <div key={i} className="p-2 bg-gray-100 border-b border-gray-200 text-sm font-semibold text-gray-700 text-center sticky top-0 z-10">
               {d.toLocaleDateString()}
             </div>
           ))}
 
           {/* Time Slots */}
-          {timeSlots.map((slot, rIdx)=>(
+          {timeSlots.map((slot, rIdx) => (
             <>
               <div key={`t-${rIdx}`} className="p-2 border-r border-gray-200 text-sm text-gray-600 font-medium sticky left-0 bg-gray-50 z-10" style={{ height: rowHeight }}>
                 {slot.startTime} - {slot.endTime}
               </div>
-              {days.map((d,cIdx)=>{
+              {days.map((d, cIdx) => {
                 const a = bookedMap.get(apptKey(d, slot));
                 return (
-                  <div 
-                    key={`c-${rIdx}-${cIdx}`} 
+                  <div
+                    key={`c-${rIdx}-${cIdx}`}
                     className={`p-2 border border-gray-200 text-center rounded transition-colors duration-150 
                       ${a ? 'bg-red-50 hover:bg-red-100' : 'bg-green-50 hover:bg-green-100'}`}
                     style={{ height: rowHeight }}
@@ -179,14 +184,14 @@ const SchedulePage = () => {
           <div className="bg-white rounded-lg p-6 w-80">
             <div className="flex justify-between items-center mb-4">
               <div className="text-lg font-semibold">Set Availability</div>
-              <button onClick={()=>setShowModal(false)} className="text-gray-500 hover:text-gray-800">&times;</button>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-800">&times;</button>
             </div>
             <label className="block mt-2 text-sm font-medium">Start Time</label>
-            <input type="time" className="border p-2 rounded w-full" value={form.startTime} onChange={e=>setForm({...form, startTime:e.target.value})} />
+            <input type="time" className="border p-2 rounded w-full" value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} />
             <label className="block mt-2 text-sm font-medium">End Time</label>
-            <input type="time" className="border p-2 rounded w-full" value={form.endTime} onChange={e=>setForm({...form, endTime:e.target.value})} />
+            <input type="time" className="border p-2 rounded w-full" value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
             <label className="block mt-2 text-sm font-medium">Slot Minutes</label>
-            <input type="number" className="border p-2 rounded w-full" value={form.slotMinutes} onChange={e=>setForm({...form, slotMinutes:Number(e.target.value)})} />
+            <input type="number" className="border p-2 rounded w-full" value={form.slotMinutes} onChange={e => setForm({ ...form, slotMinutes: Number(e.target.value) })} />
             <button onClick={saveAvailability} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded w-full">Save</button>
             {saved && <div className="text-green-600 text-sm mt-2">Saved!</div>}
           </div>
