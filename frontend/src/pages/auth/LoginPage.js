@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
-import { LogIn, Mail, Lock } from 'lucide-react';
+import { LogIn, Mail, Lock, User, Stethoscope, Shield } from 'lucide-react';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -38,6 +38,29 @@ const LoginPage = () => {
     }
   };
 
+  const handleDemoLogin = async (email, password) => {
+    setError('');
+    setLoading(true);
+    setFormData({ email, password });
+
+    try {
+      const response = await authService.login({ email, password });
+      login(response.user, response.token);
+
+      if (response.user.type === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else if (response.user.type === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (response.user.type === 'caretaker') {
+        navigate('/caretaker/dashboard');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Demo login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white border border-gray-200 rounded-lg p-8 w-full max-w-md shadow-sm">
@@ -51,7 +74,57 @@ const LoginPage = () => {
           <p className="text-gray-500 text-sm mt-1">Sign in to continue</p>
         </div>
 
-        {/* Form */}
+
+<div className="text-center text-xs uppercase text-gray-400 my-6 flex items-center">
+          <span className="border-t  border-gray-300 flex-grow mr-2"></span>
+          Quick Demo Logins
+          <span className="border-t border-gray-300 flex-grow ml-2"></span>
+        </div>
+
+        {/* Demo Buttons Section - 3 in a row */}
+        <div className="mb-5">
+          {/* <p className="text-center text-sm text-gray-600 mb-4">Quick Demo Logins</p> */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <button
+              onClick={() => handleDemoLogin('patient@gmail.com', 'a@gmail.com')}
+              disabled={loading}
+className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
+            >
+              <User className="" />
+              Demo as Patient
+            </button>
+
+            <button
+              onClick={() => handleDemoLogin('doctor@gmail.com', 'vipul%colab25')}
+              disabled={loading}
+              className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
+            >
+              <Stethoscope className="" />
+              Demo as Doctor
+            </button>
+
+            <button
+              onClick={() => handleDemoLogin('admin@gmail.com', 'aa@gmail.com')}
+              disabled={loading}
+className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
+            >
+              <Shield className="" />
+              Demo as Caretaker
+            </button>
+          </div>
+        </div>
+
+
+
+
+        {/* Divider */}
+        <div className="text-center text-xs text-gray-400 my-6 flex items-center">
+          <span className="border-t border-gray-300 flex-grow mr-2"></span>
+          OR SIGN IN MANUALLY
+          <span className="border-t border-gray-300 flex-grow ml-2"></span>
+        </div>
+
+        {/* Manual Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
