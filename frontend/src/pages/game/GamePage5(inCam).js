@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
-  CALIBRATION_SECONDS: 20,
+  CALIBRATION_SECONDS: 7, // Reduced from 20 to 7
   NUM_SHAPE_POINTS: 20,
   PICK_DISTANCE: 0.08,
   TRACE_TOLERANCE: 0.03,
@@ -14,7 +14,12 @@ const CONFIG = {
   MIN_COMPLETION: 0.8, // 80% points hit for success
   SMOOTH_ALPHA: 0.5,
   STABLE_FRAMES: 5,
-  DRAW_FPS: 30
+  DRAW_FPS: 30,
+  THEME: {
+    PRIMARY: '#3B82F6',
+    SECONDARY: '#EC4899',
+    ACCENT: '#8B5CF6'
+  }
 };
 
 // ==================== SHAPE GENERATION ====================
@@ -120,6 +125,7 @@ const DrawingGame = () => {
   const isInitializedRef = useRef(isInitialized);
   const usingMouseFallbackRef = useRef(usingMouseFallback);
   const showDebugRef = useRef(showDebug);
+  const isMountedRef = useRef(true);
  
   // Game State Refs
   const handStateRef = useRef({
@@ -146,6 +152,7 @@ const DrawingGame = () => {
   const currentTargetIdxRef = useRef(0);
   const drawnPathRef = useRef([]);
   const lastPoseResultsRef = useRef(null);
+  const detectionCounterRef = useRef(0);
  
   // ==================== UTILITY FUNCTIONS ====================
   const distNorm = (a, b) => {
@@ -270,7 +277,20 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     setLeftHandVisible(handState.Left.visible);
     setRightHandVisible(handState.Right.visible);
     setLeftHandClosed(handState.Left.closed);
+    setLeftHandClosed(handState.Left.closed);
     setRightHandClosed(handState.Right.closed);
+
+    // Auto-finish calibration if hands are detected early
+    if (calibrationRef.current.active && (handState.Left.visible || handState.Right.visible)) {
+      detectionCounterRef.current++;
+      if (detectionCounterRef.current > 45) { // ~1.5 seconds at 30fps
+        if (calibIntervalRef.current) clearInterval(calibIntervalRef.current);
+        finishCalibration();
+        detectionCounterRef.current = 0;
+      }
+    } else {
+      detectionCounterRef.current = 0;
+    }
   }, []);
  
   const onPoseResults = useCallback((results) => {
@@ -340,18 +360,24 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
       poseModuleRef.current.onResults(onPoseResults);
       cameraRef.current = new Camera(videoRef.current, {
         onFrame: async () => {
-          if (!usingMouseFallbackRef.current && isInitializedRef.current) {
-            await handsModuleRef.current.send({ image: videoRef.current });
-            await poseModuleRef.current.send({ image: videoRef.current });
+          if (isMountedRef.current && !usingMouseFallbackRef.current && isInitializedRef.current && handsModuleRef.current) {
+            try {
+              await handsModuleRef.current.send({ image: videoRef.current });
+              if (poseModuleRef.current) await poseModuleRef.current.send({ image: videoRef.current });
+            } catch (err) {
+              console.warn('MediaPipe error:', err);
+            }
           }
         },
         width: 640,
         height: 480
       });
       await cameraRef.current.start();
-      setIsInitialized(true);
-      isInitializedRef.current = true;
-      console.log('✓ Camera started successfully');
+      if (isMountedRef.current) {
+        setIsInitialized(true);
+        isInitializedRef.current = true;
+        console.log('✓ Camera started successfully');
+      }
     } catch (e) {
       console.warn('Camera failed:', e);
       alert('Camera unavailable. Enable mouse fallback to test without webcam.');
@@ -452,9 +478,10 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   // ==================== DRAWING ====================
   const drawOverlay = useCallback(() => {
     const canvas = overlayRef.current;
-    if (!canvas) return;
+    if (!canvas || !isMountedRef.current) return;
    
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const w = canvas.width;
     const h = canvas.height;
@@ -625,7 +652,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   }, []);
  
   const syncCanvasSizes = useCallback(() => {
-    if (overlayRef.current && videoRef.current) {
+    if (overlayRef.current && videoRef.current && isMountedRef.current) {
       if (overlayRef.current.width !== videoRef.current.videoWidth) {
         overlayRef.current.width = videoRef.current.videoWidth || 640;
         overlayRef.current.height = videoRef.current.videoHeight || 480;
@@ -635,6 +662,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
  
   // ==================== MAIN LOOP ====================
   const mainLoop = useCallback(() => {
+    if (!isMountedRef.current) return;
     const now = Date.now();
     const drawInterval = 1000 / CONFIG.DRAW_FPS;
    
@@ -655,6 +683,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     calibrationRef.current.maxX = 0;
     calibrationRef.current.minY = 1;
     calibrationRef.current.maxY = 0;
+    detectionCounterRef.current = 0;
    
     setIsCalibrating(true);
     setCalibTimeLeft(CONFIG.CALIBRATION_SECONDS);
@@ -836,11 +865,18 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
    
     document.addEventListener('keydown', handleKeyDown);
     return () => {
+      isMountedRef.current = false;
       cancelAnimationFrame(loopId);
       document.removeEventListener('keydown', handleKeyDown);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (calibIntervalRef.current) clearInterval(calibIntervalRef.current);
-      if (cameraRef.current) cameraRef.current.stop();
+      if (cameraRef.current) {
+        try {
+          cameraRef.current.stop();
+        } catch (e) {
+          console.warn('Error stopping camera:', e);
+        }
+      }
     };
   }, [setupMediaPipe, mainLoop]);
  

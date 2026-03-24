@@ -102,14 +102,15 @@ exports.getUserEditDetails = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Return doctor details directly
+    // Return details directly
     res.json({ 
       success: true, 
-      doctor: {
+      user: {
         degree: user.degree || '',
         name: user.name || '',
         phone: user.phone || '',
-        email: user.email || ''
+        email: user.email || '',
+        patientDetails: user.patientDetails || {}
       } 
     });
   } catch (err) {
@@ -117,31 +118,43 @@ exports.getUserEditDetails = async (req, res) => {
   }
 };
 
-
-// Update logged-in doctor details
+// Update logged-in user details
 exports.updateUserDetails = async (req, res) => {
   try {
-    console.log("asd");
-    const { degree, name, phone, email } = req.body;
+    const { degree, name, phone, email, patientDetails } = req.body;
     const user = await User.findById(req.user.id);
-    // if (user.type !== 'doctor') {
-    //   return res.status(403).json({ success: false, message: 'Only doctors can update their details' });
-    // }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
     // Update existing fields directly on the user object
-    user.degree = degree;
-    user.name = name;
-    user.phone = phone;
-    user.email = email;
+    if (degree !== undefined) user.degree = degree;
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (email !== undefined) user.email = email;
+    
+    if (patientDetails) {
+      user.patientDetails = {
+        ...(user.patientDetails || {}),
+        ...patientDetails
+      };
+    }
 
     await user.save();
 
-    res.json({ success: true, message: 'Doctor details updated', doctor: {
-      degree: user.degree,
-      name: user.name,
-      phone: user.phone,
-      email: user.email,
-    } });
+    res.json({ 
+      success: true, 
+      message: 'Profile updated successfully', 
+      user: {
+        degree: user.degree,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        patientDetails: user.patientDetails
+      } 
+    });
+
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to update doctor details' });
   }

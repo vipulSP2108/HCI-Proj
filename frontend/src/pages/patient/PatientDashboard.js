@@ -34,6 +34,23 @@ import {
   ChevronLeft,
   Flame,
   ChevronRight,
+  BookOpen,
+  HelpCircle,
+  LifeBuoy,
+  ShieldCheck,
+  Activity,
+  Plus,
+  Shield,
+  Clock,
+  Play,
+  TrendingUp,
+  Target,
+  Award,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Sun,
+  Moon
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -41,7 +58,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
 import { userService } from '../../services/userService';
 import { reminderService } from '../../services/reminderService';
-import { Play, TrendingUp, Clock, Target, Award } from 'lucide-react';
 import ChatPage from '../common/ChatPage';
 import PatientAppointments from './PatientAppointments';
 
@@ -59,6 +75,26 @@ export default function PatientDashboard({ userId }) {
 
   // Sidebar collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Dark mode state
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark' || 
+             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     (async () => {
@@ -116,26 +152,28 @@ export default function PatientDashboard({ userId }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#EBECF5] text-gray-800">
+    <div className="flex min-h-screen bg-[#F4F7FE] text-gray-800">
       {/* Sidebar - fixed, collapsible */}
-      <aside className={`fixed top-0 left-0 h-screen bg-white shadow-lg flex flex-col justify-between overflow-hidden z-10 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
-        <div className="p-0 flex flex-col h-full">
+      <aside className={`fixed top-0 left-0 h-screen transition-all duration-300 z-30 flex flex-col justify-between overflow-hidden shadow-lg border-r
+        ${isCollapsed ? 'w-20' : 'w-64'} 
+        bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800`}>
+        <div className="p-0 flex flex-col h-full uppercase">
           {/* Toggle Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-4 flex items-center justify-center border-b border-gray-200"
+            className="p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-800"
           >
             {isCollapsed ? (
-              <ChevronRight size={18} className="text-gray-600 cursor-pointer" />
+              <ChevronRight size={18} className="text-gray-600 dark:text-gray-400 cursor-pointer" />
             ) : (
-              <ChevronLeft size={18} className="text-gray-600 cursor-pointer" />
+              <ChevronLeft size={18} className="text-gray-600 dark:text-gray-400 cursor-pointer" />
             )}
           </button>
 
           {/* Logo */}
           <div className={`p-6 flex items-center space-x-2 transition-opacity`}>
-            <div className="bg-[#2B91D4] h-8 w-8 rounded-lg"></div>
-            {!isCollapsed && <span className="text-xl font-bold">Young Tempo</span>}
+            <div className="bg-[#2B91D4] h-8 w-8 rounded-lg shadow-sm"></div>
+            {!isCollapsed && <span className="text-xl font-bold dark:text-white capitalize">Young Tempo</span>}
           </div>
 
           {/* Profile */}
@@ -197,7 +235,14 @@ export default function PatientDashboard({ userId }) {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t py-4 pt-5 space-y-2 px-2">
+        <div className="border-t dark:border-gray-800 py-4 pt-5 space-y-2 px-2">
+          <SidebarItem
+            icon={<LifeBuoy size={18} />}
+            label="Help Center"
+            active={activeSection === 'Help Center'}
+            onClick={() => changeSection('Help Center')}
+            collapsed={isCollapsed}
+          />
           <SidebarItem
             icon={<Settings size={18} />}
             label="Settings"
@@ -205,18 +250,20 @@ export default function PatientDashboard({ userId }) {
             onClick={() => changeSection('Settings')}
             collapsed={isCollapsed}
           />
-          <SidebarItem
-            icon={<LogOut size={18} />}
-            label="Help Center"
-            active={activeSection === 'Help Center'}
-            onClick={() => changeSection('Help Center')}
-            collapsed={isCollapsed}
-          />
+          <button 
+            onClick={handleLogout}
+            className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl transition-all duration-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 group`}
+          >
+            <LogOut size={18} className="group-hover:scale-110 transition-transform" />
+            {!isCollapsed && <span className="font-bold text-sm uppercase tracking-wider">Logout</span>}
+          </button>
         </div>
       </aside>
 
       {/* Main content - scrollable, offset by sidebar */}
-      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
+      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 fade-in pt-10
+        ${isCollapsed ? 'ml-20' : 'ml-64'} 
+        bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100`}>
         <main className="flex-1">
           {activeSection === 'Dashboard' && <DashboardContent
             userData={userData}
@@ -225,17 +272,21 @@ export default function PatientDashboard({ userId }) {
             setIsDoctorModalOpen={setIsDoctorModalOpen}
             navigate={navigate}
             userId={userId}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
           />}
-          {activeSection === 'Appointment' && <PatientAppointments />}
-          {activeSection === 'Record' && <RecordContent />}
-          {activeSection === 'Chat' && <ChatPage />}
-          {activeSection === 'Calendar' && <CalendarContent />}
+          {activeSection === 'Appointment' && <PatientAppointments isDarkMode={isDarkMode} />}
+          {activeSection === 'Record' && <RecordContent isDarkMode={isDarkMode} />}
+          {activeSection === 'Chat' && <ChatPage isDarkMode={isDarkMode} />}
+          {activeSection === 'Calendar' && <CalendarContent isDarkMode={isDarkMode} />}
           {activeSection === 'Settings' && <SettingsContent
             userData={userData}
             navigate={navigate}
+            isDarkMode={isDarkMode}
           />}
           {activeSection === 'Help Center' && <HelpCenterContent
             handleLogout={handleLogout}
+            isDarkMode={isDarkMode}
           />}
         </main>
       </div>
@@ -254,19 +305,71 @@ export default function PatientDashboard({ userId }) {
 
 /* Components */
 
-// Updated SidebarItem to accept onClick, active, and collapsed props
+// Helper to calculate consecutive days streak
+const calculateStreak = (dailyData, referenceDate) => {
+  const toDateStr = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  let streak = 0;
+  let currentDate = new Date(referenceDate);
+  currentDate.setHours(0, 0, 0, 0);
+
+  const todayStr = toDateStr(currentDate);
+  const yesterday = new Date(currentDate);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = toDateStr(yesterday);
+
+  const hasActivityToday = dailyData[todayStr] && dailyData[todayStr].total > 0;
+  const hasActivityYesterday = dailyData[yesterdayStr] && dailyData[yesterdayStr].total > 0;
+
+  if (!hasActivityToday && !hasActivityYesterday) return 0;
+
+  // Start checking from today if played, else start from yesterday
+  let checkDate = new Date(hasActivityToday ? currentDate : yesterday);
+
+  while (true) {
+    const dStr = toDateStr(checkDate);
+    if (dailyData[dStr] && dailyData[dStr].total > 0) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+};
+
+// Updated SidebarItem to use the new design system classes
+// Updated SidebarItem for dark mode
 const SidebarItem = ({ icon, label, active, onClick, collapsed }) => (
   <div
-    className={`flex ${collapsed ? 'justify-center' : 'items-center space-x-3'} mx-2 my-1 rounded-full px-4 py-2 cursor-pointer hover:bg-blue-50 transition-all ${active ? "text-white bg-blue-600 font-medium hover:bg-blue-500" : ""}`}
+    className={`nav-item ${active ? "nav-item-active" : "nav-item-inactive"} ${collapsed ? 'justify-center mx-0 px-0' : ''}`}
     onClick={onClick}
   >
-    <span className={`text-gray-500 ${active ? "text-white" : ""} flex-shrink-0`}>{icon}</span>
-    {!collapsed && <span className="text-sm whitespace-nowrap">{label}</span>}
+    <span className={`${active ? "text-white" : "text-gray-500 dark:text-gray-400"} flex-shrink-0 transition-colors`}>{icon}</span>
+    {!collapsed && <span className="text-sm font-medium whitespace-nowrap">{label}</span>}
+  </div>
+);
+
+// Dark Mode Toggle Component
+const DarkModeToggle = ({ isDarkMode, setIsDarkMode, collapsed }) => (
+  <div
+    className={`nav-item nav-item-inactive ${collapsed ? 'justify-center mx-0 px-0' : ''}`}
+    onClick={() => setIsDarkMode(!isDarkMode)}
+  >
+    <span className="text-gray-500 dark:text-gray-400 flex-shrink-0 transition-colors">
+      {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+    </span>
+    {!collapsed && <span className="text-sm font-medium whitespace-nowrap">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
   </div>
 );
 
 // Extracted Dashboard content into its own component
-const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate, userId }) => {
+const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate, userId, isDarkMode, setIsDarkMode }) => {
   const [selectedSession, setSelectedSession] = useState(0);
   const [reminders, setReminders] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('week');
@@ -274,7 +377,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
 
   // Computations for charts - moved inside DashboardContent
   const recentSessions = stats?.recentSessions || (stats?.play ? [stats] : []);
-  const today = new Date('2025-11-16'); // Use provided current date
+  const today = new Date(); // Use actual current date
   const totals = {
     correct: recentSessions.reduce((sum, s) => sum + (s.correct || 0), 0),
     incorrect: recentSessions.reduce((sum, s) => sum + (s.incorrect || 0), 0),
@@ -362,10 +465,15 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ensure ascending order
 
-  // Streak data for last 15 days - UPDATED for intensity
-  const last15Days = Array.from({ length: 15 }, (_, i) =>
-    new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
-  );
+  // Streak calculation
+  const currentStreak = useMemo(() => calculateStreak(dailyData, today), [dailyData, today]);
+
+  // Streak data for last 15 days - for visualization
+  const last15Days = Array.from({ length: 15 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    return d;
+  });
   const streakData = last15Days.map((day) => {
     const dateStr = day.toISOString().split('T')[0];
     const attempts = dailyData[dateStr] ? dailyData[dateStr].total : 0;
@@ -494,73 +602,36 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
   }, [userId]);
 
   return (
-    <>
+    <div className="fade-in">
       {/* Top Bar */}
-      <div className="flex justify-end pb-10">
-        <div className="flex items-center space-x-3 mt-4 ">
-          <div className="flex justify-center w-full">
-            <div className="w-full flex justify-center py-3 bg-white px-2 rounded-full items-center">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 dark:from-primary-400 dark:to-secondary-400 capitalize">
+            Hello, {userData?.name || "Your Name"}!
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium italic">How are you feeling today?</p>
+        </div>
 
-              {/* Calculate the number of days played (attempts > 0) in the initial 7 days */}
-              {/* This is a simple metric to display next to the fire icon */}
-              {(() => {
-                const daysPlayed = streakData.slice(0, 7).filter(day => day.attempts > 0).length;
-
-                return (
-                  <h3 className="text-sm font-bold text-gray-700 text-center flex items-center">
-                    {/* Display the metric next to the fire icon */}
-
-
-                    <span className="text-xl mr-1">🔥</span>
-                      {/* <Flame size={40} className="fill text-[#f00] cursor-pointer" /> */}
-                      <span
-                        className=" inset-0 flex items-center justify-center text-xl font-black"
-                        style={{ color: daysPlayed > 0 ? '#FF8C00' : '#4B5563' }}
-                      >
-                         {daysPlayed}
-                      </span>
-
-                    {/* <span className="ml-1 text-gray-500 font-normal">Days</span> */}
-                  </h3>
-                );
-              })()}
-
-              {/* <div className="flex space-x-0.5 ml-auto">
-      {streakData.slice(0, 7).map((day, index) => {
-        let bgColor;
-        if (day.attempts === 0) {
-          bgColor = '#EF4444'; // red for no game played
-        } else {
-          // Calculate intensity based on attempts
-          const intensity = Math.min(day.attempts / 30, 1);
-          // Map intensity (0 to 1) to lightness (80% to 20%)
-          const lightness = 80 - intensity * 60;
-          bgColor = `hsl(152, 69%, ${lightness}%)`;
-        }
-        return (
-          <div
-            key={index}
-            className="w-7 h-7 rounded-full transition-colors flex items-center justify-center text-xs font-bold text-white shadow-md"
-            style={{ backgroundColor: bgColor }}
-            title={`${day.date}: ${day.attempts} attempts`}
-          >
-            {day.attempts}
-          </div>
-        );
-      })}
-    </div> */}
+        <div className="flex items-center gap-3">
+          {/* Streak Indicator */}
+          <div className="premium-card px-4 py-2.5 flex items-center gap-2 group transition-colors">
+            <div className="relative">
+              <span className="text-2xl animate-pulse group-hover:animate-none">🔥</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-black text-orange-600 dark:text-orange-400 leading-none">{currentStreak}</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Day Streak</span>
             </div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Global search"
-              className="bg-[#EBECF5] text-black pl-9 pr-5 py-2 rounded-full border border-gray-400 text-sm focus:outline-none placeholder:text-gray-400"
-            />
-          </div>
-          <button className="p-2 rounded-full border border-gray-400">
-            <Bell className="text-gray-400" size={18} />
+
+          <DarkModeToggle 
+            isDarkMode={isDarkMode} 
+            setIsDarkMode={setIsDarkMode} 
+            collapsed={false} 
+          />
+
+          <button className="p-2.5 rounded-2xl bg-white dark:bg-gray-900 shadow-premium border border-transparent hover:border-primary-100 transition-all text-gray-400 hover:text-primary-500">
+            <Bell size={20} />
           </button>
         </div>
       </div>
@@ -568,10 +639,6 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Doctor & Data & Stats & Recent Sessions */}
         <div className="lg:col-span-2 space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold">Hello, {userData?.name || "Your Name"}!</h1>
-            <p className="text-gray-500">How are you feeling today?</p>
-          </div>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <InfoCard
@@ -581,30 +648,28 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                     <div className="flex space-x-2 items-center">
                       <img
                         src="https://via.placeholder.com/40"
-                        className="w-10 h-10 rounded-full bg-black"
+                        className="w-10 h-10 rounded-full bg-black ring-2 ring-primary-100 dark:ring-primary-900"
                         alt="Doctor"
                       />
                       <div>
-                        <p className="text-base font-bold text-gray-900">
+                        <p className="text-base font-bold text-gray-900 dark:text-gray-100">
                           {userData?.doctor[0]?.doctorName || "Your Doctor"}
                         </p>
-                        <p className="text-sm font-normal text-gray-500">
+                        <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                           {userData?.doctor[0]?.doctorDegree || "Doctor Degree"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex space-x-2">
-                      <div className="bg-[#EBECF5] rounded-lg flex items-center p-2">
-                        <MessageSquare size={20} className="text-[#6FD2EE] cursor-pointer" />
+                      <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl flex items-center p-2 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors cursor-pointer text-primary-500 dark:text-primary-400" onClick={() => navigate('/chat')}>
+                        <MessageSquare size={18} />
                       </div>
                       <a
                         href={`tel:${userData?.doctor[0]?.doctorphone}`}
-                        className="bg-[#EBECF5] rounded-lg flex items-center p-2"
+                        className="bg-primary-50 dark:bg-primary-900/20 rounded-xl flex items-center p-2 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors text-primary-500 dark:text-primary-400"
                       >
-                        <PhoneCall size={20} className="text-[#6FD2EE] cursor-pointer" />
-
-
+                        <PhoneCall size={18} />
                       </a>
                     </div>
                   </div>
@@ -616,16 +681,16 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                 content={
                   <div className="flex justify-between text-sm">
                     <div className="text-center">
-                      <p className="text-sm font-normal text-gray-500">Weight:</p>
-                      <p className="text-base font-bold text-gray-900">{userData?.patientDetails.weight || "NA"} kg</p>
+                      <p className="text-sm font-normal text-gray-500 dark:text-gray-400">Weight:</p>
+                      <p className="text-base font-bold text-gray-900 dark:text-gray-100">{userData?.patientDetails.weight || "NA"} kg</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-normal text-gray-500">Height:</p>
-                      <p className="text-base font-bold text-gray-900">{userData?.patientDetails.height || "NA"} cm</p>
+                      <p className="text-sm font-normal text-gray-500 dark:text-gray-400">Height:</p>
+                      <p className="text-base font-bold text-gray-900 dark:text-gray-100">{userData?.patientDetails.height || "NA"} cm</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-normal text-gray-500">Blood:</p>
-                      <p className="text-base font-bold text-gray-900">{userData?.patientDetails.blood?.toUpperCase() || "NA"}</p>
+                      <p className="text-sm font-normal text-gray-500 dark:text-gray-400">Blood:</p>
+                      <p className="text-base font-bold text-gray-900 dark:text-gray-100">{userData?.patientDetails.blood?.toUpperCase() || "NA"}</p>
                     </div>
                   </div>
                 }
@@ -658,49 +723,45 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
             </div> */}
 
             {/* Middle Section - Stats Cards */}
-            <div className="bg-white rounded-2xl p-3 shadow-sm flex">
-              <div className="p-1 w-full">
-                <div className="max-w-6xl mx-auto">
-                  {/* Header */}
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                    <TrendingUp className="w-6 h-6 text-primary-600" />
-                    Your Stats
-                  </h2>
+            <div className="premium-card p-6">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary-500" />
+                Performance Overview
+              </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                    {/* Card Component */}
-                    <div className="bg-white rounded-xl p-6 shadow-md border border-primary-100 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm font-semibold text-gray-600">Level</p>
-                        <Award className="w-5 h-5 text-primary-500" />
-                      </div>
-                      <p className="text-5xl font-bold text-primary-600">{stats?.level || 1}</p>
-                    </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl p-5 border border-primary-50 dark:border-primary-900/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">Level</p>
+                    <Award className="w-4 h-4 text-primary-500" />
+                  </div>
+                  <p className="text-3xl font-black text-primary-900 dark:text-primary-100">{stats?.level || 1}</p>
+                </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-md border border-secondary-100 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm font-semibold text-gray-600">Total Score</p>
-                        <Target className="w-5 h-5 text-secondary-500" />
-                      </div>
-                      <p className="text-5xl font-bold text-secondary-600">{stats?.totalScore || 0}</p>
-                    </div>
+                <div className="bg-secondary-50/50 dark:bg-secondary-900/10 rounded-2xl p-5 border border-secondary-50 dark:border-secondary-900/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">Total Score</p>
+                    <Target className="w-4 h-4 text-secondary-500" />
+                  </div>
+                  <p className="text-3xl font-black text-secondary-900 dark:text-secondary-100">{stats?.totalScore || 0}</p>
+                </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-md border border-green-100 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm font-semibold text-gray-600">Sessions Played</p>
-                        <Play className="w-5 h-5 text-green-500" />
-                      </div>
-                      <p className="text-5xl font-bold text-green-600">{recentSessions.length}</p>
-                    </div>
+                <div className="bg-green-50/50 dark:bg-green-900/10 rounded-2xl p-5 border border-green-50 dark:border-green-900/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Sessions</p>
+                    <Play className="w-4 h-4 text-green-500" />
+                  </div>
+                  <p className="text-3xl font-black text-green-900 dark:text-green-100">{recentSessions.length}</p>
+                </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-md border border-orange-100 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm font-semibold text-gray-600">Response Time</p>
-                        <Clock className="w-5 h-5 text-orange-500" />
-                      </div>
-                      <p className="text-4xl font-bold text-orange-600">{stats?.currentlevelspan || stats?.levelspan || 5}s</p>
-                      <p className="text-xs text-gray-500 mt-1">Time allowed per attempt</p>
-                    </div>
+                <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-2xl p-5 border border-orange-50 dark:border-orange-900/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Response</p>
+                    <Clock className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-3xl font-black text-orange-900 dark:text-orange-100">{stats?.currentlevelspan || stats?.levelspan || 5}</p>
+                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400">s</span>
                   </div>
                 </div>
               </div>
@@ -708,21 +769,22 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
 
             {/* Recent Sessions - Charts */}
             <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Sessions</h2>
+              <div className="premium-card p-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Recent Sessions</h2>
                 {recentSessions.length > 0 ? (
                   <div className="space-y-6">
                     {/* Accuracy & Response Time Line Graph for Last 7 Games with Averages */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Accuracy & Avg Response Time: Last 7 Games</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800/20 rounded-2xl p-6 border dark:border-gray-800">
+                      <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 tracking-tight">Accuracy & Avg Response Time: Last 7 Games</h3>
                       <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={accuracyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis yAxisId="left" orientation="left" unit="%" />
-                            <YAxis yAxisId="right" orientation="right" unit="s" />
+                            <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#E5E7EB'} />
+                            <XAxis dataKey="date" tick={{ fill: isDarkMode ? '#9CA3AF' : '#4B5563' }} />
+                            <YAxis yAxisId="left" orientation="left" unit="%" tick={{ fill: isDarkMode ? '#9CA3AF' : '#4B5563' }} />
+                            <YAxis yAxisId="right" orientation="right" unit="s" tick={{ fill: isDarkMode ? '#9CA3AF' : '#4B5563' }} />
                             <Tooltip
+                              contentStyle={{ backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', borderColor: isDarkMode ? '#374151' : '#E5E7EB', color: isDarkMode ? '#F3F4F6' : '#111827', borderRadius: '12px' }}
                               formatter={(value, name) => {
                                 if (name === 'accuracy') return [`${value}%`, 'Accuracy'];
                                 if (name === 'responseTime') return [`${value}s`, 'Avg Response Time'];
@@ -730,60 +792,67 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                               }}
                             />
                             <Legend />
-                            <Line type="monotone" dataKey="accuracy" stroke="#8884d8" yAxisId="left" strokeWidth={2} />
-                            <Line type="monotone" dataKey="responseTime" stroke="#82ca9d" yAxisId="right" strokeWidth={2} />
-                            <ReferenceLine y={avgAcc7Sessions} label={{ value: `${avgAcc7Sessions.toFixed(1)}%`, position: 'middle' }} stroke="red" strokeDasharray="3 3" yAxisId="left" />
-                            <ReferenceLine y={avgResponseTime7Games} label={{ value: `${avgResponseTime7Games.toFixed(1)}s`, position: 'top' }} stroke="green" strokeDasharray="3 3" yAxisId="right" />
+                            <Line type="monotone" dataKey="accuracy" stroke="#3B82F6" yAxisId="left" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6' }} activeDot={{ r: 6 }} />
+                            <Line type="monotone" dataKey="responseTime" stroke="#EC4899" yAxisId="right" strokeWidth={3} dot={{ r: 4, fill: '#EC4899' }} activeDot={{ r: 6 }} />
+                            <ReferenceLine y={avgAcc7Sessions} label={{ value: `${avgAcc7Sessions.toFixed(1)}%`, position: 'middle', fill: '#3B82F6', fontWeight: 'bold', fontSize: 10 }} stroke="#3B82F6" strokeDasharray="5 5" yAxisId="left" />
+                            <ReferenceLine y={avgResponseTime7Games} label={{ value: `${avgResponseTime7Games.toFixed(1)}s`, position: 'top', fill: '#EC4899', fontWeight: 'bold', fontSize: 10 }} stroke="#EC4899" strokeDasharray="5 5" yAxisId="right" />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
                     </div>
 
                     {/* Grid for Counts Line Graphs */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                       {/* Last 7 Games Counts */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Counts: Last 7 Games</h3>
+                      <div className="bg-primary-50/20 dark:bg-primary-900/10 rounded-2xl p-6 border border-primary-50/50 dark:border-primary-900/20">
+                        <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2 tracking-tight">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          Session Trends
+                        </h3>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={last7Data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="date" />
-                              <YAxis />
-                              <Tooltip />
-                              <Legend />
-                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={2} />
-                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={2} />
-                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={2} />
+                            <LineChart data={last7Data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
+                              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
+                              <Legend iconType="circle" />
+                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
+                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
+                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
 
                       {/* Daily Counts Last 7 Days */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Daily Counts: Last 7 Days</h3>
+                      <div className="bg-secondary-50/20 dark:bg-secondary-900/10 rounded-2xl p-6 border border-secondary-50/50 dark:border-secondary-900/20">
+                        <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2 tracking-tight">
+                          <TrendingUp className="w-4 h-4 text-secondary-500" />
+                          Daily Progress
+                        </h3>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={dailyTotalsData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="date" />
-                              <YAxis />
-                              <Tooltip />
-                              <Legend />
-                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={2} />
-                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={2} />
-                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={2} />
+                            <LineChart data={dailyTotalsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
+                              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
+                              <Legend iconType="circle" />
+                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
+                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
+                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
                     </div>
 
+
                     {/* Detailed Last Game Plot */}
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gray-50 dark:bg-gray-800/20 rounded-2xl p-6 border dark:border-gray-800">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-700">Detailed Plot: Last Game Performance</h3>
+                        <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 tracking-tight">Detailed Plot: Last Game Performance</h3>
                         <select
                           className="p-1 border rounded text-sm"
                           value={selectedSession}
@@ -814,12 +883,17 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                     </div>
 
                     {/* Performance Indicator */}
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-800 font-semibold mb-2">💡 Quick Tip:</p>
-                      <p className="text-sm text-blue-700">
-                        Try to respond within <span className="font-bold">{stats?.currentlevelspan || stats?.levelspan || 5} seconds</span> to avoid "Not Done" entries.
-                        Practice regularly to improve your accuracy and response time!
-                      </p>
+                    <div className="mt-8 p-6 bg-primary-50/50 rounded-2xl border border-primary-100 flex items-start gap-4">
+                      <div className="bg-white p-2 rounded-xl shadow-sm">
+                        <AlertCircle className="w-6 h-6 text-primary-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-primary-900 font-bold mb-1">💡 Pro Tip for Better Results</p>
+                        <p className="text-sm text-primary-700 leading-relaxed">
+                          Consistency is key! Try to maintain your streak by completing at least one session daily. 
+                          Aim for a response time under <span className="font-bold">{stats?.currentlevelspan || stats?.levelspan || 5}s</span> to maximize your score.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -845,12 +919,12 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
 
         {/* Reminders & Play Button & Total Counts Bar */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white rounded-lg p-5 shadow-sm mb-4">
+          <div className="premium-card p-5 mb-4">
             <div className="flex justify-between items-center mb-3">
-              <p className="font-semibold">Remind me</p>
+              <p className="font-bold dark:text-white uppercase tracking-wider text-xs">Remind me</p>
               <div className="flex items-center gap-1">
                 <select
-                  className="text-sm text-[#6FD2EE] bg-transparent border-none focus:outline-none cursor-pointer"
+                  className="text-sm text-[#6FD2EE] bg-transparent border-none focus:outline-none cursor-pointer font-bold"
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
                 >
@@ -858,17 +932,16 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                   <option value="week">This week</option>
                   <option value="month">This month</option>
                 </select>
-                {/* <ChevronDown size={20} className="text-[#6FD2EE] cursor-pointer" /> */}
               </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 mb-4">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300 shadow-sm shadow-primary-200 dark:shadow-none"
                 style={{ width: `${percentage}%` }}
               ></div>
             </div>
 
-            <div className="space-y-1 rounded-lg bg-[#EBECF5] p-1 max-h-48 overflow-y-auto">
+            <div className="space-y-1 rounded-2xl bg-gray-50 dark:bg-gray-800/40 p-1.5 max-h-48 overflow-y-auto border border-transparent dark:border-gray-800/50">
               {activeReminders.map((r) => (
                 <ReminderItem
                   key={r._id}
@@ -878,8 +951,8 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                 />
               ))}
               {completedReminders.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-300">
-                  <p className="text-xs text-gray-500 mb-2">Completed</p>
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 px-2">Completed</p>
                   {completedReminders.map((r) => (
                     <ReminderItem
                       key={r._id}
@@ -891,58 +964,55 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                 </div>
               )}
               {activeReminders.length === 0 && completedReminders.length === 0 && (
-                <p className="text-xs text-gray-500 text-center py-2">No reminders</p>
+                <p className="text-xs text-gray-400 text-center py-4 font-medium italic">No reminders scheduled</p>
               )}
             </div>
           </div>
 
           <button
             onClick={() => navigate('/game')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-bold text-lg hover:shadow-xl hover:shadow-primary-200 dark:hover:shadow-none transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <Play className="w-7 h-7" />
+            <Play className="w-5 h-5 fill-current" />
             Piano Reaction Game
           </button>
 
-          {/* <button
-            onClick={() => navigate('/game2')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
-          >
-            <Play className="w-7 h-7" />
-            Play Game2 
-          </button> */}
-
           <button
             onClick={() => navigate('/game3')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+            className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <Play className="w-7 h-7" />
+            <Play className="w-5 h-5 text-primary-500 dark:text-primary-400" />
             Shape Tracing
           </button>
 
           <button
             onClick={() => navigate('/game4')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#2663EB] to-[#6FD2EE] text-white rounded-xl font-bold text-xl hover:from-[#225ad5] hover:to-[#64bed7] transition shadow-xl transform"
+            className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <Play className="w-7 h-7" />
+            <Play className="w-5 h-5 text-primary-500 dark:text-primary-400" />
             Arm – Fruit Fetch
           </button>
 
           {/* Total Counts Bar Chart - UPDATED with colors */}
-          <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">Total Counts</h3>
+          <div className="premium-card p-6 mb-4">
+            <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2 justify-center tracking-tight">
+              <Award className="w-4 h-4 text-primary-500" />
+              Total Achievements
+            </h3>
             <div className="h-64 flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
                   <YAxis hide={true} />
-                  <Tooltip formatter={(value) => [value, 'Count']} />
-                  <Bar dataKey="value">
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }}
+                    formatter={(value) => [value, 'Count']} 
+                  />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                     {barData.map((entry, index) => {
-                      let color = "#000"; // fallback
-                      if (entry.name === "Correct") color = "#2663EB";
-                      else if (entry.name === "Incorrect") color = "#6FD2EE";
-                      else if (entry.name === "Not Done") color = "#EBECF5";
+                      let color = isDarkMode ? "#374151" : "#E2E8F0"; // fallback
+                      if (entry.name === "Correct") color = "#10B981";
+                      else if (entry.name === "Incorrect") color = "#EF4444";
                       return <Cell key={`cell-${index}`} fill={color} />;
                     })}
                   </Bar>
@@ -961,35 +1031,38 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
           onSave={handleSaveEdit}
         />
       )}
-    </>
+    </div>
   );
 };
 
 // Updated ReminderItem component
 const ReminderItem = ({ reminder, onEdit, onMarkDone, isCompleted }) => {
-  const dateStr = new Date(reminder.date).toLocaleDateString('en-GB'); // DD.MM.YYYY format
+  const dateStr = new Date(reminder.date).toLocaleDateString('en-GB');
   return (
-    <div className={`p-2 rounded-lg text-sm ${isCompleted ? 'bg-blue-100' : 'bg-white'}`}>
-      <div className="flex items-start gap-2 mb-2">
-        <div className="bg-[#EBECF5] p-3 rounded flex-shrink-0">
-          <ClipboardList size={30} className="text-[#2663EB]" />
+    <div className={`p-3 rounded-xl transition-all mb-1 ${isCompleted ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'bg-white dark:bg-gray-800 shadow-sm border border-transparent dark:border-gray-700/50'}`}>
+      <div className="flex items-start gap-3 mb-3">
+        <div className="bg-primary-50 dark:bg-primary-900/20 p-2.5 rounded-xl flex-shrink-0">
+          <ClipboardList size={20} className="text-primary-600 dark:text-primary-400" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-bold">{reminder.title}</p>
-          {reminder.text && <p className="text-xs text-gray-600">{reminder.text}</p>}
-          <p className="text-xs font-medium">{dateStr} {reminder.time}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold dark:text-white truncate">{reminder.title}</p>
+          {reminder.text && <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">{reminder.text}</p>}
+          <div className="flex items-center gap-2 mt-1">
+            <Clock size={10} className="text-gray-300" />
+            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{dateStr} • {reminder.time}</p>
+          </div>
         </div>
       </div>
       <div className="flex justify-end gap-2">
         <button
-          className="text-[#6FD2EE] flex-1 text-xs hover:underline px-2 py-1 rounded"
+          className="text-primary-500 dark:text-primary-400 font-bold text-[10px] uppercase tracking-widest hover:bg-primary-50 dark:hover:bg-primary-900/20 px-3 py-1.5 rounded-lg transition-colors"
           onClick={() => onEdit && onEdit(reminder)}
         >
           Edit
         </button>
         {!isCompleted && (
           <button
-            className="bg-green-500 flex-1 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-lg transition-all shadow-sm shadow-green-200 dark:shadow-none"
             onClick={() => onMarkDone && onMarkDone(reminder._id)}
           >
             Done
@@ -1015,56 +1088,79 @@ const EditReminderModal = ({ reminder, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-auto">
-        <h2 className="text-xl font-semibold mb-4">Edit Reminder</h2>
-        <input
-          className="border p-2 w-full rounded mb-2"
-          placeholder="Title"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-        <textarea
-          className="border p-2 w-full rounded mb-2"
-          placeholder="Text"
-          value={form.text}
-          onChange={(e) => setForm({ ...form, text: e.target.value })}
-          rows={3}
-        />
-        <div className="flex gap-2 mb-4">
-          <input
-            type="date"
-            className="border p-2 rounded flex-1"
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-          />
-          <input
-            type="time"
-            className="border p-2 rounded flex-1"
-            value={form.time}
-            onChange={(e) => setForm({ ...form, time: e.target.value })}
-          />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl space-y-8 fade-in h-auto border border-transparent dark:border-gray-800/50">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black dark:text-white tracking-tight">Edit <span className="text-primary-500">Reminder</span></h2>
+          <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">Update your recovery task details here.</p>
         </div>
-        <label className="flex items-center gap-2 text-sm mb-4">
-          <input
-            type="checkbox"
-            checked={form.isRecurring}
-            onChange={(e) => setForm({ ...form, isRecurring: e.target.checked })}
-          />
-          Daily recurring
-        </label>
-        <div className="flex justify-end gap-2">
+        
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Task Title</label>
+            <input
+              className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold placeholder:text-gray-300"
+              placeholder="e.g., Morning Hand Exercise"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Description (Optional)</label>
+            <textarea
+              className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-medium placeholder:text-gray-300"
+              placeholder="Additional details..."
+              value={form.text}
+              onChange={(e) => setForm({ ...form, text: e.target.value })}
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Date</label>
+              <input
+                type="date"
+                className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Time</label>
+              <input
+                type="time"
+                className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold"
+                value={form.time}
+                onChange={(e) => setForm({ ...form, time: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl cursor-pointer group hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-colors">
+            <input
+              type="checkbox"
+              className="w-5 h-5 rounded-lg border-none bg-gray-200 dark:bg-gray-700 text-primary-500 focus:ring-primary-500/20"
+              checked={form.isRecurring}
+              onChange={(e) => setForm({ ...form, isRecurring: e.target.checked })}
+            />
+            <span className="text-sm font-bold dark:text-gray-300">Set as Reappearing Task</span>
+          </label>
+        </div>
+
+        <div className="flex gap-4 pt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            className="flex-1 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
           >
-            Close
+            Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="flex-1 px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:shadow-xl hover:shadow-primary-100 dark:hover:shadow-none transition-all transform hover:-translate-y-1 active:scale-95 shadow-lg"
           >
-            Done
+            Save Changes
           </button>
         </div>
       </div>
@@ -1072,134 +1168,528 @@ const EditReminderModal = ({ reminder, onClose, onSave }) => {
   );
 };
 
-// Placeholder for RecordContent - create a new component file for this
-const RecordContent = () => (
-  <div>
-    <h1 className="text-2xl font-semibold">Records</h1>
-    <p>Content for viewing medical records goes here.</p>
-    {/* Add your record-specific UI and logic here */}
-  </div>
-);
+// Functional component for Medical Records
+const RecordContent = ({ userData, isDarkMode }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const records = [
+    { id: 1, title: 'Health Assessment', date: 'Mar 24, 2026', type: 'Routine', status: 'Completed', result: 'Healthy', doctor: 'Dr. Sarah Wilson' },
+    { id: 2, title: 'MRI Scan', date: 'Mar 20, 2026', type: 'Imaging', status: 'Completed', result: 'Normal', doctor: 'Dr. Michael Chen' },
+    { id: 3, title: 'Consultation', date: 'Mar 15, 2026', type: 'Laboratory', status: 'Completed', result: 'Standard Range', doctor: 'Dr. Sarah Wilson' },
+    { id: 4, title: 'General Checkup', date: 'Mar 10, 2026', type: 'Consultation', status: 'Completed', result: 'Follow-up in 3 months', doctor: 'Dr. Robert Brown' },
+  ];
 
-// Placeholder for CalendarContent - create a new component file for this
-const CalendarContent = () => (
-  <div>
-    <h1 className="text-2xl font-semibold">Calendar</h1>
-    <p>Content for calendar view goes here.</p>
-    {/* Add your calendar-specific UI and logic here */}
-  </div>
-);
+  const filteredRecords = records.filter(record => 
+    record.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.doctor.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-// Placeholder for SettingsContent - create a new component file for this
-const SettingsContent = ({ userData, navigate }) => (
-  <div>
-    <h1 className="text-2xl font-semibold">Settings</h1>
-    <p>Content for settings goes here.</p>
-    {/* You can move the existing settings logic here instead of navigating to /patient/setting */}
-    {/* For example, include forms to update user data */}
-  </div>
-);
+  return (
+    <div className="p-8 max-w-6xl mx-auto space-y-10 fade-in pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black dark:text-white tracking-tight">Medical <span className="text-primary-500">Records</span></h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">View and manage your diagnostic history</p>
+        </div>
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors size-5" />
+          <input 
+            type="text" 
+            placeholder="Search records..." 
+            className="pl-12 pr-6 py-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none w-full md:w-80 dark:text-gray-200 shadow-sm transition-all font-medium"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
 
-// Placeholder for HelpCenterContent - create a new component file for this
-const HelpCenterContent = ({ handleLogout }) => (
-  <div className="p-6 max-w-3xl mx-auto bg-white">
-    <h1 className="text-3xl font-bold mb-4">Help Center</h1>
+      <div className="grid grid-cols-1 gap-4">
+        {filteredRecords.length > 0 ? filteredRecords.map((record) => (
+          <div key={record.id} className="premium-card p-6 flex items-center justify-between group">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-[#2B91D4] rounded-2xl group-hover:scale-110 transition-transform">
+                <FileText size={24} />
+              </div>
+              <div className="mt-4">
+                <h3 className="text-lg font-bold dark:text-white group-hover:text-blue-500 transition-colors uppercase">{record.title}</h3>
+                <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  <span className="flex items-center gap-1"><Calendar size={14} /> {record.date}</span>
+                  <span className="w-1 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
+                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{record.type}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-6 text-right">
+              <div className="hidden md:block">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Doctor</p>
+                <p className="text-sm dark:text-gray-300">{record.doctor}</p>
+              </div>
+              <div className="hidden md:block">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                <span className="text-sm text-green-500 font-semibold">{record.status}</span>
+              </div>
+              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-[#2B91D4]">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        )) : (
+          <div className="text-center py-20 text-gray-500">
+            No records found matching your search.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-    <section className="mb-6">
-      <h2 className="text-2xl font-semibold mb-2">Frequently Asked Questions (FAQs)</h2>
-      <ul className="list-disc list-inside space-y-1">
-        <li>
-          <strong>How do I reset my password?</strong> - Go to your profile settings and click "Change Password".
-        </li>
-        <li>
-          <strong>How do I contact support?</strong> - Use our <a href="/contact" className="text-blue-600 underline">contact form</a> or email support@example.com.
-        </li>
-        <li>
-          <strong>Where can I find tutorials?</strong> - Check our <a href="/tutorials" className="text-blue-600 underline">Tutorials Page</a> for step-by-step guides.
-        </li>
-      </ul>
-    </section>
+// Functional component for Calendar
+const CalendarContent = ({ isDarkMode }) => {
+  const [view, setView] = useState('Month'); // 'Today', 'Week', 'Month'
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-    <section className="mb-6">
-      <h2 className="text-2xl font-semibold mb-2">Support Links</h2>
-      <ul className="list-disc list-inside space-y-1">
-        <li><a href="/documentation" className="text-blue-600 underline">Documentation</a></li>
-        <li><a href="/community" className="text-blue-600 underline">Community Forum</a></li>
-        <li><a href="/status" className="text-blue-600 underline">System Status</a></li>
-      </ul>
-    </section>
+  const daysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
-    <section className="mb-6">
-      <h2 className="text-2xl font-semibold mb-2">Terms & Conditions</h2>
-      <p className="mb-2">
-        By using our service, you agree to our <a href="/terms" className="text-blue-600 underline">Terms & Conditions</a> and <a href="/privacy" className="text-blue-600 underline">Privacy Policy</a>.
+  const handlePrev = () => {
+    if (view === 'Month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    } else if (view === 'Week') {
+      const prevWeek = new Date(currentDate);
+      prevWeek.setDate(currentDate.getDate() - 7);
+      setCurrentDate(prevWeek);
+    } else {
+      const prevDay = new Date(currentDate);
+      prevDay.setDate(currentDate.getDate() - 1);
+      setCurrentDate(prevDay);
+    }
+  };
+
+  const handleNext = () => {
+    if (view === 'Month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    } else if (view === 'Week') {
+      const nextWeek = new Date(currentDate);
+      nextWeek.setDate(currentDate.getDate() + 7);
+      setCurrentDate(nextWeek);
+    } else {
+      const nextDay = new Date(currentDate);
+      nextDay.setDate(currentDate.getDate() + 1);
+      setCurrentDate(nextDay);
+    }
+  };
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  // Mock events for visualization
+  const events = [
+    { id: 1, title: 'Checkup', date: '2026-03-25', type: 'Appointment', time: '10:00 AM', doctor: 'Dr. Sarah Wilson' },
+    { id: 2, title: 'Game Therapy', date: '2026-03-24', type: 'Reminder', time: '02:00 PM', doctor: 'System' },
+    { id: 3, title: 'Lab Test', date: '2026-03-28', type: 'Appointment', time: '09:00 AM', doctor: 'Dr. Michael Chen' },
+    { id: 4, title: 'Morning Exercise', date: new Date().toISOString().split('T')[0], type: 'Reminder', time: '08:00 AM', doctor: 'System' },
+    { id: 5, title: 'Doctor Consultation', date: new Date().toISOString().split('T')[0], type: 'Appointment', time: '11:00 AM', doctor: 'Dr. Robert Brown' },
+  ];
+
+  const getDayEvents = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return events.filter(e => e.date === dateStr);
+  };
+
+  const renderTodayView = () => {
+    const dayEvents = getDayEvents(currentDate);
+    return (
+      <div className="p-8 space-y-6 min-h-[500px]">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex flex-col items-center justify-center text-white shadow-lg shadow-primary-200 dark:shadow-none">
+            <span className="text-xs font-bold uppercase tracking-widest">{dayNames[currentDate.getDay()]}</span>
+            <span className="text-2xl font-black">{currentDate.getDate()}</span>
+          </div>
+          <div>
+            <h3 className="text-2xl font-black dark:text-white">Daily Schedule</h3>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">You have {dayEvents.length} events today</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {dayEvents.length > 0 ? dayEvents.map(e => (
+            <div key={e.id} className="premium-card p-6 flex items-center justify-between group hover:border-primary-400 transition-all">
+              <div className="flex items-center gap-6">
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors">
+                  <Clock className="text-primary-500" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-primary-500 uppercase tracking-widest mb-1">{e.time}</p>
+                  <h4 className="text-lg font-bold dark:text-white">{e.title}</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{e.doctor}</p>
+                </div>
+              </div>
+              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${e.type === 'Appointment' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                {e.type}
+              </span>
+            </div>
+          )) : (
+            <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/20 rounded-[2rem] border-2 border-dashed border-gray-200 dark:border-gray-800">
+              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 font-bold">No events scheduled for today</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderWeekView = () => {
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    const weekDays = [];
+
+    for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        const dayEvents = getDayEvents(day);
+        const isToday = new Date().toDateString() === day.toDateString();
+
+        weekDays.push(
+            <div key={i} className={`flex-1 min-h-[500px] border-r dark:border-gray-800 last:border-r-0 ${isToday ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''}`}>
+                <div className={`p-4 text-center border-b dark:border-gray-800 ${isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${isToday ? 'text-blue-600' : 'text-gray-400'}`}>{dayNames[i]}</p>
+                    <p className={`text-2xl font-black mt-1 ${isToday ? 'text-blue-600' : 'dark:text-white'}`}>{day.getDate()}</p>
+                </div>
+                <div className="p-2 space-y-2">
+                    {dayEvents.map(e => (
+                        <div key={e.id} className={`p-3 rounded-xl border text-[10px] font-bold ${e.type === 'Appointment' ? 'bg-green-50 border-green-100 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' : 'bg-blue-50 border-blue-100 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'}`}>
+                            <p className="uppercase tracking-tighter opacity-70 mb-1">{e.time}</p>
+                            <p className="line-clamp-2">{e.title}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    return <div className="flex">{weekDays}</div>;
+  };
+
+  const renderMonthView = () => {
+    const days = [];
+    const totalDays = daysInMonth(currentDate);
+    const startOffset = firstDayOfMonth(currentDate);
+    const prevMonthLastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+
+    for (let i = startOffset - 1; i >= 0; i--) {
+      days.push(
+        <div key={`prev-${i}`} className="h-32 border dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/10 p-2 opacity-30">
+          <span className="text-sm font-bold text-gray-400">{prevMonthLastDate - i}</span>
+        </div>
+      );
+    }
+
+    for (let d = 1; d <= totalDays; d++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), d);
+      const dayEvents = getDayEvents(date);
+      const isToday = new Date().toDateString() === date.toDateString();
+
+      days.push(
+        <div key={d} className={`h-32 border dark:border-gray-800 p-2 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/5 group ${isToday ? 'bg-blue-50/30 dark:bg-blue-900/5' : 'bg-white dark:bg-gray-900'}`}>
+          <div className="flex justify-between items-start">
+            <span className={`text-sm font-black w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${isToday ? 'bg-primary-500 text-white shadow-lg shadow-primary-100' : 'text-gray-700 dark:text-gray-300 group-hover:text-primary-500'}`}>{d}</span>
+          </div>
+          <div className="mt-2 space-y-1 overflow-y-auto max-h-[70px] custom-scrollbar">
+            {dayEvents.map(e => (
+              <div key={e.id} className={`text-[9px] p-1.5 rounded-lg border font-bold truncate ${e.type === 'Appointment' ? 'bg-green-50 border-green-100 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' : 'bg-blue-50 border-blue-100 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'}`}>
+                {e.title}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return days;
+  };
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-8 fade-in pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-xl shadow-gray-100 dark:shadow-none border border-transparent dark:border-gray-800/50">
+        <div>
+          <h1 className="text-4xl font-black dark:text-white tracking-tight">Health <span className="text-primary-500">Calendar</span></h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Keep track of your rehabilitation journey and appointments.</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl border dark:border-gray-700/50">
+            {['Today', 'Week', 'Month'].map(v => (
+              <button 
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${view === v ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          <button className="bg-primary-500 text-white p-3 rounded-2xl hover:bg-primary-600 transition-all shadow-lg shadow-primary-100 dark:shadow-none">
+            <Plus size={24} />
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl shadow-gray-100 dark:shadow-none border border-transparent dark:border-gray-800/50 overflow-hidden">
+        <div className="flex items-center justify-between p-8 border-b dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-800/20">
+          <h2 className="text-2xl font-black dark:text-white tracking-tight">
+            {view === 'Month' ? `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 
+             view === 'Week' ? `Week of ${currentDate.getDate()} ${monthNames[currentDate.getMonth()]}` :
+             `${currentDate.getDate()} ${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+          </h2>
+          <div className="flex items-center space-x-3">
+            <button onClick={handlePrev} className="p-3 hover:bg-white dark:hover:bg-gray-700 rounded-2xl dark:text-gray-300 transition-all shadow-sm"><ChevronLeft size={24} /></button>
+            <button onClick={() => setCurrentDate(new Date())} className="px-6 py-2.5 text-xs font-black dark:text-primary-400 uppercase tracking-widest bg-white dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-2xl hover:shadow-md transition-all">Today</button>
+            <button onClick={handleNext} className="p-3 hover:bg-white dark:hover:bg-gray-700 rounded-2xl dark:text-gray-300 transition-all shadow-sm"><ChevronRight size={24} /></button>
+          </div>
+        </div>
+
+        <div>
+          {view === 'Month' ? (
+            <div className="grid grid-cols-7 border-collapse">
+              {dayNames.map(d => (
+                <div key={d} className="p-5 text-center text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] border-b border-r dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/10">
+                  {d}
+                </div>
+              ))}
+              {renderMonthView()}
+            </div>
+          ) : view === 'Week' ? (
+            renderWeekView()
+          ) : (
+            renderTodayView()
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Updated SettingsContent with a premium dark mode layout
+const SettingsContent = ({ isDarkMode }) => {
+  return (
+    <div className="p-8 max-w-4xl mx-auto space-y-12 fade-in pb-20">
+      <div className="space-y-4">
+        <h1 className="text-4xl font-black dark:text-white tracking-tight">Account <span className="text-primary-500">Settings</span></h1>
+        <p className="text-lg text-gray-500 dark:text-gray-400 font-medium">Manage your profile, security, and preferences.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <div className="premium-card p-10 space-y-10">
+          {/* Profile Section */}
+          <section className="space-y-8">
+            <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
+              <User className="text-primary-500" />
+              Personal Profile
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Full Name</label>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl dark:text-white font-bold border border-transparent dark:border-gray-700/50">
+                  Alex Johnson
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Email Address</label>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl dark:text-white font-bold border border-transparent dark:border-gray-700/50">
+                  alex.johnson@example.com
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="h-px bg-gray-100 dark:bg-gray-800" />
+
+          {/* Preferences Section */}
+          <section className="space-y-8">
+            <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
+              <Settings className="text-primary-500" />
+              General Preferences
+            </h2>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800 rounded-[2rem] border border-transparent dark:border-gray-700/50">
+                <div className="flex items-center gap-6">
+                  <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl text-primary-500 shadow-sm">
+                    <Bell size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold dark:text-white">Push Notifications</h4>
+                    <p className="text-sm text-gray-400 font-medium">Receive alerts for game reminders and appointments.</p>
+                  </div>
+                </div>
+                <div className="w-14 h-8 bg-primary-500 rounded-full flex items-center px-1 cursor-pointer">
+                  <div className="w-6 h-6 bg-white rounded-full shadow-md ml-auto" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800 rounded-[2rem] border border-transparent dark:border-gray-700/50">
+                <div className="flex items-center gap-6">
+                  <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl text-secondary-500 shadow-sm">
+                    <Shield size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold dark:text-white">Privacy Mode</h4>
+                    <p className="text-sm text-gray-400 font-medium">Hide sensitive clinical data from the dashboard.</p>
+                  </div>
+                </div>
+                <div className="w-14 h-8 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center px-1 cursor-pointer">
+                  <div className="w-6 h-6 bg-white rounded-full shadow-md" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <button className="w-full py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:shadow-2xl hover:shadow-primary-500/20 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl">
+            Save All Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Overhauled HelpCenterContent with premium design and dark mode support
+const HelpCenterContent = ({ isDarkMode }) => (
+  <div className="p-6 max-w-5xl mx-auto space-y-12 fade-in pb-20">
+    {/* Hero Section */}
+    <div className="text-center space-y-4">
+      <h1 className="text-4xl md:text-5xl font-black dark:text-white tracking-tight">
+        How can we <span className="text-primary-500">help you?</span>
+      </h1>
+      <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium">
+        Find answers to common questions and learn how to get the most out of your rehabilitation journey.
       </p>
-      <p>
-        Make sure to read these carefully before using the platform.
-      </p>
-    </section>
+    </div>
 
-    <section className="mb-6">
-      <h2 className="text-2xl font-semibold mb-2">Need More Help?</h2>
-      <p>If you still have questions, reach out to our support team. We're happy to help!</p>
-      <a href="/contact" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        Contact Support
-      </a>
-    </section>
+    {/* Category Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="premium-card p-8 group hover:border-primary-400 transition-all cursor-pointer">
+        <div className="w-14 h-14 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 group-hover:scale-110 transition-transform">
+          <BookOpen size={28} />
+        </div>
+        <h3 className="text-xl font-bold dark:text-white mb-2">Getting Started</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+          New to the platform? Learn the basics of your dashboard and how to start your first session.
+        </p>
+      </div>
 
-    <div className="mt-8">
-      <button
-        onClick={handleLogout}
-        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-      >
-        Logout
-      </button>
+      <div className="premium-card p-8 group hover:border-secondary-400 transition-all cursor-pointer">
+        <div className="w-14 h-14 bg-secondary-50 dark:bg-secondary-900/20 rounded-2xl flex items-center justify-center text-secondary-600 dark:text-secondary-400 mb-6 group-hover:scale-110 transition-transform">
+          <Activity size={28} />
+        </div>
+        <h3 className="text-xl font-bold dark:text-white mb-2">Game Guides</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+          Detailed instructions on how to play each game and how they help your physical recovery.
+        </p>
+      </div>
+
+      <div className="premium-card p-8 group hover:border-blue-400 transition-all cursor-pointer">
+        <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform">
+          <ShieldCheck size={28} />
+        </div>
+        <h3 className="text-xl font-bold dark:text-white mb-2">Privacy & Security</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+          Understand how we protect your clinical data and maintain your privacy at all times.
+        </p>
+      </div>
+    </div>
+
+    {/* FAQ Section */}
+    <div className="space-y-6">
+      <h2 className="text-2xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
+        <HelpCircle className="text-primary-500" />
+        Popular Questions
+      </h2>
+      <div className="grid grid-cols-1 gap-4">
+        {[
+          { q: "How do I reset my password?", a: "Navigate to Settings > Security and click on 'Change Password'. You'll receive an email with instructions." },
+          { q: "How is my progress tracked?", a: "Our system records every game session, tracking accuracy, range of motion, and consistency to build your recovery profile." },
+          { q: "What hardware do I need?", a: "Most games only require a standard webcam. Some advanced modules might benefit from specific sensors like Leap Motion." },
+          { q: "Can my doctor see my results?", a: "Yes, your assigned clinical team has real-time access to your progress reports to adjust your therapy as needed." }
+        ].map((item, i) => (
+          <div key={i} className="premium-card p-6 border-l-4 border-l-primary-500 dark:border-l-primary-600">
+            <h4 className="font-bold dark:text-white text-lg mb-2">{item.q}</h4>
+            <p className="text-gray-500 dark:text-gray-400 leading-relaxed text-sm">{item.a}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Support CTA */}
+    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-[2rem] p-10 text-center text-white shadow-2xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl transition-transform group-hover:scale-110"></div>
+      <div className="relative z-10 space-y-6">
+        <h2 className="text-3xl font-black tracking-tight">Still have questions?</h2>
+        <p className="text-primary-50 max-w-xl mx-auto font-medium">
+          Our dedicated support team is available 24/7 to help you with any technical or clinical platform issues.
+        </p>
+        <button className="bg-white text-primary-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+          Contact Support
+        </button>
+      </div>
     </div>
   </div>
 );
 
 
 const InfoCard = ({ title, content, onChange }) => (
-  <div className="bg-white p-5 rounded-lg shadow-sm relative">
-    <div className="flex justify-between items-center mb-2">
-      <p className="text-lg font-semibold text-gray-900 pb-2">{title}</p>
-      <div className="flex items-center gap-2 cursor-pointer" onClick={onChange}>
-        <Edit3 size={14} className="text-[#6FD2EE]" />
-        <p className="text-[#6FD2EE] font-semibold text-sm">Change</p>
-      </div>
+  <div className="premium-card p-6 relative">
+    <div className="flex justify-between items-center mb-4">
+      <p className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{title}</p>
+      {onChange && (
+        <div className="flex items-center gap-1.5 cursor-pointer text-[#2B91D4] hover:text-blue-600 transition-colors" onClick={onChange}>
+          <Edit3 size={12} />
+          <p className="font-bold text-xs uppercase">Edit</p>
+        </div>
+      )}
     </div>
-    {content}
+    <div className="dark:text-gray-200">
+      {content}
+    </div>
   </div>
 );
 
-const CardButton = ({ icon, title, subtitle }) => (
-  <div className="border rounded-xl p-4 flex flex-col justify-center hover:bg-blue-50 cursor-pointer">
-    <div className="text-3xl mb-2">{icon}</div>
-    <p className="font-medium">{title}</p>
-    <p className="text-xs text-gray-500">{subtitle}</p>
+const CardButton = ({ icon, title, subtitle, onClick }) => (
+  <div 
+    className="premium-card p-4 flex flex-col justify-center hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer group"
+    onClick={onClick}
+  >
+    <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{icon}</div>
+    <p className="font-bold dark:text-white uppercase text-sm">{title}</p>
+    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
   </div>
 );
 
 // Doctor selection modal component
 const DoctorModal = ({ doctors, onClose, onSelect }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-auto">
-      <h2 className="text-xl font-semibold mb-4">Select Your Doctor</h2>
-      <ul>
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 fade-in px-4">
+    <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 w-full max-w-md shadow-2xl border dark:border-gray-800">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold dark:text-white capitalize">Select Your Doctor</h2>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+          <ChevronRight size={24} className="rotate-90" />
+        </button>
+      </div>
+      <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar border-b dark:border-gray-800 mb-6">
         {doctors.map((doc, idx) => (
-          <li
+          <div
             key={idx}
-            className="p-3 cursor-pointer hover:bg-blue-100 rounded"
+            className="p-4 cursor-pointer border dark:border-gray-800 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-all group"
             onClick={() => onSelect(doc)}
           >
-            <p className="font-bold">{doc.doctorName}</p>
-            <p className="text-sm text-gray-600">{doc.doctorDegree}</p>
-          </li>
+            <p className="font-bold text-lg dark:text-white group-hover:text-blue-600 transition-colors capitalize">{doc.doctorName}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 uppercase font-medium tracking-wider">{doc.doctorDegree}</p>
+          </div>
         ))}
-      </ul>
+      </div>
       <button
         onClick={onClose}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="w-full py-3 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-2xl font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors uppercase shadow-sm"
       >
         Close
       </button>

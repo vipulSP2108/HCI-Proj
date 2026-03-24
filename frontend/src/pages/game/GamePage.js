@@ -7,9 +7,25 @@ import GameImage1 from "./1.png";
 import GameImage2 from "./2.png";
 import GameImage3 from "./3.png";
 
-const PRIMARY_BLUE = "#2766EB";
-  const LIGHT_BLUE = "#67C8EE";
-  
+const PRIMARY_BLUE = "#3B82F6";
+const LIGHT_BLUE = "#93C5FD";
+
+const useDarkMode = () => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', isDarkMode);
+  }, [isDarkMode]);
+
+  return [isDarkMode, setIsDarkMode];
+};
 // --- Onboarding Screen ---
 const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -90,11 +106,13 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
     };
   }, []);
 
+  const [isDarkMode] = useDarkMode();
+
   return (
-    <div className="fixed inset-0 bg-white flex flex-col items-center justify-center p-4 md:p-10 z-50 overflow-auto">
+    <div className={`fixed inset-0 flex flex-col items-center justify-center p-4 md:p-10 z-50 overflow-auto transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
       <div
-        className="max-w-4xl w-full bg-white rounded-xl shadow-2xl p-6 md:p-10 border-4 relative flex flex-col"
-        style={{ borderColor: PRIMARY_BLUE, maxHeight: "90vh" }}
+        className={`max-w-4xl w-full rounded-[2.5rem] shadow-2xl p-6 md:p-10 border-4 relative flex flex-col transition-all duration-300 ${isDarkMode ? 'bg-gray-900 border-primary-500/30' : 'bg-white border-primary-500'}`}
+        style={{ maxHeight: "90vh" }}
       >
         {/* TTS Control Button */}
         <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10">
@@ -112,57 +130,56 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
         </div>
 
         <div className="overflow-y-auto pr-2 mb-24">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6" style={{ color: PRIMARY_BLUE }}>
-            👋 Welcome! How to Play
+          <h2 className="text-3xl md:text-5xl font-black text-center mb-6 tracking-tight dark:text-white">
+            👋 Welcome! <span className="text-primary-500">How to Play</span>
           </h2>
 
-          <div className="space-y-6 md:space-y-8 text-lg text-gray-700">
-            <p className="text-xl md:text-2xl font-semibold text-center">
-              Listen to the instructions or follow the three steps below.
+          <div className="space-y-6 md:space-y-8 text-lg text-gray-700 dark:text-gray-300">
+            <p className="text-xl md:text-2xl font-bold text-center">
+              Follow these <span className="text-primary-500 underline decoration-primary-500/30 underline-offset-8">three simple steps</span> to excel.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Step 1 */}
-              <div className="flex flex-col items-center p-4 rounded-lg border-2" style={{ backgroundColor: "#F0FFF0", borderColor: "green" }}>
-                <h3 className="text-xl font-bold mb-2" style={{ color: "green" }}>Step 1: WATCH</h3>
-                <p className="text-center mb-3 text-gray-800">A piano key section will turn black.</p>
-                <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-400">
-                  <img src={GameImage1} alt="Game" className="w-full h-full object-cover rounded-lg" />
+              <div className="flex flex-col items-center p-6 rounded-[2rem] border-2 bg-green-50/30 dark:bg-green-900/10 border-green-500/20 dark:border-green-500/30 transition-transform hover:scale-[1.02]">
+                <h3 className="text-xl font-black mb-2 text-green-600 dark:text-green-400 uppercase tracking-widest">Step 1: WATCH</h3>
+                <p className="text-center mb-4 text-sm font-medium text-gray-600 dark:text-gray-400">A piano key section will turn black.</p>
+                <div className="w-full h-32 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-gray-700 overflow-hidden shadow-inner">
+                  <img src={GameImage1} alt="Game" className="w-full h-full object-cover opacity-90" />
                 </div>
-                <p className="mt-2 text-xs text-green-700 font-semibold">Goal: Identify the active key.</p>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-green-700 dark:text-green-500">Goal: Identify the active key.</p>
               </div>
 
               {/* Step 2 */}
-              <div className="flex flex-col items-center p-4 rounded-lg border-2" style={{ backgroundColor: "#FFF0F0", borderColor: "red" }}>
-                <h3 className="text-xl font-bold mb-2" style={{ color: "red" }}>Step 2: TAP QUICKLY</h3>
-                <p className="text-center mb-3 text-gray-800">Quickly tap the corresponding black.</p>
-                <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-400">
-                  <img src={GameImage2} alt="Game" className="w-full h-full object-cover rounded-lg" />
+              <div className="flex flex-col items-center p-6 rounded-[2rem] border-2 bg-red-50/30 dark:bg-red-900/10 border-red-500/20 dark:border-red-500/30 transition-transform hover:scale-[1.02]">
+                <h3 className="text-xl font-black mb-2 text-red-600 dark:text-red-400 uppercase tracking-widest">Step 2: TAP</h3>
+                <p className="text-center mb-4 text-sm font-medium text-gray-600 dark:text-gray-400">Quickly tap the corresponding black.</p>
+                <div className="w-full h-32 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-gray-700 overflow-hidden shadow-inner">
+                  <img src={GameImage2} alt="Game" className="w-full h-full object-cover opacity-90" />
                 </div>
-                <p className="mt-2 text-xs text-red-700 font-semibold">Caution: Tapping the wrong key gives Incorrect.</p>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-red-700 dark:text-red-500">Caution: Avoid mistakes!</p>
               </div>
 
               {/* Step 3 */}
-              <div className="flex flex-col items-center p-4 rounded-lg border-2" style={{ backgroundColor: "#FFFFF0", borderColor: "yellow" }}>
-                <h3 className="text-xl font-bold mb-2" style={{ color: "#CCB000" }}>Step 3: BE FAST</h3>
-                <p className="text-center mb-3 text-gray-800">You have {currentLevelSpan} seconds to respond.</p>
-                <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-400">
-                  <img src={GameImage3} alt="Game" className="w-full h-full object-cover rounded-lg" />
+              <div className="flex flex-col items-center p-6 rounded-[2rem] border-2 bg-yellow-50/30 dark:bg-yellow-900/10 border-yellow-500/20 dark:border-yellow-500/30 transition-transform hover:scale-[1.02]">
+                <h3 className="text-xl font-black mb-2 text-yellow-600 dark:text-yellow-400 uppercase tracking-widest">Step 3: SPEED</h3>
+                <p className="text-center mb-4 text-sm font-medium text-gray-600 dark:text-gray-400">Respond within {currentLevelSpan} seconds.</p>
+                <div className="w-full h-32 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-gray-700 overflow-hidden shadow-inner">
+                  <img src={GameImage3} alt="Game" className="w-full h-full object-cover opacity-90" />
                 </div>
-                <p className="mt-2 text-xs text-yellow-700 font-semibold">Warning: Being too slow results in Not Done.</p>
+                <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-yellow-700 dark:text-yellow-500">Warning: Don't be too slow.</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Next Button - fixed at bottom */}
-        <div className="absolute bottom-6 left-0 w-full flex justify-center">
+        <div className="absolute bottom-10 left-0 w-full flex justify-center">
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-8 py-4 text-white rounded-lg font-bold text-xl hover:shadow-2xl transition shadow-xl"
-            style={{ background: `linear-gradient(90deg, ${PRIMARY_BLUE}, ${LIGHT_BLUE})` }}
+            className="flex items-center gap-3 px-12 py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:shadow-2xl hover:shadow-primary-500/20 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
           >
-            Start Game Setup <ArrowRight className="w-6 h-6 ml-2" />
+            Start Game Setup <ArrowRight className="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -201,11 +218,13 @@ const PlayingGame = ({
     };
   }, []);
 
-  const PRIMARY_BLUE = '#2766EB';
-  const LIGHT_BLUE = '#67C8EE';
+  const PRIMARY_BLUE = '#3B82F6';
+  const LIGHT_BLUE = '#93C5FD';
+
+  const [isDarkMode] = useDarkMode();
 
   return (
-    <div className="fixed inset-0 bg-white flex flex-col overflow-hidden z-50">
+    <div className={`fixed inset-0 flex flex-col overflow-hidden z-50 transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
       {/* Header */}
       <div className="shadow-lg p-3 flex items-center justify-between" style={{ backgroundColor: PRIMARY_BLUE, color: 'white' }}>
         <h1 className="text-xl font-bold">Piano Reaction Game</h1>
@@ -335,6 +354,7 @@ const PlayingGame = ({
 
 // --- Main Game Page Component ---
 const GamePage = () => {
+  const [isDarkMode, setIsDarkMode] = useDarkMode();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -686,8 +706,8 @@ const GamePage = () => {
 
   // Main setup screen after onboarding, before playing
   return (
-    <div className="min-h-screen p-2 md:p-4 bg-white">
-      <div className="max-w-6xl mx-auto">
+    <div className={`min-h-screen p-4 md:p-8 transition-colors duration-300 ${isDarkMode ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 flex items-center justify-between text-white" style={{ background: `linear-gradient(90deg, ${PRIMARY_BLUE}, ${LIGHT_BLUE})` }}>
           <div>
@@ -708,26 +728,26 @@ const GamePage = () => {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-4 md:mb-6">
-          <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border">
-            <p className="text-xs md:text-sm text-gray-600">Attempts</p>
-            <p className="text-2xl md:text-3xl font-bold text-gray-800">{attemptCount}</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="premium-card p-6 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Attempts</p>
+            <p className="text-3xl font-black dark:text-white">{attemptCount}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border" style={{ borderColor: 'green' }}>
-            <p className="text-xs md:text-sm" style={{ color: 'green' }}>Correct</p>
-            <p className="text-2xl md:text-3xl font-bold" style={{ color: 'green' }}>{correctCount}</p>
+          <div className="premium-card p-6 text-center border-l-4 border-l-green-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-green-500 mb-2">Correct</p>
+            <p className="text-3xl font-black text-green-600 dark:text-green-400">{correctCount}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border" style={{ borderColor: 'red' }}>
-            <p className="text-xs md:text-sm" style={{ color: 'red' }}>Incorrect</p>
-            <p className="text-2xl md:text-3xl font-bold" style={{ color: 'red' }}>{incorrectCount}</p>
+          <div className="premium-card p-6 text-center border-l-4 border-l-red-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-2">Incorrect</p>
+            <p className="text-3xl font-black text-red-600 dark:text-red-400">{incorrectCount}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border" style={{ borderColor: 'yellow' }}>
-            <p className="text-xs md:text-sm" style={{ color: '#CCB000' }}>Not Done</p>
-            <p className="text-2xl md:text-3xl font-bold" style={{ color: '#CCB000' }}>{notDoneCount}</p>
+          <div className="premium-card p-6 text-center border-l-4 border-l-yellow-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500 mb-2">Not Done</p>
+            <p className="text-3xl font-black text-yellow-600 dark:text-yellow-400">{notDoneCount}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-2 md:p-4 text-center border" style={{ borderColor: PRIMARY_BLUE }}>
-            <p className="text-xs md:text-sm text-gray-600">Accuracy</p>
-            <p className="text-2xl md:text-3xl font-bold text-gray-800">{accuracy}%</p>
+          <div className="premium-card p-6 text-center border-l-4 border-l-primary-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary-500 mb-2">Accuracy</p>
+            <p className="text-3xl font-black text-primary-600 dark:text-primary-400">{accuracy}%</p>
           </div>
         </div>
 

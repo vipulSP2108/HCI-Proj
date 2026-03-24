@@ -258,7 +258,7 @@ exports.getBasicStats = async (req, res) => {
     }
 
     const gameType = user.game.find(g => g.type === 'type1');
-    const sessions = gameType ? gameType.eachGameStats.slice(-7) : [];
+    const sessions = gameType ? gameType.eachGameStats.slice(-30) : [];
 
     const basicSessions = sessions.map(session => {
 

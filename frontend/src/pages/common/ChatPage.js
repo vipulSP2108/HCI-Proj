@@ -5,7 +5,7 @@ import { chatService } from "../../services/chatService";
 import { userService } from "../../services/userService";
 import { useAuth } from "../../context/AuthContext";
 
-const ChatPage = () => {
+const ChatPage = ({ isDarkMode }) => {
   const { user } = useAuth();
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
