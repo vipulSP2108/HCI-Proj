@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { 
-  Send, MoreVertical, MessageSquare, UserPlus, Loader2,
-  Search
-} from 'lucide-react';
+import {
+  Send,
+  MoreVertical,
+  MessageSquare,
+  UserPlus,
+  Loader2,
+  Search,
+} from "lucide-react";
 import { Dialog } from "@headlessui/react";
 import { chatService } from "../../services/chatService";
 import { userService } from "../../services/userService";
@@ -20,7 +24,7 @@ const ChatPage = ({ type: initialType }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [type, setType] = useState(
-    initialType || "" // Default to ALL to avoid missing conversations
+    initialType || "", // Default to ALL to avoid missing conversations
   );
   const [participants, setParticipants] = useState([]);
   const [patientList, setPatientList] = useState([]);
@@ -31,7 +35,6 @@ const ChatPage = ({ type: initialType }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, selectedChat]);
-
 
   const openChat = useCallback(async (chat) => {
     setLoadingMessages(true);
@@ -48,41 +51,46 @@ const ChatPage = ({ type: initialType }) => {
   }, []);
 
   // Load chats and participants
-  const loadChats = useCallback(async (filterOverride) => {
-    setLoadingChats(true);
-    try {
-      const activeType = filterOverride !== undefined ? filterOverride : type;
-      const res = await chatService.listMyChats();
-      const allChats = res.chats || [];
-      const filtered = activeType ? allChats.filter(c => c.type === activeType) : allChats;
-      setChats(filtered);
-      
-      if (filtered.length > 0) {
-        // Only auto-open if no chat is currently selected or if it's the first load
-        if (!selectedChat) openChat(filtered[0]);
-      } else {
-        setSelectedChat(null);
-      }
+  const loadChats = useCallback(
+    async (filterOverride) => {
+      setLoadingChats(true);
+      try {
+        const activeType = filterOverride !== undefined ? filterOverride : type;
+        const res = await chatService.listMyChats();
+        const allChats = res.chats || [];
+        const filtered = activeType
+          ? allChats.filter((c) => c.type === activeType)
+          : allChats;
+        setChats(filtered);
 
-      if (user?.type === "doctor") {
-        const my = await userService.getMyPatients();
-        setPatientList(my.patients || []);
-        setCaretakerList(my.caretakers || []);
-      } else if (user?.type === "caretaker") {
-        const list = await userService.getCaretakerPatients();
-        setPatientList(list.patients || []);
-      } else if (user?.type === "patient") {
-        const res2 = await userService.getUserFullDetails();
-        const doctorId = res2.user?.createdBy;
-        if (doctorId) setParticipants([doctorId]);
+        if (filtered.length > 0) {
+          // Only auto-open if no chat is currently selected or if it's the first load
+          if (!selectedChat) openChat(filtered[0]);
+        } else {
+          setSelectedChat(null);
+        }
+
+        if (user?.type === "doctor") {
+          const my = await userService.getMyPatients();
+          setPatientList(my.patients || []);
+          setCaretakerList(my.caretakers || []);
+        } else if (user?.type === "caretaker") {
+          const list = await userService.getCaretakerPatients();
+          setPatientList(list.patients || []);
+        } else if (user?.type === "patient") {
+          const res2 = await userService.getUserFullDetails();
+          const doctorId = res2.user?.createdBy;
+          if (doctorId) setParticipants([doctorId]);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingChats(false);
+        setLoadingMessages(false);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingChats(false);
-      setLoadingMessages(false);
-    }
-  }, [type, selectedChat, openChat, user?.type]);
+    },
+    [type, selectedChat, openChat, user?.type],
+  );
 
   useEffect(() => {
     loadChats();
@@ -91,7 +99,10 @@ const ChatPage = ({ type: initialType }) => {
   const sendMessage = async () => {
     if (!selectedChat || !message.trim()) return;
     try {
-      const res = await chatService.sendMessage(selectedChat._id, message.trim());
+      const res = await chatService.sendMessage(
+        selectedChat._id,
+        message.trim(),
+      );
       setMessages(res.chat.messages || []);
       setMessage("");
     } catch (e) {
@@ -127,7 +138,9 @@ const ChatPage = ({ type: initialType }) => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Chat Type</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">
+                Chat Type
+              </label>
               <select
                 value={type || "doctor-patient"}
                 onChange={(e) => setType(e.target.value)}
@@ -153,35 +166,43 @@ const ChatPage = ({ type: initialType }) => {
 
             {user?.type === "doctor" && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Select {type === "doctor-caretaker" ? "Caretaker" : "Patient"}</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">
+                  Select {type === "doctor-caretaker" ? "Caretaker" : "Patient"}
+                </label>
                 <select
                   className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold"
                   onChange={(e) => setParticipants([e.target.value])}
                 >
                   <option value="">Choose from list...</option>
-                  {type === "doctor-caretaker" ? (
-                    caretakerList.map((c) => (
-                      <option key={c._id} value={c._id}>{c.email}</option>
-                    ))
-                  ) : (
-                    patientList.map((p) => (
-                      <option key={p._id} value={p._id}>{p.email}</option>
-                    ))
-                  )}
+                  {type === "doctor-caretaker"
+                    ? caretakerList.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.email}
+                        </option>
+                      ))
+                    : patientList.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.email}
+                        </option>
+                      ))}
                 </select>
               </div>
             )}
 
             {user?.type === "caretaker" && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">Select Patient</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">
+                  Select Patient
+                </label>
                 <select
                   className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold"
                   onChange={(e) => setParticipants([e.target.value])}
                 >
                   <option value="">Select patient...</option>
                   {patientList.map((p) => (
-                    <option key={p._id} value={p._id}>{p.email}</option>
+                    <option key={p._id} value={p._id}>
+                      {p.email}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -189,7 +210,9 @@ const ChatPage = ({ type: initialType }) => {
 
             {user?.type === "patient" && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">User ID (Doctor/Caretaker)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">
+                  User ID (Doctor/Caretaker)
+                </label>
                 <input
                   placeholder="Enter recipient ID..."
                   className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl p-4 focus:ring-4 focus:ring-primary-500/10 dark:text-white transition-all font-bold"
@@ -218,7 +241,10 @@ const ChatPage = ({ type: initialType }) => {
     const oneDay = 24 * 60 * 60 * 1000;
     if (diff < 60000) return "Just Now";
     if (diff < oneDay)
-      return msgTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return msgTime.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     if (diff < 2 * oneDay) return "Yesterday";
     return msgTime.toLocaleDateString([], { day: "2-digit", month: "short" });
   };
@@ -228,18 +254,24 @@ const ChatPage = ({ type: initialType }) => {
       .map((p) => p.email || p.name || "")
       .join(" ")
       .toLowerCase()
-      .includes(search.toLowerCase())
+      .includes(search.toLowerCase()),
   );
 
   return (
-    <div className={`flex h-[calc(100vh-40px)] mt-6 ml-6 transition-all duration-500 ${isDarkMode ? 'bg-black' : 'bg-white'} overflow-hidden rounded-[2.5rem] shadow-2xl border border-transparent dark:border-gray-800/50`}>
+    <div
+      className={`flex h-[calc(100vh-40px)] mt-6 ml-6 transition-all duration-500 ${isDarkMode ? "bg-black" : "bg-white"} overflow-hidden rounded-[2.5rem] shadow-2xl border border-transparent dark:border-gray-800/50`}
+    >
       {/* Sidebar */}
       <div className="w-1/3 max-w-xs border-r border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-black dark:text-white tracking-tight">Messages</h2>
-            {loadingChats && <Loader2 className="w-5 h-5 animate-spin text-primary-500" />}
+            <h2 className="text-2xl font-black dark:text-white tracking-tight">
+              Messages
+            </h2>
+            {loadingChats && (
+              <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+            )}
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
@@ -253,23 +285,32 @@ const ChatPage = ({ type: initialType }) => {
         {/* Filter Tabs for all roles */}
         {!initialType && (
           <div className="flex px-4 py-2 gap-2">
-            <button 
-              onClick={() => { setType(""); loadChats(""); }}
+            <button
+              onClick={() => {
+                setType("");
+                loadChats("");
+              }}
               className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!type ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
             >
               All
             </button>
-            
+
             {user?.type === "patient" && (
               <>
-                <button 
-                  onClick={() => { setType("doctor-patient"); loadChats("doctor-patient"); }}
+                <button
+                  onClick={() => {
+                    setType("doctor-patient");
+                    loadChats("doctor-patient");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "doctor-patient" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Doctor
                 </button>
-                <button 
-                  onClick={() => { setType("caretaker-patient"); loadChats("caretaker-patient"); }}
+                <button
+                  onClick={() => {
+                    setType("caretaker-patient");
+                    loadChats("caretaker-patient");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "caretaker-patient" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Caretaker
@@ -279,14 +320,20 @@ const ChatPage = ({ type: initialType }) => {
 
             {user?.type === "doctor" && (
               <>
-                <button 
-                  onClick={() => { setType("doctor-patient"); loadChats("doctor-patient"); }}
+                <button
+                  onClick={() => {
+                    setType("doctor-patient");
+                    loadChats("doctor-patient");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "doctor-patient" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Patients
                 </button>
-                <button 
-                  onClick={() => { setType("doctor-caretaker"); loadChats("doctor-caretaker"); }}
+                <button
+                  onClick={() => {
+                    setType("doctor-caretaker");
+                    loadChats("doctor-caretaker");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "doctor-caretaker" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Staff
@@ -296,14 +343,20 @@ const ChatPage = ({ type: initialType }) => {
 
             {user?.type === "caretaker" && (
               <>
-                <button 
-                  onClick={() => { setType("caretaker-patient"); loadChats("caretaker-patient"); }}
+                <button
+                  onClick={() => {
+                    setType("caretaker-patient");
+                    loadChats("caretaker-patient");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "caretaker-patient" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Patients
                 </button>
-                <button 
-                  onClick={() => { setType("doctor-caretaker"); loadChats("doctor-caretaker"); }}
+                <button
+                  onClick={() => {
+                    setType("doctor-caretaker");
+                    loadChats("doctor-caretaker");
+                  }}
                   className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${type === "doctor-caretaker" ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" : "bg-gray-50 dark:bg-gray-800 text-gray-400"}`}
                 >
                   Doctor
@@ -316,7 +369,10 @@ const ChatPage = ({ type: initialType }) => {
         {/* Search bar */}
         <div className="p-4 pt-2">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors" size={18} />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -340,21 +396,34 @@ const ChatPage = ({ type: initialType }) => {
                     : "hover:bg-gray-100 dark:hover:bg-gray-800 group"
                 }`}
               >
-                <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg font-black ${
-                  selectedChat?._id === chat._id ? "bg-white/20" : "bg-gray-100 dark:bg-gray-800 text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700"
-                }`}>
-                  {chat.participants?.find(p => p._id !== user?.id)?.email?.[0]?.toUpperCase() || "?"}
+                <div
+                  className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg font-black ${
+                    selectedChat?._id === chat._id
+                      ? "bg-white/20"
+                      : "bg-gray-100 dark:bg-gray-800 text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700"
+                  }`}
+                >
+                  {chat.participants
+                    ?.find((p) => p._id !== user?.id)
+                    ?.email?.[0]?.toUpperCase() || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
-                    <h3 className={`font-black truncate text-sm ${selectedChat?._id === chat._id ? "text-white" : "dark:text-white"}`}>
-                      {chat.participants?.find(p => p._id !== user?.id)?.email || "Private Chat"}
+                    <h3
+                      className={`font-black truncate text-sm ${selectedChat?._id === chat._id ? "text-white" : "dark:text-white"}`}
+                    >
+                      {chat.participants?.find((p) => p._id !== user?.id)
+                        ?.email || "Private Chat"}
                     </h3>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${selectedChat?._id === chat._id ? "text-white/70" : "text-gray-400"}`}>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest ${selectedChat?._id === chat._id ? "text-white/70" : "text-gray-400"}`}
+                    >
                       {formatTime(chat.updatedAt)}
                     </span>
                   </div>
-                  <p className={`text-xs truncate font-medium ${selectedChat?._id === chat._id ? "text-white/80" : "text-gray-500 dark:text-gray-400"}`}>
+                  <p
+                    className={`text-xs truncate font-medium ${selectedChat?._id === chat._id ? "text-white/80" : "text-gray-500 dark:text-gray-400"}`}
+                  >
                     {chat.messages?.slice(-1)[0]?.text || "No messages yet"}
                   </p>
                 </div>
@@ -363,7 +432,9 @@ const ChatPage = ({ type: initialType }) => {
           ) : (
             <div className="text-center py-20">
               <MessageSquare className="w-12 h-12 text-gray-200 dark:text-gray-800 mx-auto mb-4" />
-              <p className="text-gray-400 dark:text-gray-600 font-bold text-sm">No conversations</p>
+              <p className="text-gray-400 dark:text-gray-600 font-bold text-sm">
+                No conversations
+              </p>
             </div>
           )}
         </div>
@@ -376,13 +447,18 @@ const ChatPage = ({ type: initialType }) => {
             <div className="flex items-center justify-between px-8 py-5 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-black">
-                  {selectedChat.participants?.find(p => p._id !== user?.id)?.email?.[0]?.toUpperCase() || "?"}
+                  {selectedChat.participants
+                    ?.find((p) => p._id !== user?.id)
+                    ?.email?.[0]?.toUpperCase() || "?"}
                 </div>
                 <div>
                   <h2 className="text-lg font-black dark:text-white tracking-tight">
-                    {selectedChat.participants?.find(p => p._id !== user?.id)?.email || "Chat"}
+                    {selectedChat.participants?.find((p) => p._id !== user?.id)
+                      ?.email || "Chat"}
                   </h2>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-primary-500">{selectedChat.type}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary-500">
+                    {selectedChat.type}
+                  </p>
                 </div>
               </div>
               <button className="p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-2xl transition-colors dark:text-gray-400">
@@ -395,18 +471,23 @@ const ChatPage = ({ type: initialType }) => {
                 <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 transition-all duration-300">
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
-                    <p className="text-sm font-black text-primary-500 uppercase tracking-widest">Syncing Messages...</p>
+                    <p className="text-sm font-black text-primary-500 uppercase tracking-widest">
+                      Syncing Messages...
+                    </p>
                   </div>
                 </div>
               ) : null}
               {messages.map((msg, i) => {
-                const isMe = msg.sender?._id === user?.id || msg.sender === user?.id;
+                const isMe =
+                  msg.sender?._id === user?.id || msg.sender === user?.id;
                 return (
                   <div
                     key={i}
                     className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
-                    <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[80%]`}>
+                    <div
+                      className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[80%]`}
+                    >
                       <div
                         className={`px-5 py-3 rounded-[1.5rem] text-sm font-medium shadow-sm ${
                           isMe
@@ -425,7 +506,7 @@ const ChatPage = ({ type: initialType }) => {
               })}
               <div ref={messagesEndRef} />
             </div>
-             <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t border-gray-100 dark:border-gray-800">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-2 rounded-[2rem] border border-transparent focus-within:ring-4 focus-within:ring-primary-500/10 transition-all">
                 <input
                   type="text"
@@ -439,8 +520,8 @@ const ChatPage = ({ type: initialType }) => {
                   onClick={sendMessage}
                   disabled={!message.trim()}
                   className={`p-4 rounded-[1.5rem] transition-all transform active:scale-95 ${
-                    message.trim() 
-                      ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-600" 
+                    message.trim()
+                      ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-600"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                   }`}
                 >
@@ -455,16 +536,24 @@ const ChatPage = ({ type: initialType }) => {
               <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 transition-all duration-300">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-12 h-12 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
-                  <p className="text-sm font-black text-primary-500 uppercase tracking-widest">Finding Conversations...</p>
+                  <p className="text-sm font-black text-primary-500 uppercase tracking-widest">
+                    Finding Conversations...
+                  </p>
                 </div>
               </div>
             )}
             <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800 rounded-[2.5rem] flex items-center justify-center mb-6">
-              <MessageSquare size={48} className="text-primary-500 animate-pulse" />
+              <MessageSquare
+                size={48}
+                className="text-primary-500 animate-pulse"
+              />
             </div>
-            <h3 className="text-2xl font-black dark:text-white tracking-tight mb-2">Your Conversations</h3>
+            <h3 className="text-2xl font-black dark:text-white tracking-tight mb-2">
+              Your Conversations
+            </h3>
             <p className="text-gray-500 dark:text-gray-400 font-medium max-w-xs">
-              Select a chat from the sidebar to start messaging your specialized clinical team.
+              Select a chat from the sidebar to start messaging your specialized
+              clinical team.
             </p>
           </div>
         )}

@@ -1,8 +1,8 @@
-import { Hands } from '@mediapipe/hands';
-import { Pose } from '@mediapipe/pose';
-import { Camera } from '@mediapipe/camera_utils';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { Hands } from "@mediapipe/hands";
+import { Pose } from "@mediapipe/pose";
+import { Camera } from "@mediapipe/camera_utils";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext";
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
@@ -14,7 +14,7 @@ const CONFIG = {
   SCORE_PER_DROP: 10,
   SMOOTH_ALPHA: 0.7,
   STABLE_FRAMES: 2,
-  DRAW_FPS: 30
+  DRAW_FPS: 30,
 };
 // ==================== MAIN COMPONENT ====================
 const GamePage2BallBasket = () => {
@@ -27,21 +27,24 @@ const GamePage2BallBasket = () => {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [usingMouseFallback, setUsingMouseFallback] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const [statusMessage, setStatusMessage] = useState({ text: '', visible: false });
- 
+  const [statusMessage, setStatusMessage] = useState({
+    text: "",
+    visible: false,
+  });
+
   // Game Stats
   const [score, setScore] = useState(0);
   const [reps, setReps] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [successRate, setSuccessRate] = useState(0);
- 
+
   // Hand State
   const [leftHandVisible, setLeftHandVisible] = useState(false);
   const [rightHandVisible, setRightHandVisible] = useState(false);
   const [leftHandClosed, setLeftHandClosed] = useState(false);
   const [rightHandClosed, setRightHandClosed] = useState(false);
-  const [debugInfo, setDebugInfo] = useState('');
- 
+  const [debugInfo, setDebugInfo] = useState("");
+
   // Refs
   const videoRef = useRef(null);
   const overlayRef = useRef(null);
@@ -60,28 +63,45 @@ const GamePage2BallBasket = () => {
   const isInitializedRef = useRef(isInitialized);
   const usingMouseFallbackRef = useRef(usingMouseFallback);
   const showDebugRef = useRef(showDebug);
- 
+
   // Game State Refs
   const handStateRef = useRef({
     Left: {
-      pos: null, smoothPos: null, closed: false, closedFrames: 0,
-      openFrames: 0, landmarks: null, elbow: null, shoulder: null, visible: false
+      pos: null,
+      smoothPos: null,
+      closed: false,
+      closedFrames: 0,
+      openFrames: 0,
+      landmarks: null,
+      elbow: null,
+      shoulder: null,
+      visible: false,
     },
     Right: {
-      pos: null, smoothPos: null, closed: false, closedFrames: 0,
-      openFrames: 0, landmarks: null, elbow: null, shoulder: null, visible: false
-    }
+      pos: null,
+      smoothPos: null,
+      closed: false,
+      closedFrames: 0,
+      openFrames: 0,
+      landmarks: null,
+      elbow: null,
+      shoulder: null,
+      visible: false,
+    },
   });
- 
+
   const calibrationRef = useRef({
     active: false,
     done: false,
-    minX: 1, maxX: 0,
-    minY: 1, maxY: 0,
-    centerX: 0.5, centerY: 0.5,
-    maxReachNorm: 0.2
+    minX: 1,
+    maxX: 0,
+    minY: 1,
+    maxY: 0,
+    centerX: 0.5,
+    centerY: 0.5,
+    maxReachNorm: 0.2,
   });
- 
+
   const gridHolesRef = useRef([]);
   const fruitRef = useRef(null);
   const basketIdxRef = useRef(null);
@@ -95,26 +115,29 @@ const GamePage2BallBasket = () => {
     if (!prev) return { x: next.x, y: next.y };
     return {
       x: prev.x * (1 - CONFIG.SMOOTH_ALPHA) + next.x * CONFIG.SMOOTH_ALPHA,
-      y: prev.y * (1 - CONFIG.SMOOTH_ALPHA) + next.y * CONFIG.SMOOTH_ALPHA
+      y: prev.y * (1 - CONFIG.SMOOTH_ALPHA) + next.y * CONFIG.SMOOTH_ALPHA,
     };
   };
   const nowSec = () => {
-    return sessionStartRef.current ? Math.floor((Date.now() - sessionStartRef.current) / 1000) : 0;
+    return sessionStartRef.current
+      ? Math.floor((Date.now() - sessionStartRef.current) / 1000)
+      : 0;
   };
   const formatTime = (sec) => {
-    const m = String(Math.floor(sec / 60)).padStart(2, '0');
-    const s = String(sec % 60).padStart(2, '0');
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
     return `${m}:${s}`;
   };
   const showStatus = (msg, duration = 2000) => {
     setStatusMessage({ text: msg, visible: true });
-    setTimeout(() => setStatusMessage({ text: '', visible: false }), duration);
+    setTimeout(() => setStatusMessage({ text: "", visible: false }), duration);
   };
   // ==================== SETUP GRID ====================
   const setupGrid = useCallback(() => {
     const holes = [];
-    const marginX = 0.15, marginY = 0.15;
-   
+    const marginX = 0.15,
+      marginY = 0.15;
+
     for (let r = 0; r < CONFIG.GRID_ROWS; r++) {
       for (let c = 0; c < CONFIG.GRID_COLS; c++) {
         const x = marginX + (c / (CONFIG.GRID_COLS - 1)) * (1 - 2 * marginX);
@@ -131,29 +154,29 @@ const GamePage2BallBasket = () => {
     while (bIdx === sourceIdx) {
       bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
     }
-   
+
     basketIdxRef.current = bIdx;
     fruitRef.current = {
       id: `F${Date.now()}`,
       sourceIdx,
       x: gridHolesRef.current[sourceIdx].x,
       y: gridHolesRef.current[sourceIdx].y,
-      attachedTo: null
+      attachedTo: null,
     };
-   
+
     logsRef.current.push({
       timestamp: nowSec(),
-      event: 'spawn',
+      event: "spawn",
       fruit_id: fruitRef.current.id,
       source: sourceIdx,
       basket: bIdx,
-      score: scoreRef.current
+      score: scoreRef.current,
     });
   }, []);
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
     const handState = handStateRef.current;
-   
+
     handState.Left.visible = false;
     handState.Right.visible = false;
     handState.Left.landmarks = null;
@@ -162,65 +185,88 @@ const GamePage2BallBasket = () => {
       for (let i = 0; i < results.multiHandLandmarks.length; i++) {
         const lm = results.multiHandLandmarks[i];
         const label = results.multiHandedness[i].label;
-       
+
         const palmCenter = {
           x: (lm[0].x + lm[5].x + lm[9].x + lm[13].x + lm[17].x) / 5,
-          y: (lm[0].y + lm[5].y + lm[9].y + lm[13].y + lm[17].y) / 5
+          y: (lm[0].y + lm[5].y + lm[9].y + lm[13].y + lm[17].y) / 5,
         };
         const rawPos = { x: palmCenter.x, y: palmCenter.y };
         handState[label].pos = rawPos;
-        handState[label].smoothPos = smoothPos(handState[label].smoothPos, rawPos);
+        handState[label].smoothPos = smoothPos(
+          handState[label].smoothPos,
+          rawPos,
+        );
         handState[label].landmarks = lm;
         handState[label].visible = true;
         // Grasp detection
-        const fingerPairs = [[8, 6], [12, 10], [16, 14], [20, 18]];
+        const fingerPairs = [
+          [8, 6],
+          [12, 10],
+          [16, 14],
+          [20, 18],
+        ];
         let curledFingers = 0;
         fingerPairs.forEach(([tipIdx, midIdx]) => {
           if (lm[tipIdx].y > lm[midIdx].y + 0.03) curledFingers++;
         });
-       
+
         const thumbTipPoint = lm[4];
         const wrist = lm[0];
         const middleBase = lm[9];
-        const thumbToPalm = Math.hypot(thumbTipPoint.x - palmCenter.x, thumbTipPoint.y - palmCenter.y);
-        const handSize = Math.hypot(middleBase.x - wrist.x, middleBase.y - wrist.y) || 0.05;
+        const thumbToPalm = Math.hypot(
+          thumbTipPoint.x - palmCenter.x,
+          thumbTipPoint.y - palmCenter.y,
+        );
+        const handSize =
+          Math.hypot(middleBase.x - wrist.x, middleBase.y - wrist.y) || 0.05;
         const normalizedThumbDist = thumbToPalm / handSize;
         const thumbClosed = normalizedThumbDist < 0.7;
-       
+
         const fingerSpread = Math.hypot(lm[8].x - lm[20].x, lm[8].y - lm[20].y);
         const normalizedSpread = fingerSpread / handSize;
         const tightSpread = normalizedSpread < 0.8;
-       
-        const allTips = [4, 8, 12, 16, 20].map(idx => lm[idx]);
+
+        const allTips = [4, 8, 12, 16, 20].map((idx) => lm[idx]);
         let avgDistToPalm = 0;
-        allTips.forEach(tip => {
-          avgDistToPalm += Math.hypot(tip.x - palmCenter.x, tip.y - palmCenter.y);
+        allTips.forEach((tip) => {
+          avgDistToPalm += Math.hypot(
+            tip.x - palmCenter.x,
+            tip.y - palmCenter.y,
+          );
         });
         avgDistToPalm /= allTips.length;
         const normalizedCompactness = avgDistToPalm / handSize;
         const veryCompact = normalizedCompactness < 0.9;
-       
-        const isClosed = (curledFingers === 4) ||
-                         (curledFingers >= 3 && thumbClosed) ||
-                         (curledFingers >= 2 && thumbClosed && tightSpread) ||
-                         (veryCompact && tightSpread && thumbClosed);
-       
+
+        const isClosed =
+          curledFingers === 4 ||
+          (curledFingers >= 3 && thumbClosed) ||
+          (curledFingers >= 2 && thumbClosed && tightSpread) ||
+          (veryCompact && tightSpread && thumbClosed);
+
         if (i === 0 && showDebugRef.current) {
           setDebugInfo(`${label} Hand
 Curled: ${curledFingers}/4
-Thumb: ${thumbClosed ? 'TUCKED' : 'OUT'} (${normalizedThumbDist.toFixed(2)})
-Spread: ${tightSpread ? 'TIGHT' : 'WIDE'} (${normalizedSpread.toFixed(2)})
-Compact: ${veryCompact ? 'YES' : 'NO'} (${normalizedCompactness.toFixed(2)})
-State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
+Thumb: ${thumbClosed ? "TUCKED" : "OUT"} (${normalizedThumbDist.toFixed(2)})
+Spread: ${tightSpread ? "TIGHT" : "WIDE"} (${normalizedSpread.toFixed(2)})
+Compact: ${veryCompact ? "YES" : "NO"} (${normalizedCompactness.toFixed(2)})
+State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         }
         if (isClosed) {
-          handState[label].closedFrames = Math.min(handState[label].closedFrames + 1, CONFIG.STABLE_FRAMES + 2);
+          handState[label].closedFrames = Math.min(
+            handState[label].closedFrames + 1,
+            CONFIG.STABLE_FRAMES + 2,
+          );
           handState[label].openFrames = 0;
         } else {
-          handState[label].openFrames = Math.min(handState[label].openFrames + 1, CONFIG.STABLE_FRAMES + 2);
+          handState[label].openFrames = Math.min(
+            handState[label].openFrames + 1,
+            CONFIG.STABLE_FRAMES + 2,
+          );
           handState[label].closedFrames = 0;
         }
-        handState[label].closed = handState[label].closedFrames >= CONFIG.STABLE_FRAMES;
+        handState[label].closed =
+          handState[label].closedFrames >= CONFIG.STABLE_FRAMES;
       }
     }
     setLeftHandVisible(handState.Left.visible);
@@ -231,29 +277,44 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   const onPoseResults = useCallback((results) => {
     lastPoseResultsRef.current = results;
     const handState = handStateRef.current;
-   
+
     if (results.poseLandmarks) {
       const pl = results.poseLandmarks;
-     
+
       const update = (label, shoulderIdx, elbowIdx) => {
         if (pl[shoulderIdx] && pl[shoulderIdx].visibility > 0.5) {
           const shoulder = { x: pl[shoulderIdx].x, y: pl[shoulderIdx].y };
-          handState[label].shoulder = smoothPos(handState[label].shoulder, shoulder);
+          handState[label].shoulder = smoothPos(
+            handState[label].shoulder,
+            shoulder,
+          );
         }
         if (pl[elbowIdx] && pl[elbowIdx].visibility > 0.5) {
           const elbow = { x: pl[elbowIdx].x, y: pl[elbowIdx].y };
           handState[label].elbow = smoothPos(handState[label].elbow, elbow);
         }
       };
-      update('Left', 11, 13);
-      update('Right', 12, 14);
+      update("Left", 11, 13);
+      update("Right", 12, 14);
       if (calibrationRef.current.active) {
-        ['Left', 'Right'].forEach(label => {
+        ["Left", "Right"].forEach((label) => {
           if (handState[label].smoothPos) {
-            calibrationRef.current.minX = Math.min(calibrationRef.current.minX, handState[label].smoothPos.x);
-            calibrationRef.current.maxX = Math.max(calibrationRef.current.maxX, handState[label].smoothPos.x);
-            calibrationRef.current.minY = Math.min(calibrationRef.current.minY, handState[label].smoothPos.y);
-            calibrationRef.current.maxY = Math.max(calibrationRef.current.maxY, handState[label].smoothPos.y);
+            calibrationRef.current.minX = Math.min(
+              calibrationRef.current.minX,
+              handState[label].smoothPos.x,
+            );
+            calibrationRef.current.maxX = Math.max(
+              calibrationRef.current.maxX,
+              handState[label].smoothPos.x,
+            );
+            calibrationRef.current.minY = Math.min(
+              calibrationRef.current.minY,
+              handState[label].smoothPos.y,
+            );
+            calibrationRef.current.maxY = Math.max(
+              calibrationRef.current.maxY,
+              handState[label].smoothPos.y,
+            );
           }
         });
       }
@@ -262,34 +323,34 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   // ==================== SETUP MEDIAPIPE ====================
   const setupMediaPipe = useCallback(async () => {
     if (handsModuleRef.current || poseModuleRef.current) {
-      console.log('MediaPipe already initialized, skipping.');
+      console.log("MediaPipe already initialized, skipping.");
       return;
     }
     if (!Hands || !Pose || !Camera) {
-      console.error('MediaPipe libraries not loaded');
+      console.error("MediaPipe libraries not loaded");
       return;
     }
     try {
       handsModuleRef.current = new Hands({
-        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
       });
       handsModuleRef.current.setOptions({
         selfieMode: true,
         maxNumHands: 2,
         modelComplexity: 1,
         minDetectionConfidence: 0.6,
-        minTrackingConfidence: 0.6
+        minTrackingConfidence: 0.6,
       });
       handsModuleRef.current.onResults(onHandsResults);
       poseModuleRef.current = new Pose({
-        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`
+        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`,
       });
       poseModuleRef.current.setOptions({
         modelComplexity: 0,
         smoothLandmarks: true,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5,
-        selfieMode: true
+        selfieMode: true,
       });
       poseModuleRef.current.onResults(onPoseResults);
       cameraRef.current = new Camera(videoRef.current, {
@@ -300,87 +361,103 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
           }
         },
         width: 640,
-        height: 480
+        height: 480,
       });
       await cameraRef.current.start();
       setIsInitialized(true);
       isInitializedRef.current = true;
-      console.log('✓ Camera started successfully');
+      console.log("✓ Camera started successfully");
     } catch (e) {
-      console.warn('Camera failed:', e);
-      alert('Camera unavailable. Enable mouse fallback to test without webcam.');
+      console.warn("Camera failed:", e);
+      alert(
+        "Camera unavailable. Enable mouse fallback to test without webcam.",
+      );
     }
   }, [onHandsResults, onPoseResults]);
   // ==================== GAME LOGIC ====================
   const gameLogicTick = useCallback(() => {
     if (!fruitRef.current || !sessionStartRef.current) return;
     const handState = handStateRef.current;
-    ['Left', 'Right'].forEach(label => {
+    ["Left", "Right"].forEach((label) => {
       const hand = handState[label];
       if (!hand.smoothPos || !hand.visible) return;
-      if (!fruitRef.current.attachedTo && hand.closedFrames >= CONFIG.STABLE_FRAMES) {
+      if (
+        !fruitRef.current.attachedTo &&
+        hand.closedFrames >= CONFIG.STABLE_FRAMES
+      ) {
         const source = gridHolesRef.current[fruitRef.current.sourceIdx];
         const dist = distNorm(hand.smoothPos, source);
-       
+
         if (dist < CONFIG.PICK_DISTANCE) {
           fruitRef.current.attachedTo = label;
           logsRef.current.push({
             timestamp: nowSec(),
-            event: 'pick',
-            fruit_id: fruitRef.current.id,
-            hand: label,
-            source: fruitRef.current.sourceIdx,
-            basket: basketIdxRef.current
-          });
-          showStatus(`✊ ${label} hand grasped fruit!`, 1000);
-        }
-      }
-      if (fruitRef.current.attachedTo === label && hand.openFrames >= CONFIG.STABLE_FRAMES) {
-        const basket = gridHolesRef.current[basketIdxRef.current];
-        const dist = distNorm(hand.smoothPos, basket);
-       
-        if (dist < CONFIG.DROP_DISTANCE) {
-          const newScore = scoreRef.current + CONFIG.SCORE_PER_DROP;
-          setScore(newScore);
-          scoreRef.current = newScore;
-          setReps(prev => prev + 1);
-          successesRef.current++;
-          attemptsRef.current++;
-         
-          logsRef.current.push({
-            timestamp: nowSec(),
-            event: 'drop_success',
+            event: "pick",
             fruit_id: fruitRef.current.id,
             hand: label,
             source: fruitRef.current.sourceIdx,
             basket: basketIdxRef.current,
-            score: newScore
           });
-         
-          const newRate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
+          showStatus(`✊ ${label} hand grasped fruit!`, 1000);
+        }
+      }
+      if (
+        fruitRef.current.attachedTo === label &&
+        hand.openFrames >= CONFIG.STABLE_FRAMES
+      ) {
+        const basket = gridHolesRef.current[basketIdxRef.current];
+        const dist = distNorm(hand.smoothPos, basket);
+
+        if (dist < CONFIG.DROP_DISTANCE) {
+          const newScore = scoreRef.current + CONFIG.SCORE_PER_DROP;
+          setScore(newScore);
+          scoreRef.current = newScore;
+          setReps((prev) => prev + 1);
+          successesRef.current++;
+          attemptsRef.current++;
+
+          logsRef.current.push({
+            timestamp: nowSec(),
+            event: "drop_success",
+            fruit_id: fruitRef.current.id,
+            hand: label,
+            source: fruitRef.current.sourceIdx,
+            basket: basketIdxRef.current,
+            score: newScore,
+          });
+
+          const newRate = (
+            (successesRef.current / attemptsRef.current) *
+            100
+          ).toFixed(0);
           setSuccessRate(newRate);
-         
+
           showStatus(`✅ Success! +${CONFIG.SCORE_PER_DROP} points`, 1500);
           spawnFruit();
         } else {
           attemptsRef.current++;
           fruitRef.current.attachedTo = null;
-          fruitRef.current.x = gridHolesRef.current[fruitRef.current.sourceIdx].x;
-          fruitRef.current.y = gridHolesRef.current[fruitRef.current.sourceIdx].y;
-         
+          fruitRef.current.x =
+            gridHolesRef.current[fruitRef.current.sourceIdx].x;
+          fruitRef.current.y =
+            gridHolesRef.current[fruitRef.current.sourceIdx].y;
+
           logsRef.current.push({
             timestamp: nowSec(),
-            event: 'drop_miss',
+            event: "drop_miss",
             fruit_id: fruitRef.current.id,
             hand: label,
             source: fruitRef.current.sourceIdx,
-            basket: basketIdxRef.current
+            basket: basketIdxRef.current,
           });
-         
-          const newRate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
+
+          const newRate = (
+            (successesRef.current / attemptsRef.current) *
+            100
+          ).toFixed(0);
           setSuccessRate(newRate);
-         
-          showStatus('⚠️ Missed! Release over basket', 1500);
+
+          showStatus("⚠️ Missed! Release over basket", 1500);
         }
       }
       if (fruitRef.current.attachedTo === label) {
@@ -393,44 +470,68 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   const drawOverlay = useCallback(() => {
     const canvas = overlayRef.current;
     if (!canvas) return;
-   
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const w = canvas.width;
     const h = canvas.height;
     if (lastPoseResultsRef.current?.poseLandmarks) {
       const pl = lastPoseResultsRef.current.poseLandmarks;
-      [[11, 'L-Sh'], [12, 'R-Sh'], [13, 'L-El'], [14, 'R-El']].forEach(([idx]) => {
+      [
+        [11, "L-Sh"],
+        [12, "R-Sh"],
+        [13, "L-El"],
+        [14, "R-El"],
+      ].forEach(([idx]) => {
         if (!pl[idx] || pl[idx].visibility < 0.5) return;
         const x = pl[idx].x * w;
         const y = pl[idx].y * h;
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 200, 0, 0.8)';
+        ctx.fillStyle = "rgba(255, 200, 0, 0.8)";
         ctx.fill();
       });
     }
     const handState = handStateRef.current;
-    ['Left', 'Right'].forEach(label => {
+    ["Left", "Right"].forEach((label) => {
       const hand = handState[label];
       if (!hand.landmarks || !hand.visible) return;
       const lm = hand.landmarks;
-      const color = hand.closed ? 'rgba(220, 50, 50, 0.9)' : 'rgba(50, 200, 80, 0.9)';
-     
+      const color = hand.closed
+        ? "rgba(220, 50, 50, 0.9)"
+        : "rgba(50, 200, 80, 0.9)";
+
       const palmCenter = {
         x: (lm[0].x + lm[5].x + lm[9].x + lm[13].x + lm[17].x) / 5,
-        y: (lm[0].y + lm[5].y + lm[9].y + lm[13].y + lm[17].y) / 5
+        y: (lm[0].y + lm[5].y + lm[9].y + lm[13].y + lm[17].y) / 5,
       };
-     
+
       const connections = [
-        [0, 1], [1, 2], [2, 3], [3, 4],
-        [0, 5], [5, 6], [6, 7], [7, 8],
-        [0, 9], [9, 10], [10, 11], [11, 12],
-        [0, 13], [13, 14], [14, 15], [15, 16],
-        [0, 17], [17, 18], [18, 19], [19, 20],
-        [5, 9], [9, 13], [13, 17]
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [0, 5],
+        [5, 6],
+        [6, 7],
+        [7, 8],
+        [0, 9],
+        [9, 10],
+        [10, 11],
+        [11, 12],
+        [0, 13],
+        [13, 14],
+        [14, 15],
+        [15, 16],
+        [0, 17],
+        [17, 18],
+        [18, 19],
+        [19, 20],
+        [5, 9],
+        [9, 13],
+        [13, 17],
       ];
-     
+
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
       connections.forEach(([start, end]) => {
@@ -441,61 +542,61 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
         ctx.lineTo(p2.x * w, p2.y * h);
         ctx.stroke();
       });
-     
+
       lm.forEach((landmark, i) => {
         const x = landmark.x * w;
         const y = landmark.y * h;
         ctx.beginPath();
-       
+
         let radius = 4;
         if (i === 8) radius = 10;
         else if ([4, 12, 16, 20].includes(i)) radius = 7;
         else if (i === 0) radius = 6;
-       
+
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
-       
+
         if ([0, 4, 8, 12, 16, 20].includes(i)) {
-          ctx.strokeStyle = '#fff';
+          ctx.strokeStyle = "#fff";
           ctx.lineWidth = 2;
           ctx.stroke();
         }
       });
-     
+
       const pcx = palmCenter.x * w;
       const pcy = palmCenter.y * h;
       ctx.beginPath();
       ctx.arc(pcx, pcy, 16, 0, Math.PI * 2);
-      ctx.strokeStyle = hand.closed ? '#ff6b6b' : '#51cf66';
+      ctx.strokeStyle = hand.closed ? "#ff6b6b" : "#51cf66";
       ctx.lineWidth = 3;
       ctx.stroke();
-     
+
       ctx.beginPath();
       ctx.moveTo(pcx - 12, pcy);
       ctx.lineTo(pcx + 12, pcy);
       ctx.moveTo(pcx, pcy - 12);
       ctx.lineTo(pcx, pcy + 12);
       ctx.stroke();
-     
+
       ctx.beginPath();
       ctx.arc(pcx, pcy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = hand.closed ? '#ff6b6b' : '#51cf66';
+      ctx.fillStyle = hand.closed ? "#ff6b6b" : "#51cf66";
       ctx.fill();
-      const stateText = hand.closed ? 'CLOSED' : 'OPEN';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      const stateText = hand.closed ? "CLOSED" : "OPEN";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
       ctx.fillRect(pcx + 20, pcy - 16, 120, 26);
-     
-      ctx.fillStyle = hand.closed ? '#ff6b6b' : '#51cf66';
-      ctx.font = 'bold 14px Arial';
+
+      ctx.fillStyle = hand.closed ? "#ff6b6b" : "#51cf66";
+      ctx.font = "bold 14px Arial";
       ctx.fillText(`${label} ${stateText}`, pcx + 26, pcy);
     });
   }, []);
   const drawGame = useCallback(() => {
     const canvas = gameCanvasRef.current;
     if (!canvas) return;
-   
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const w = canvas.width;
     const h = canvas.height;
@@ -505,21 +606,31 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
       const py = hole.y * h;
       const r = Math.max(35 * scale, CONFIG.PICK_DISTANCE * Math.min(w, h));
       ctx.beginPath();
-      ctx.fillStyle = idx === basketIdxRef.current ? 'rgba(180, 255, 180, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+      ctx.fillStyle =
+        idx === basketIdxRef.current
+          ? "rgba(180, 255, 180, 0.9)"
+          : "rgba(255, 255, 255, 0.7)";
       ctx.arc(px, py, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = idx === basketIdxRef.current ? '#2f7a2f' : '#999';
+      ctx.strokeStyle = idx === basketIdxRef.current ? "#2f7a2f" : "#999";
       ctx.lineWidth = 3 * scale;
       ctx.stroke();
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = "#000";
       ctx.font = `${13 * scale}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText(idx === basketIdxRef.current ? '🧺' : `${idx}`, px, py + 5 * scale);
+      ctx.textAlign = "center";
+      ctx.fillText(
+        idx === basketIdxRef.current ? "🧺" : `${idx}`,
+        px,
+        py + 5 * scale,
+      );
     });
     if (fruitRef.current) {
       const handState = handStateRef.current;
       let fx, fy;
-      if (fruitRef.current.attachedTo && handState[fruitRef.current.attachedTo].smoothPos) {
+      if (
+        fruitRef.current.attachedTo &&
+        handState[fruitRef.current.attachedTo].smoothPos
+      ) {
         fx = handState[fruitRef.current.attachedTo].smoothPos.x * w;
         fy = handState[fruitRef.current.attachedTo].smoothPos.y * h;
       } else {
@@ -527,41 +638,43 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
         fy = fruitRef.current.y * h;
       }
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
       ctx.arc(fx + 2, fy + 2, 20 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.fillStyle = '#ff6347';
+      ctx.fillStyle = "#ff6347";
       ctx.arc(fx, fy, 20 * scale, 0, Math.PI * 2);
       ctx.fill();
-     
-      ctx.fillStyle = '#8b4513';
+
+      ctx.fillStyle = "#8b4513";
       ctx.fillRect(fx - 2, fy - 28 * scale, 4, 12 * scale);
     }
     const handState = handStateRef.current;
-    ['Left', 'Right'].forEach(label => {
+    ["Left", "Right"].forEach((label) => {
       const hand = handState[label];
       if (!hand.smoothPos || !hand.visible) return;
       const px = hand.smoothPos.x * w;
       const py = hand.smoothPos.y * h;
-     
+
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
       ctx.arc(px + 2, py + 2, 14 * scale, 0, Math.PI * 2);
       ctx.fill();
-     
+
       ctx.beginPath();
-      ctx.fillStyle = hand.closed ? 'rgba(220, 50, 50, 0.95)' : 'rgba(50, 200, 80, 0.95)';
+      ctx.fillStyle = hand.closed
+        ? "rgba(220, 50, 50, 0.95)"
+        : "rgba(50, 200, 80, 0.95)";
       ctx.arc(px, py, 14 * scale, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = "#fff";
       ctx.lineWidth = 3 * scale;
       ctx.stroke();
-     
-      ctx.fillStyle = '#fff';
+
+      ctx.fillStyle = "#fff";
       ctx.font = `bold ${12 * scale}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(label[0], px, py);
     });
   }, []);
@@ -572,12 +685,17 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
         overlayRef.current.height = videoRef.current.videoHeight || 480;
       }
     }
-   
+
     if (gameCanvasRef.current) {
-      const targetW = gameCanvasRef.current.clientWidth * (window.devicePixelRatio || 1);
-      const targetH = gameCanvasRef.current.clientHeight * (window.devicePixelRatio || 1);
-     
-      if (gameCanvasRef.current.width !== targetW || gameCanvasRef.current.height !== targetH) {
+      const targetW =
+        gameCanvasRef.current.clientWidth * (window.devicePixelRatio || 1);
+      const targetH =
+        gameCanvasRef.current.clientHeight * (window.devicePixelRatio || 1);
+
+      if (
+        gameCanvasRef.current.width !== targetW ||
+        gameCanvasRef.current.height !== targetH
+      ) {
         gameCanvasRef.current.width = targetW;
         gameCanvasRef.current.height = targetH;
       }
@@ -587,14 +705,14 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   const mainLoop = useCallback(() => {
     const now = Date.now();
     const drawInterval = 1000 / CONFIG.DRAW_FPS;
-   
+
     if (now - lastDrawTimeRef.current >= drawInterval) {
       syncCanvasSizes();
       drawOverlay();
       drawGame();
       lastDrawTimeRef.current = now;
     }
-   
+
     gameLogicTick();
     requestAnimationFrame(mainLoop);
   }, [syncCanvasSizes, drawOverlay, drawGame, gameLogicTick]);
@@ -605,21 +723,21 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     calibrationRef.current.maxX = 0;
     calibrationRef.current.minY = 1;
     calibrationRef.current.maxY = 0;
-   
+
     setIsCalibrating(true);
     setCalibTimeLeft(7); // Changed from CONFIG.CALIBRATION_SECONDS to 7
-    
+
     // Auto-advance if landmarks are already stable
     const checkStableInterval = setInterval(() => {
-        if (calibrationRef.current.maxX > 0) {
-            clearInterval(checkStableInterval);
-            clearInterval(calibIntervalRef.current);
-            finishCalibration();
-        }
+      if (calibrationRef.current.maxX > 0) {
+        clearInterval(checkStableInterval);
+        clearInterval(calibIntervalRef.current);
+        finishCalibration();
+      }
     }, 500);
-   
+
     calibIntervalRef.current = setInterval(() => {
-      setCalibTimeLeft(prev => {
+      setCalibTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(calibIntervalRef.current);
           clearInterval(checkStableInterval); // Clear the checkStableInterval too
@@ -633,29 +751,35 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   const finishCalibration = () => {
     calibrationRef.current.active = false;
     setIsCalibrating(false);
-   
-    calibrationRef.current.centerX = (calibrationRef.current.minX + calibrationRef.current.maxX) / 2;
-    calibrationRef.current.centerY = (calibrationRef.current.minY + calibrationRef.current.maxY) / 2;
+
+    calibrationRef.current.centerX =
+      (calibrationRef.current.minX + calibrationRef.current.maxX) / 2;
+    calibrationRef.current.centerY =
+      (calibrationRef.current.minY + calibrationRef.current.maxY) / 2;
     const dx = Math.max(
       Math.abs(calibrationRef.current.centerX - calibrationRef.current.minX),
-      Math.abs(calibrationRef.current.centerX - calibrationRef.current.maxX)
+      Math.abs(calibrationRef.current.centerX - calibrationRef.current.maxX),
     );
     const dy = Math.max(
       Math.abs(calibrationRef.current.centerY - calibrationRef.current.minY),
-      Math.abs(calibrationRef.current.centerY - calibrationRef.current.maxY)
+      Math.abs(calibrationRef.current.centerY - calibrationRef.current.maxY),
     );
     calibrationRef.current.maxReachNorm = Math.sqrt(dx * dx + dy * dy) || 0.2;
     calibrationRef.current.done = true;
-   
+
     setCalibrationDone(true);
-    logsRef.current.push({ timestamp: 0, event: 'calibration_complete', calibration: calibrationRef.current });
-    showStatus('✓ Calibration complete! Ready to start.');
+    logsRef.current.push({
+      timestamp: 0,
+      event: "calibration_complete",
+      calibration: calibrationRef.current,
+    });
+    showStatus("✓ Calibration complete! Ready to start.");
   };
   const handleStartSession = () => {
     if (!calibrationDone) {
-      if (!window.confirm('Calibration recommended. Continue anyway?')) return;
+      if (!window.confirm("Calibration recommended. Continue anyway?")) return;
     }
-   
+
     setScore(0);
     scoreRef.current = 0;
     setReps(0);
@@ -663,54 +787,70 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     successesRef.current = 0;
     logsRef.current = [];
     sessionStartRef.current = Date.now();
-   
+
     setupGrid();
     spawnFruit();
     setTimeRemaining(CONFIG.SESSION_SECONDS);
     setSuccessRate(0);
     setIsSessionActive(true);
-   
+
     timerIntervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
       const remaining = Math.max(0, CONFIG.SESSION_SECONDS - elapsed);
       setTimeRemaining(remaining);
-     
+
       if (remaining <= 0) {
         clearInterval(timerIntervalRef.current);
         handleEndSession();
       }
     }, 1000);
-   
-    logsRef.current.push({ timestamp: 0, event: 'session_start' });
-    showStatus('🎮 Session started! Close hand to grab fruit!', 3000);
+
+    logsRef.current.push({ timestamp: 0, event: "session_start" });
+    showStatus("🎮 Session started! Close hand to grab fruit!", 3000);
   };
   const handleEndSession = () => {
     setIsSessionActive(false);
-    logsRef.current.push({ timestamp: nowSec(), event: 'session_end', score: scoreRef.current, reps });
-    const successRateVal = attemptsRef.current > 0
-      ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
-      : 0;
-    alert(`Session Complete!\n\nScore: ${scoreRef.current}\nReps: ${reps}\nSuccess Rate: ${successRateVal}%\n\nDownload CSV to save your data.`);
+    logsRef.current.push({
+      timestamp: nowSec(),
+      event: "session_end",
+      score: scoreRef.current,
+      reps,
+    });
+    const successRateVal =
+      attemptsRef.current > 0
+        ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
+        : 0;
+    alert(
+      `Session Complete!\n\nScore: ${scoreRef.current}\nReps: ${reps}\nSuccess Rate: ${successRateVal}%\n\nDownload CSV to save your data.`,
+    );
   };
   const handleDownloadCSV = () => {
-    const headers = ['timestamp_sec', 'event', 'fruit_id', 'hand', 'source', 'basket', 'score'];
-    const rows = [headers.join(',')];
-   
-    logsRef.current.forEach(log => {
+    const headers = [
+      "timestamp_sec",
+      "event",
+      "fruit_id",
+      "hand",
+      "source",
+      "basket",
+      "score",
+    ];
+    const rows = [headers.join(",")];
+
+    logsRef.current.forEach((log) => {
       const row = [
-        log.timestamp ?? '',
-        log.event ?? '',
-        log.fruit_id ?? '',
-        log.hand ?? '',
-        log.source ?? '',
-        log.basket ?? '',
-        log.score ?? ''
+        log.timestamp ?? "",
+        log.event ?? "",
+        log.fruit_id ?? "",
+        log.hand ?? "",
+        log.source ?? "",
+        log.basket ?? "",
+        log.score ?? "",
       ];
-      rows.push(row.join(','));
+      rows.push(row.join(","));
     });
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `arm-orchard-${Date.now()}.csv`;
     a.click();
@@ -724,7 +864,9 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     setUsingMouseFallback(checked);
     usingMouseFallbackRef.current = checked;
     if (checked) {
-      alert('Mouse fallback enabled. Click/drag on video to control right hand.');
+      alert(
+        "Mouse fallback enabled. Click/drag on video to control right hand.",
+      );
       handStateRef.current.Right.visible = true;
       setRightHandVisible(true);
     } else {
@@ -737,9 +879,12 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     const rect = overlayRef.current.getBoundingClientRect();
     const pos = {
       x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height
+      y: (e.clientY - rect.top) / rect.height,
     };
-    handStateRef.current.Right.smoothPos = smoothPos(handStateRef.current.Right.smoothPos, pos);
+    handStateRef.current.Right.smoothPos = smoothPos(
+      handStateRef.current.Right.smoothPos,
+      pos,
+    );
     handStateRef.current.Right.visible = true;
     setRightHandVisible(true);
   };
@@ -773,18 +918,18 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   useEffect(() => {
     setupGrid();
     setupMediaPipe();
-   
+
     const loopId = requestAnimationFrame(mainLoop);
     const handleKeyDown = (e) => {
-      if (e.key === 'd' || e.key === 'D') {
-        setShowDebug(prev => !prev);
+      if (e.key === "d" || e.key === "D") {
+        setShowDebug((prev) => !prev);
       }
     };
-   
-    document.addEventListener('keydown', handleKeyDown);
+
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       cancelAnimationFrame(loopId);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (calibIntervalRef.current) clearInterval(calibIntervalRef.current);
       if (cameraRef.current) cameraRef.current.stop();
@@ -794,53 +939,63 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   const themeStyles = {
     container: {
       ...styles.container,
-      background: isDarkMode ? '#000' : '#F4F7FE',
-      color: isDarkMode ? '#fff' : '#333'
+      background: isDarkMode ? "#000" : "#F4F7FE",
+      color: isDarkMode ? "#fff" : "#333",
     },
     panel: {
       ...styles.panel,
-      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-      borderRight: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-      backdropFilter: 'blur(20px)'
+      background: isDarkMode
+        ? "rgba(17, 24, 39, 0.95)"
+        : "rgba(255, 255, 255, 0.95)",
+      borderRight: isDarkMode
+        ? "1px solid rgba(255, 255, 255, 0.1)"
+        : "1px solid rgba(0, 0, 0, 0.1)",
+      backdropFilter: "blur(20px)",
     },
     title: {
       ...styles.title,
-      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+      color: isDarkMode ? "#4ade80" : "#2f7a2f",
     },
     muted: {
       ...styles.muted,
-      color: isDarkMode ? '#94a3b8' : '#575f56'
+      color: isDarkMode ? "#94a3b8" : "#575f56",
     },
     videoWrap: {
       ...styles.videoWrap,
-      borderColor: isDarkMode ? '#1f2937' : '#eee',
-      background: '#000'
+      borderColor: isDarkMode ? "#1f2937" : "#eee",
+      background: "#000",
     },
     statItem: {
       ...styles.statItem,
-      background: isDarkMode ? '#111827' : '#f9f9f9',
-      borderColor: isDarkMode ? '#1f2937' : '#eee'
+      background: isDarkMode ? "#111827" : "#f9f9f9",
+      borderColor: isDarkMode ? "#1f2937" : "#eee",
     },
     statValue: {
       ...styles.statValue,
-      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+      color: isDarkMode ? "#4ade80" : "#2f7a2f",
     },
     statLabel: {
       ...styles.statLabel,
-      color: isDarkMode ? '#94a3b8' : '#575f56'
+      color: isDarkMode ? "#94a3b8" : "#575f56",
     },
     note: {
       ...styles.note,
-      background: isDarkMode ? 'rgba(31, 41, 55, 0.5)' : 'rgba(255, 255, 255, 0.5)',
-      color: isDarkMode ? '#94a3b8' : '#575f56',
-      borderTop: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)'
+      background: isDarkMode
+        ? "rgba(31, 41, 55, 0.5)"
+        : "rgba(255, 255, 255, 0.5)",
+      color: isDarkMode ? "#94a3b8" : "#575f56",
+      borderTop: isDarkMode
+        ? "1px solid rgba(255, 255, 255, 0.1)"
+        : "1px solid rgba(0, 0, 0, 0.05)",
     },
     statusMessage: {
       ...styles.statusMessage,
-      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-      color: isDarkMode ? '#4ade80' : '#2f7a2f',
-      border: isDarkMode ? '1px solid #4ade80' : 'none'
-    }
+      background: isDarkMode
+        ? "rgba(17, 24, 39, 0.95)"
+        : "rgba(255, 255, 255, 0.95)",
+      color: isDarkMode ? "#4ade80" : "#2f7a2f",
+      border: isDarkMode ? "1px solid #4ade80" : "none",
+    },
   };
 
   return (
@@ -848,7 +1003,8 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
       <aside style={themeStyles.panel}>
         <h1 style={themeStyles.title}>🍏 Fruit Basket</h1>
         <p style={themeStyles.muted}>
-          Grasp, transport, and release fruits into the basket to improve coordination.
+          Grasp, transport, and release fruits into the basket to improve
+          coordination.
         </p>
         <div style={themeStyles.videoWrap}>
           <video
@@ -865,24 +1021,34 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             onMouseDown={handleOverlayMouseDown}
             onMouseUp={handleOverlayMouseUp}
           />
-         
+
           {isCalibrating && (
             <div style={themeStyles.statusMessage}>
               Calibrating... {calibTimeLeft}s
             </div>
           )}
-         
+
           <div style={styles.handStatus}>
             {leftHandVisible && (
-              <div style={{...styles.handIndicator, ...(leftHandClosed ? styles.handClosed : styles.handOpen)}}>
+              <div
+                style={{
+                  ...styles.handIndicator,
+                  ...(leftHandClosed ? styles.handClosed : styles.handOpen),
+                }}
+              >
                 <span style={styles.dot}></span>
-                <span>Left {leftHandClosed ? '🔴' : '🟢'}</span>
+                <span>Left {leftHandClosed ? "🔴" : "🟢"}</span>
               </div>
             )}
             {rightHandVisible && (
-              <div style={{...styles.handIndicator, ...(rightHandClosed ? styles.handClosed : styles.handOpen)}}>
+              <div
+                style={{
+                  ...styles.handIndicator,
+                  ...(rightHandClosed ? styles.handClosed : styles.handOpen),
+                }}
+              >
                 <span style={styles.dot}></span>
-                <span>Right {rightHandClosed ? '🔴' : '🟢'}</span>
+                <span>Right {rightHandClosed ? "🔴" : "🟢"}</span>
               </div>
             )}
           </div>
@@ -895,11 +1061,8 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
           >
             📏 Calibrate
           </button>
-          <button
-            onClick={handleStartSession}
-            style={styles.controlButton}
-          >
-            {isSessionActive ? 'Pause' : 'Start Session'}
+          <button onClick={handleStartSession} style={styles.controlButton}>
+            {isSessionActive ? "Pause" : "Start Session"}
           </button>
         </div>
         <div style={themeStyles.stats}>
@@ -921,7 +1084,10 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
           </div>
         </div>
         <div style={styles.actions}>
-          <button onClick={() => window.history.back()} style={styles.actionButton}>
+          <button
+            onClick={() => window.history.back()}
+            style={styles.actionButton}
+          >
             Quit
           </button>
           <button onClick={handleReset} style={styles.actionButton}>
@@ -929,15 +1095,14 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
           </button>
         </div>
         <div style={themeStyles.note}>
-          <strong style={themeStyles.statValue}>Pro-tip:</strong> Watch the skeletal feedback for grip status.
+          <strong style={themeStyles.statValue}>Pro-tip:</strong> Watch the
+          skeletal feedback for grip status.
         </div>
       </aside>
       <main style={styles.gameArea}>
         <canvas ref={gameCanvasRef} style={styles.gameCanvas} />
         {statusMessage.visible && (
-          <div style={themeStyles.statusMessage}>
-            {statusMessage.text}
-          </div>
+          <div style={themeStyles.statusMessage}>{statusMessage.text}</div>
         )}
       </main>
     </div>
@@ -946,235 +1111,235 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
 // ==================== STYLES ====================
 const styles = {
   container: {
-    display: 'flex',
-    gap: '12px',
-    padding: '12px',
-    height: '100vh',
-    background: 'linear-gradient(#eaf7ea, #f6faf3)',
+    display: "flex",
+    gap: "12px",
+    padding: "12px",
+    height: "100vh",
+    background: "linear-gradient(#eaf7ea, #f6faf3)",
     fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial',
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   panel: {
-    width: '360px',
-    background: '#fff',
-    padding: '14px',
-    borderRadius: '10px',
-    boxShadow: '0 8px 20px rgba(20, 40, 20, 0.06)',
-    overflowY: 'auto'
+    width: "360px",
+    background: "#fff",
+    padding: "14px",
+    borderRadius: "10px",
+    boxShadow: "0 8px 20px rgba(20, 40, 20, 0.06)",
+    overflowY: "auto",
   },
   title: {
-    color: '#2f7a2f',
-    margin: '0 0 8px',
-    fontSize: '22px'
+    color: "#2f7a2f",
+    margin: "0 0 8px",
+    fontSize: "22px",
   },
   muted: {
-    color: '#575f56',
-    fontSize: '13px',
-    margin: '0 0 12px',
-    lineHeight: 1.4
+    color: "#575f56",
+    fontSize: "13px",
+    margin: "0 0 12px",
+    lineHeight: 1.4,
   },
   videoWrap: {
-    position: 'relative',
-    height: '260px',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    background: '#111',
-    border: '2px solid #ddd'
+    position: "relative",
+    height: "260px",
+    borderRadius: "8px",
+    overflow: "hidden",
+    background: "#111",
+    border: "2px solid #ddd",
   },
   video: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    transform: 'scaleX(-1)'
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    transform: "scaleX(-1)",
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'auto'
+    width: "100%",
+    height: "100%",
+    pointerEvents: "auto",
   },
   calibOverlay: {
-    position: 'absolute',
-    left: '8px',
-    top: '8px',
-    padding: '10px 14px',
-    background: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: '6px',
+    position: "absolute",
+    left: "8px",
+    top: "8px",
+    padding: "10px 14px",
+    background: "rgba(255, 255, 255, 0.95)",
+    borderRadius: "6px",
     zIndex: 10,
-    fontSize: '13px',
+    fontSize: "13px",
     fontWeight: 500,
-    maxWidth: '280px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+    maxWidth: "280px",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
   },
   calibText: {
-    margin: 0
+    margin: 0,
   },
   handStatus: {
-    position: 'absolute',
-    bottom: '8px',
-    left: '8px',
-    display: 'flex',
-    gap: '8px',
-    zIndex: 5
+    position: "absolute",
+    bottom: "8px",
+    left: "8px",
+    display: "flex",
+    gap: "8px",
+    zIndex: 5,
   },
   handIndicator: {
-    padding: '6px 12px',
-    borderRadius: '6px',
-    fontSize: '12px',
+    padding: "6px 12px",
+    borderRadius: "6px",
+    fontSize: "12px",
     fontWeight: 600,
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)'
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
   },
   handClosed: {
-    background: '#dc3545'
+    background: "#dc3545",
   },
   handOpen: {
-    background: '#28a745'
+    background: "#28a745",
   },
   dot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: 'white'
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    background: "white",
   },
   debugPanel: {
-    position: 'absolute',
-    top: '8px',
-    right: '8px',
-    padding: '8px',
-    background: 'rgba(0, 0, 0, 0.85)',
-    color: '#0f0',
-    borderRadius: '4px',
-    fontSize: '11px',
-    fontFamily: 'monospace',
-    maxWidth: '200px',
-    zIndex: 10
+    position: "absolute",
+    top: "8px",
+    right: "8px",
+    padding: "8px",
+    background: "rgba(0, 0, 0, 0.85)",
+    color: "#0f0",
+    borderRadius: "4px",
+    fontSize: "11px",
+    fontFamily: "monospace",
+    maxWidth: "200px",
+    zIndex: 10,
   },
   controls: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    marginTop: '12px'
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "12px",
   },
   controlButton: {
-    padding: '11px',
-    borderRadius: '8px',
+    padding: "11px",
+    borderRadius: "8px",
     border: 0,
-    background: '#2f7a2f',
-    color: 'white',
-    cursor: 'pointer',
-    fontSize: '14px',
+    background: "#2f7a2f",
+    color: "white",
+    cursor: "pointer",
+    fontSize: "14px",
     fontWeight: 600,
-    transition: 'all 0.2s'
+    transition: "all 0.2s",
   },
   buttonDisabled: {
-    background: '#ccc',
-    cursor: 'not-allowed',
-    opacity: 0.6
+    background: "#ccc",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
   checkboxLabel: {
-    fontSize: '13px',
-    color: '#575f56',
-    marginTop: '6px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    cursor: 'pointer'
+    fontSize: "13px",
+    color: "#575f56",
+    marginTop: "6px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
   },
   checkbox: {
-    cursor: 'pointer'
+    cursor: "pointer",
   },
   stats: {
-    marginTop: '12px',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '10px'
+    marginTop: "12px",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px",
   },
   statItem: {
-    padding: '10px',
-    background: '#f9f9f9',
-    borderRadius: '6px',
-    border: '1px solid #eee'
+    padding: "10px",
+    background: "#f9f9f9",
+    borderRadius: "6px",
+    border: "1px solid #eee",
   },
   statLabel: {
-    fontSize: '11px',
-    color: '#575f56',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    marginBottom: '4px'
+    fontSize: "11px",
+    color: "#575f56",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    marginBottom: "4px",
   },
   statValue: {
-    fontSize: '20px',
+    fontSize: "20px",
     fontWeight: 700,
-    color: '#2f7a2f'
+    color: "#2f7a2f",
   },
   actions: {
-    display: 'flex',
-    gap: '8px',
-    marginTop: '12px'
+    display: "flex",
+    gap: "8px",
+    marginTop: "12px",
   },
   actionButton: {
     flex: 1,
-    padding: '9px',
-    borderRadius: '8px',
+    padding: "9px",
+    borderRadius: "8px",
     border: 0,
-    background: '#e8e8e8',
-    color: '#333',
-    cursor: 'pointer',
-    fontSize: '13px',
+    background: "#e8e8e8",
+    color: "#333",
+    cursor: "pointer",
+    fontSize: "13px",
     fontWeight: 500,
-    transition: 'background 0.2s'
+    transition: "background 0.2s",
   },
   note: {
-    fontSize: '12px',
-    color: '#575f56',
-    marginTop: '12px',
-    padding: '12px',
-    background: '#f9f9f9',
-    borderRadius: '6px',
+    fontSize: "12px",
+    color: "#575f56",
+    marginTop: "12px",
+    padding: "12px",
+    background: "#f9f9f9",
+    borderRadius: "6px",
     lineHeight: 1.6,
-    borderLeft: '3px solid #2f7a2f'
+    borderLeft: "3px solid #2f7a2f",
   },
   noteTitle: {
-    color: '#2f7a2f',
-    display: 'block',
-    marginBottom: '6px'
+    color: "#2f7a2f",
+    display: "block",
+    marginBottom: "6px",
   },
   gameArea: {
     flex: 1,
-    display: 'flex',
-    alignItems: 'stretch',
-    position: 'relative'
+    display: "flex",
+    alignItems: "stretch",
+    position: "relative",
   },
   gameCanvas: {
     flex: 1,
-    borderRadius: '10px',
-    background: 'linear-gradient(135deg, #cfead1, #86c98a)',
-    display: 'block',
-    width: '100%',
-    height: '100%',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, #cfead1, #86c98a)",
+    display: "block",
+    width: "100%",
+    height: "100%",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
   },
   statusMessage: {
-    position: 'absolute',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: 'rgba(255, 255, 255, 0.95)',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    fontSize: '16px',
+    position: "absolute",
+    top: "20px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "rgba(255, 255, 255, 0.95)",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    fontSize: "16px",
     fontWeight: 600,
-    color: '#2f7a2f',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    color: "#2f7a2f",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
     zIndex: 10,
-    pointerEvents: 'none',
-    animation: 'slideDown 0.3s ease'
-  }
+    pointerEvents: "none",
+    animation: "slideDown 0.3s ease",
+  },
 };
 export default GamePage2BallBasket;

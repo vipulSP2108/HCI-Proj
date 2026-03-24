@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../../services/authService';
-import { UserPlus } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { authService } from "../../services/authService";
+import { UserPlus } from "lucide-react";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    phone: '',
-    type: 'doctor'
+    email: "",
+    password: "",
+    phone: "",
+    type: "doctor",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -20,15 +20,15 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await authService.register(formData);
-      alert('Account created successfully! Please login.');
-      navigate('/login');
+      alert("Account created successfully! Please login.");
+      navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -37,22 +37,24 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white border border-gray-200 rounded-lg p-8 w-full max-w-md shadow-sm">
-
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#69CBEE] text-white mb-3">
             <UserPlus className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800">Create Account</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Create Account
+          </h2>
           <p className="text-gray-500 text-sm mt-1">Doctor Registration</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
             <input
               type="email"
               name="email"
@@ -65,7 +67,9 @@ const RegisterPage = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
             <input
               type="password"
               name="password"
@@ -80,7 +84,9 @@ const RegisterPage = () => {
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
             <input
               type="tel"
               name="phone"
@@ -104,7 +110,7 @@ const RegisterPage = () => {
             disabled={loading}
             className="w-full bg-[#2F71EB] hover:bg-[#2763CF] text-white py-2 rounded-md text-sm font-medium transition disabled:opacity-50"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
@@ -117,7 +123,6 @@ const RegisterPage = () => {
             Already have an account? Sign in
           </Link>
         </div>
-
       </div>
     </div>
   );

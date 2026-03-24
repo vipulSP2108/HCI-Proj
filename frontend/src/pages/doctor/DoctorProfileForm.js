@@ -1,58 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../services/api'; 
-import { Loader2, Shield, Mail, Phone, BookOpen, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import api from "../../services/api";
+import {
+  Loader2,
+  Shield,
+  Mail,
+  Phone,
+  BookOpen,
+  User,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 function DoctorProfileForm({ initialData, isDarkMode, onProfileUpdate }) {
   const [formData, setFormData] = useState({
-    degree: '',
-    name: '',
-    phone: '',
-    email: '',
+    degree: "",
+    name: "",
+    phone: "",
+    email: "",
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        degree: initialData.degree || '',
-        name: initialData.name || '',
-        phone: initialData.phone || '',
-        email: initialData.email || '',
+        degree: initialData.degree || "",
+        name: initialData.name || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
       });
     }
   }, [initialData]);
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
-      const res = await api.put('/users/user-details', formData);
+      const res = await api.put("/users/user-details", formData);
       if (res.data.success) {
-        setSuccess('Profile updated successfully.'); 
+        setSuccess("Profile updated successfully.");
         if (onProfileUpdate) onProfileUpdate();
-        setTimeout(() => setSuccess(''), 3000);
+        setTimeout(() => setSuccess(""), 3000);
       } else {
-        setError('Failed to update profile.');
+        setError("Failed to update profile.");
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile.');
+      setError(err.response?.data?.message || "Failed to update profile.");
     } finally {
       setSaving(false);
     }
   }
 
-  const InputField = ({ label, icon: Icon, name, type = "text", placeholder }) => (
+  const InputField = ({
+    label,
+    icon: Icon,
+    name,
+    type = "text",
+    placeholder,
+  }) => (
     <div className="space-y-2">
-      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">
+        {label}
+      </label>
       <div className="relative group">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors">
           <Icon size={18} />
@@ -80,7 +97,9 @@ function DoctorProfileForm({ initialData, isDarkMode, onProfileUpdate }) {
           <h1 className="text-4xl font-black dark:text-white tracking-tighter">
             Manage <span className="text-blue-500">Profile</span>
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Keep your professional information up to date</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
+            Keep your professional information up to date
+          </p>
         </div>
       </div>
 
@@ -100,10 +119,32 @@ function DoctorProfileForm({ initialData, isDarkMode, onProfileUpdate }) {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <InputField label="Full Name" icon={User} name="name" placeholder="Dr. John Smith" />
-          <InputField label="Medical Degree" icon={BookOpen} name="degree" placeholder="MD, Neurology" />
-          <InputField label="Contact Phone" icon={Phone} name="phone" type="tel" placeholder="+1 (555) 000-0000" />
-          <InputField label="Public Email" icon={Mail} name="email" type="email" placeholder="doctor@clinic.com" />
+          <InputField
+            label="Full Name"
+            icon={User}
+            name="name"
+            placeholder="Dr. John Smith"
+          />
+          <InputField
+            label="Medical Degree"
+            icon={BookOpen}
+            name="degree"
+            placeholder="MD, Neurology"
+          />
+          <InputField
+            label="Contact Phone"
+            icon={Phone}
+            name="phone"
+            type="tel"
+            placeholder="+1 (555) 000-0000"
+          />
+          <InputField
+            label="Public Email"
+            icon={Mail}
+            name="email"
+            type="email"
+            placeholder="doctor@clinic.com"
+          />
         </div>
 
         <div className="flex justify-end pt-4 border-t dark:border-gray-800">
@@ -118,7 +159,7 @@ function DoctorProfileForm({ initialData, isDarkMode, onProfileUpdate }) {
                 Synchronizing...
               </>
             ) : (
-              'Update Professional Info'
+              "Update Professional Info"
             )}
           </button>
         </div>
