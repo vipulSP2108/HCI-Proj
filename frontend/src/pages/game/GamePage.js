@@ -89,11 +89,13 @@ const OnboardingScreen = ({ onNext, currentLevelSpan, isDarkMode }) => {
   useEffect(() => {
     initializeTTS();
     const timer = setTimeout(startSpeaking, 500);
+    const synth = synthRef.current;
 
     return () => {
-      synthRef.current.cancel();
+      synth.cancel();
       clearTimeout(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Remove the broken useDarkMode hook call
@@ -700,7 +702,8 @@ const GamePage = () => {
       window.addEventListener("keydown", onKeyDown);
     }
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isPlaying, isPaused, currentSection, sectionStartTime, activeKeys]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // End game and save session
   const endGame = async () => {
@@ -921,8 +924,6 @@ const GamePage = () => {
           <div className="relative h-[60vh] md:h-64 mb-6 md:mb-8 border-4 border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-950 overflow-hidden">
             <div className="h-full flex flex-col-reverse md:flex-row">
               {activeKeys.map((key, index) => {
-                const isActive = false;
-                const isFeedback = false;
                 const bgClass = "bg-white";
                 const textClass = "text-gray-400";
                 const fontSize =

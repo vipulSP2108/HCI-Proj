@@ -25,7 +25,7 @@ const GamePage2BallBasket = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [usingMouseFallback, setUsingMouseFallback] = useState(false);
+  const [usingMouseFallback] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [statusMessage, setStatusMessage] = useState({
     text: "",
@@ -43,6 +43,7 @@ const GamePage2BallBasket = () => {
   const [rightHandVisible, setRightHandVisible] = useState(false);
   const [leftHandClosed, setLeftHandClosed] = useState(false);
   const [rightHandClosed, setRightHandClosed] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [debugInfo, setDebugInfo] = useState("");
 
   // Refs
@@ -824,56 +825,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       `Session Complete!\n\nScore: ${scoreRef.current}\nReps: ${reps}\nSuccess Rate: ${successRateVal}%\n\nDownload CSV to save your data.`,
     );
   };
-  const handleDownloadCSV = () => {
-    const headers = [
-      "timestamp_sec",
-      "event",
-      "fruit_id",
-      "hand",
-      "source",
-      "basket",
-      "score",
-    ];
-    const rows = [headers.join(",")];
 
-    logsRef.current.forEach((log) => {
-      const row = [
-        log.timestamp ?? "",
-        log.event ?? "",
-        log.fruit_id ?? "",
-        log.hand ?? "",
-        log.source ?? "",
-        log.basket ?? "",
-        log.score ?? "",
-      ];
-      rows.push(row.join(","));
-    });
-    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `arm-orchard-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
   const handleReset = () => {
     window.location.reload();
   };
-  const handleMouseFallbackChange = (e) => {
-    const checked = e.target.checked;
-    setUsingMouseFallback(checked);
-    usingMouseFallbackRef.current = checked;
-    if (checked) {
-      alert(
-        "Mouse fallback enabled. Click/drag on video to control right hand.",
-      );
-      handStateRef.current.Right.visible = true;
-      setRightHandVisible(true);
-    } else {
-      handStateRef.current.Right.visible = false;
-      setRightHandVisible(false);
-    }
-  };
+
   const handleOverlayMouseMove = (e) => {
     if (!usingMouseFallbackRef.current) return;
     const rect = overlayRef.current.getBoundingClientRect();

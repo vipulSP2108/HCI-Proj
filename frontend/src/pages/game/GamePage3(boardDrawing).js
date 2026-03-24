@@ -136,14 +136,14 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
 
 // ==================== MAIN COMPONENT ====================
 const DrawingGame = () => {
-  const { user, isDarkMode } = useAuth();
+  const { isDarkMode } = useAuth();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [usingMouseFallback, setUsingMouseFallback] = useState(false);
+  const [usingMouseFallback] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [statusMessage, setStatusMessage] = useState({
     text: "",
@@ -161,6 +161,7 @@ const DrawingGame = () => {
   const [rightHandVisible, setRightHandVisible] = useState(false);
   const [leftHandClosed, setLeftHandClosed] = useState(false);
   const [rightHandClosed, setRightHandClosed] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [debugInfo, setDebugInfo] = useState("");
 
   // Refs
@@ -622,7 +623,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         }
       }
     });
-  }, [spawnShape]);
+  }, [spawnShape, pickNewShape, reps]);
 
   // ==================== DRAWING ====================
   const drawOverlay = useCallback(() => {
@@ -994,91 +995,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     );
   };
 
-  const handleDownloadCSV = () => {
-    const headers = [
-      "timestamp_sec",
-      "event",
-      "shape_type",
-      "hand",
-      "hits",
-      "total",
-      "completion",
-      "score",
-    ];
-    const rows = [headers.join(",")];
-
-    logsRef.current.forEach((log) => {
-      const row = [
-        log.timestamp ?? "",
-        log.event ?? "",
-        log.shape_type ?? "",
-        log.hand ?? "",
-        log.hits ?? "",
-        log.total ?? "",
-        log.completion ?? "",
-        log.score ?? "",
-      ];
-      rows.push(row.join(","));
-    });
-    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `shape-drawing-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleReset = () => {
     window.location.reload();
   };
 
-  const handleMouseFallbackChange = (e) => {
-    const checked = e.target.checked;
-    setUsingMouseFallback(checked);
-    usingMouseFallbackRef.current = checked;
-    if (checked) {
-      alert(
-        "Mouse fallback enabled. Click/drag on video to control right hand.",
-      );
-      handStateRef.current.Right.visible = true;
-      setRightHandVisible(true);
-    } else {
-      handStateRef.current.Right.visible = false;
-      setRightHandVisible(false);
-    }
-  };
 
-  const handleOverlayMouseMove = (e) => {
-    if (!usingMouseFallbackRef.current) return;
-    const rect = overlayRef.current.getBoundingClientRect();
-    const pos = {
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    };
-    handStateRef.current.Right.smoothPos = smoothPos(
-      handStateRef.current.Right.smoothPos,
-      pos,
-    );
-    handStateRef.current.Right.visible = true;
-    setRightHandVisible(true);
-  };
 
-  const handleOverlayMouseDown = () => {
-    if (!usingMouseFallbackRef.current) return;
-    handStateRef.current.Right.closedFrames = CONFIG.STABLE_FRAMES;
-    handStateRef.current.Right.openFrames = 0;
-    handStateRef.current.Right.closed = true;
-    setRightHandClosed(true);
-  };
 
-  const handleOverlayMouseUp = () => {
-    if (!usingMouseFallbackRef.current) return;
-    handStateRef.current.Right.openFrames = CONFIG.STABLE_FRAMES;
-    handStateRef.current.Right.closedFrames = 0;
-    handStateRef.current.Right.closed = false;
-    setRightHandClosed(false);
-  };
+
 
   // ==================== EFFECTS ====================
   useEffect(() => {
