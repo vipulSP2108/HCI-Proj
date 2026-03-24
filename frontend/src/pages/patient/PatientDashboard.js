@@ -80,11 +80,6 @@ export default function PatientDashboard({ userId }) {
 
   // Reminders and logic
   const [reminders, setReminders] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
-  const [editingReminder, setEditingReminder] = useState(null);
-
-  // Streak state
-  const [streakData, setStreakData] = useState({ currentStreak: 0, hasActivityToday: false });
 
 
   useEffect(() => {
@@ -380,35 +375,39 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
   const [editingReminder, setEditingReminder] = useState(null);
 
   // Computations for charts - moved inside DashboardContent
-  const recentSessions = stats?.recentSessions || (stats?.play ? [stats] : []);
-  const today = new Date(); // Use actual current date
-  const totals = {
+  const recentSessions = useMemo(() => stats?.recentSessions || (stats?.play ? [stats] : []), [stats]);
+  const today = useMemo(() => new Date(), []); // Stable reference for calculations
+
+  const totals = useMemo(() => ({
     correct: recentSessions.reduce((sum, s) => sum + (s.correct || 0), 0),
     incorrect: recentSessions.reduce((sum, s) => sum + (s.incorrect || 0), 0),
     notDone: recentSessions.reduce((sum, s) => sum + (s.notDone || 0), 0),
     responsetime: recentSessions.reduce((sum, s) => sum + (s.responsetime || 0), 0),
-  };
+  }), [recentSessions]);
 
-  const barData = [
+  const barData = useMemo(() => [
     { name: 'Correct', value: totals.correct },
     { name: 'Incorrect', value: totals.incorrect },
     { name: 'Not Done', value: totals.notDone },
-  ];
+  ], [totals]);
 
   // Daily data aggregation
-  const dailyData = {};
-  recentSessions.forEach((session) => {
-    const date = new Date(session.time);
-    const dateStr = date.toISOString().split('T')[0];
-    if (!dailyData[dateStr]) {
-      dailyData[dateStr] = { correct: 0, incorrect: 0, notDone: 0, total: 0, totalResponseTime: 0 };
-    }
-    dailyData[dateStr].correct += session.correct || 0;
-    dailyData[dateStr].incorrect += session.incorrect || 0;
-    dailyData[dateStr].notDone += session.notDone || 0;
-    dailyData[dateStr].total += session.total || (session.correct + session.incorrect + session.notDone);
-    dailyData[dateStr].totalResponseTime += session.responsetime || 0;
-  });
+  const dailyData = useMemo(() => {
+    const data = {};
+    recentSessions.forEach((session) => {
+      const date = new Date(session.time);
+      const dateStr = date.toISOString().split('T')[0];
+      if (!data[dateStr]) {
+        data[dateStr] = { correct: 0, incorrect: 0, notDone: 0, total: 0, totalResponseTime: 0 };
+      }
+      data[dateStr].correct += session.correct || 0;
+      data[dateStr].incorrect += session.incorrect || 0;
+      data[dateStr].notDone += session.notDone || 0;
+      data[dateStr].total += session.total || (session.correct + session.incorrect + session.notDone);
+      data[dateStr].totalResponseTime += session.responsetime || 0;
+    });
+    return data;
+  }, [recentSessions]);
 
   // Last 7 chronological sessions ascending for charts
   const last7ChronAsc = [...recentSessions]
@@ -1750,16 +1749,6 @@ const InfoCard = ({ title, content, onChange }) => (
   </div>
 );
 
-const CardButton = ({ icon, title, subtitle, onClick }) => (
-  <div 
-    className="premium-card p-4 flex flex-col justify-center hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer group"
-    onClick={onClick}
-  >
-    <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{icon}</div>
-    <p className="font-bold dark:text-white uppercase text-sm">{title}</p>
-    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
-  </div>
-);
 
 // Doctor selection modal component
 const DoctorModal = ({ doctors, onClose, onSelect }) => (
