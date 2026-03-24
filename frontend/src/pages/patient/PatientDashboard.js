@@ -10,7 +10,6 @@ import {
   BarChart,
   Bar,
   ResponsiveContainer,
-  LabelList,
   Cell,
 } from 'recharts';
 
@@ -24,15 +23,10 @@ import {
   MessageSquare,
   Settings,
   User,
-  Phone,
-  Mail,
   Edit3,
   Search,
   PhoneCall,
-  MessageSquareDashed,
-  ChevronDown,
   ChevronLeft,
-  Flame,
   ChevronRight,
   BookOpen,
   HelpCircle,
@@ -46,17 +40,14 @@ import {
   TrendingUp,
   Target,
   Award,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
   Sun,
   Moon,
-  List,
   Download
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { gameService } from '../../services/gameService';
 import { userService } from '../../services/userService';
 import { reminderService } from '../../services/reminderService';
@@ -69,7 +60,6 @@ export default function PatientDashboard({ userId }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
-  const [error, setError] = useState(null);
   const [isDoctorModalOpen, setIsDoctorModalOpen] = useState(false);
 
   // New state to manage the active section (for switching main content)
@@ -79,7 +69,7 @@ export default function PatientDashboard({ userId }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Reminders and logic
-  const [reminders, setReminders] = useState([]);
+  const [reminders] = useState([]);
 
 
   useEffect(() => {
@@ -87,9 +77,9 @@ export default function PatientDashboard({ userId }) {
       try {
         const data = await userService.getUserFullDetails(userId);
         if (data.success) setUserData(data.user);
-        else setError('Failed to load user info');
+        else console.error('Failed to load user info');
       } catch {
-        setError('Error fetching data');
+        console.error('Error fetching data');
       } finally {
         setLoading(false);
       }

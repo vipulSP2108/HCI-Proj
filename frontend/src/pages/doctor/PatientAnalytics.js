@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { gameService } from '../../services/gameService';
@@ -24,11 +24,9 @@ const PatientAnalytics = () => {
   }, []);
 
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [patientId]);
+  
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       const response = await gameService.getDetailedAnalytics(patientId);
       setAnalytics(response.analytics);
@@ -39,7 +37,11 @@ const PatientAnalytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const updateLevelSpan = async () => {
     try {

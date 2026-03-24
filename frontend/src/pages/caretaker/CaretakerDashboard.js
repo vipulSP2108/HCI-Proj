@@ -5,7 +5,7 @@ import { userService } from '../../services/userService';
 import { chatService } from '../../services/chatService';
 import { reminderService } from '../../services/reminderService';
 import {
-    LogOut, Users, MessageSquare, Bell, Calendar, Search, Loader2,
+    LogOut, Users, MessageSquare, Bell, Calendar, Loader2,
     LayoutDashboard, Settings, ChevronLeft, ChevronRight, Activity, Send, Sun, Moon
 } from 'lucide-react';
 import ChatPage from '../common/ChatPage';

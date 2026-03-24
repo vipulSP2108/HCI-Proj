@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { 
-  Send, User, Search, MoreVertical, Paperclip, Smile, Image, Phone, Video, Info, Check, CheckCheck, MessageSquare, UserPlus, Loader2
+  Send, MoreVertical, MessageSquare, UserPlus, Loader2,
+  Search
 } from 'lucide-react';
 import { Dialog } from "@headlessui/react";
 import { chatService } from "../../services/chatService";
@@ -31,12 +32,23 @@ const ChatPage = ({ type: initialType }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, selectedChat]);
 
-  useEffect(() => {
-    loadChats();
+
+  const openChat = useCallback(async (chat) => {
+    setLoadingMessages(true);
+    setSelectedChat(chat);
+    setMessages([]); // Clear old messages immediately to show it's loading fresh
+    try {
+      const res = await chatService.getMessages(chat._id);
+      setMessages(res.messages || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMessages(false);
+    }
   }, []);
 
   // Load chats and participants
-  const loadChats = async (filterOverride) => {
+  const loadChats = useCallback(async (filterOverride) => {
     setLoadingChats(true);
     try {
       const activeType = filterOverride !== undefined ? filterOverride : type;
@@ -70,21 +82,11 @@ const ChatPage = ({ type: initialType }) => {
       setLoadingChats(false);
       setLoadingMessages(false);
     }
-  };
+  }, [type, selectedChat, openChat, user?.type]);
 
-  const openChat = async (chat) => {
-    setLoadingMessages(true);
-    setSelectedChat(chat);
-    setMessages([]); // Clear old messages immediately to show it's loading fresh
-    try {
-      const res = await chatService.getMessages(chat._id);
-      setMessages(res.messages || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingMessages(false);
-    }
-  };
+  useEffect(() => {
+    loadChats();
+  }, [loadChats]);
 
   const sendMessage = async () => {
     if (!selectedChat || !message.trim()) return;

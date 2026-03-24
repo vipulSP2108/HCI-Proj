@@ -8,9 +8,9 @@ import { reminderService } from '../../services/reminderService';
 import api from '../../services/api';
 import {
   Users, UserPlus, LogOut, Activity, MessageSquare, Bell, Calendar,
-  LayoutDashboard, Pill, Loader2, UserCog, Settings, Search,
+  LayoutDashboard, Pill, UserCog, Settings,
   ChevronLeft, ChevronRight,
-  Settings2, Sun, Moon, User as UserIcon, Phone as PhoneIcon,
+  Sun, Moon, User as UserIcon, Phone as PhoneIcon,
   Clock,
   AlertCircle,
   User
