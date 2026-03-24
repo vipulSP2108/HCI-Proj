@@ -2,10 +2,11 @@ import { Hands } from '@mediapipe/hands';
 import { Pose } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
-  CALIBRATION_SECONDS: 20,
+  CALIBRATION_SECONDS: 7,
   GRID_ROWS: 3,
   GRID_COLS: 3,
   PICK_DISTANCE: 0.08,
@@ -17,6 +18,7 @@ const CONFIG = {
 };
 // ==================== MAIN COMPONENT ====================
 const GamePage2BallBasket = () => {
+  const { isDarkMode } = useAuth();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -605,12 +607,22 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     calibrationRef.current.maxY = 0;
    
     setIsCalibrating(true);
-    setCalibTimeLeft(CONFIG.CALIBRATION_SECONDS);
+    setCalibTimeLeft(7); // Changed from CONFIG.CALIBRATION_SECONDS to 7
+    
+    // Auto-advance if landmarks are already stable
+    const checkStableInterval = setInterval(() => {
+        if (calibrationRef.current.maxX > 0) {
+            clearInterval(checkStableInterval);
+            clearInterval(calibIntervalRef.current);
+            finishCalibration();
+        }
+    }, 500);
    
     calibIntervalRef.current = setInterval(() => {
       setCalibTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(calibIntervalRef.current);
+          clearInterval(checkStableInterval); // Clear the checkStableInterval too
           finishCalibration();
           return 0;
         }
@@ -779,14 +791,66 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     };
   }, [setupGrid, setupMediaPipe, mainLoop]);
   // ==================== RENDER ====================
+  const themeStyles = {
+    container: {
+      ...styles.container,
+      background: isDarkMode ? '#000' : '#F4F7FE',
+      color: isDarkMode ? '#fff' : '#333'
+    },
+    panel: {
+      ...styles.panel,
+      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      borderRight: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+      backdropFilter: 'blur(20px)'
+    },
+    title: {
+      ...styles.title,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    muted: {
+      ...styles.muted,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    videoWrap: {
+      ...styles.videoWrap,
+      borderColor: isDarkMode ? '#1f2937' : '#eee',
+      background: '#000'
+    },
+    statItem: {
+      ...styles.statItem,
+      background: isDarkMode ? '#111827' : '#f9f9f9',
+      borderColor: isDarkMode ? '#1f2937' : '#eee'
+    },
+    statValue: {
+      ...styles.statValue,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    statLabel: {
+      ...styles.statLabel,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    note: {
+      ...styles.note,
+      background: isDarkMode ? 'rgba(31, 41, 55, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+      color: isDarkMode ? '#94a3b8' : '#575f56',
+      borderTop: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)'
+    },
+    statusMessage: {
+      ...styles.statusMessage,
+      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      color: isDarkMode ? '#4ade80' : '#2f7a2f',
+      border: isDarkMode ? '1px solid #4ade80' : 'none'
+    }
+  };
+
   return (
-    <div style={styles.container}>
-      <aside style={styles.panel}>
-        <h1 style={styles.title}>🍎 Arm  – Fruit Fetch</h1>
-        <p style={styles.muted}>
-          Upper limb rehabilitation game: Reach → Grasp (close hand) → Transport → Release (open hand) into basket. 5-minute therapeutic session.
+    <div style={themeStyles.container}>
+      <aside style={themeStyles.panel}>
+        <h1 style={themeStyles.title}>🍏 Fruit Basket</h1>
+        <p style={themeStyles.muted}>
+          Grasp, transport, and release fruits into the basket to improve coordination.
         </p>
-        <div style={styles.videoWrap}>
+        <div style={themeStyles.videoWrap}>
           <video
             ref={videoRef}
             autoPlay
@@ -803,10 +867,8 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
           />
          
           {isCalibrating && (
-            <div style={styles.calibOverlay}>
-              <div style={styles.calibText}>
-                Calibrating... {calibTimeLeft}s - Move to corners & center!
-              </div>
+            <div style={themeStyles.statusMessage}>
+              Calibrating... {calibTimeLeft}s
             </div>
           )}
          
@@ -814,22 +876,16 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             {leftHandVisible && (
               <div style={{...styles.handIndicator, ...(leftHandClosed ? styles.handClosed : styles.handOpen)}}>
                 <span style={styles.dot}></span>
-                <span>Left - {leftHandClosed ? 'CLOSED 🔴' : 'OPEN 🟢'}</span>
+                <span>Left {leftHandClosed ? '🔴' : '🟢'}</span>
               </div>
             )}
             {rightHandVisible && (
               <div style={{...styles.handIndicator, ...(rightHandClosed ? styles.handClosed : styles.handOpen)}}>
                 <span style={styles.dot}></span>
-                <span>Right - {rightHandClosed ? 'CLOSED 🔴' : 'OPEN 🟢'}</span>
+                <span>Right {rightHandClosed ? '🔴' : '🟢'}</span>
               </div>
             )}
           </div>
-         
-          {showDebug && debugInfo && (
-            <div style={styles.debugPanel}>
-              <pre style={{margin: 0, fontSize: '11px'}}>{debugInfo}</pre>
-            </div>
-          )}
         </div>
         <div style={styles.controls}>
           <button
@@ -837,64 +893,49 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             style={styles.controlButton}
             disabled={isCalibrating}
           >
-            📏 Start 20s Calibration
+            📏 Calibrate
           </button>
           <button
             onClick={handleStartSession}
-            style={{...styles.controlButton, ...(calibrationDone ? {} : styles.buttonDisabled)}}
-            disabled={!calibrationDone || isSessionActive}
+            style={styles.controlButton}
           >
-            ▶️ Start 5min Session
+            {isSessionActive ? 'Pause' : 'Start Session'}
           </button>
-          <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={usingMouseFallback}
-              onChange={handleMouseFallbackChange}
-              style={styles.checkbox}
-            />
-            <span>Use mouse fallback (if webcam fails)</span>
-          </label>
         </div>
-        <div style={styles.stats}>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Score</div>
-            <div style={styles.statValue}>{score}</div>
+        <div style={themeStyles.stats}>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Score</div>
+            <div style={themeStyles.statValue}>{score}</div>
           </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Reps</div>
-            <div style={styles.statValue}>{reps}</div>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Reps</div>
+            <div style={themeStyles.statValue}>{reps}</div>
           </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Timer</div>
-            <div style={styles.statValue}>{formatTime(timeRemaining)}</div>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Timer</div>
+            <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>
           </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Success</div>
-            <div style={styles.statValue}>{successRate}%</div>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Success</div>
+            <div style={themeStyles.statValue}>{successRate}%</div>
           </div>
         </div>
         <div style={styles.actions}>
-          <button onClick={handleDownloadCSV} style={styles.actionButton}>
-            💾 Download CSV
+          <button onClick={() => window.history.back()} style={styles.actionButton}>
+            Quit
           </button>
           <button onClick={handleReset} style={styles.actionButton}>
-            🔄 Reset
+            Reset
           </button>
         </div>
-        <div style={styles.note}>
-          <strong style={styles.noteTitle}>How to play:</strong>
-          • Make a <strong style={{color: '#dc3545'}}>FIST (closed)</strong> to grasp the fruit 🔴<br/>
-          • <strong style={{color: '#28a745'}}>OPEN PALM (spread fingers)</strong> to release into basket 🟢<br/>
-          • The <strong>crosshair circle</strong> on your palm is your cursor<br/>
-          • Watch the colored skeleton - Red = Closed, Green = Open<br/>
-          • Press <strong>'D'</strong> to show debug metrics
+        <div style={themeStyles.note}>
+          <strong style={themeStyles.statValue}>Pro-tip:</strong> Watch the skeletal feedback for grip status.
         </div>
       </aside>
       <main style={styles.gameArea}>
         <canvas ref={gameCanvasRef} style={styles.gameCanvas} />
         {statusMessage.visible && (
-          <div style={styles.statusMessage}>
+          <div style={themeStyles.statusMessage}>
             {statusMessage.text}
           </div>
         )}

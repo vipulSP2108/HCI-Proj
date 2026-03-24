@@ -7,4 +7,5 @@ export const reminderService = {
     return (await api.get(url)).data;
   },
   complete: async (id) => (await api.put(`/reminders/complete/${id}`)).data,
+  update: async (id, payload) => (await api.put(`/reminders/${id}`, payload)).data,
 };

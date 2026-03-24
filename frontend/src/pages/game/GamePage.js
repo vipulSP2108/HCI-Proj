@@ -10,24 +10,8 @@ import GameImage3 from "./3.png";
 const PRIMARY_BLUE = "#3B82F6";
 const LIGHT_BLUE = "#93C5FD";
 
-const useDarkMode = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
-  });
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('darkMode', isDarkMode);
-  }, [isDarkMode]);
-
-  return [isDarkMode, setIsDarkMode];
-};
 // --- Onboarding Screen ---
-const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
+const OnboardingScreen = ({ onNext, currentLevelSpan, isDarkMode }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const synthRef = useRef(window.speechSynthesis);
@@ -106,7 +90,8 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
     };
   }, []);
 
-  const [isDarkMode] = useDarkMode();
+  // Remove the broken useDarkMode hook call
+
 
   return (
     <div className={`fixed inset-0 flex flex-col items-center justify-center p-4 md:p-10 z-50 overflow-auto transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
@@ -187,7 +172,6 @@ const OnboardingScreen = ({ onNext, currentLevelSpan }) => {
   );
 };
 
-// --- Playing Game ---
 const PlayingGame = ({
   currentLevelSpan,
   currentNumSections,
@@ -209,7 +193,8 @@ const PlayingGame = ({
   keys,
   handleSectionClick,
   handleKeyPress,
-  isMobile
+  isMobile,
+  isDarkMode
 }) => {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -221,7 +206,8 @@ const PlayingGame = ({
   const PRIMARY_BLUE = '#3B82F6';
   const LIGHT_BLUE = '#93C5FD';
 
-  const [isDarkMode] = useDarkMode();
+  // Remove the broken useDarkMode hook call
+
 
   return (
     <div className={`fixed inset-0 flex flex-col overflow-hidden z-50 transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
@@ -354,8 +340,7 @@ const PlayingGame = ({
 
 // --- Main Game Page Component ---
 const GamePage = () => {
-  const [isDarkMode, setIsDarkMode] = useDarkMode();
-  const { user } = useAuth();
+  const { user, isDarkMode } = useAuth();
   const navigate = useNavigate();
 
   // Detect if mobile screen for responsive keys
@@ -369,8 +354,8 @@ const GamePage = () => {
   // State variables
   const [isOnboarding, setIsOnboarding] = useState(true);
   const [currentLevelSpan, setCurrentLevelSpan] = useState(5);
-  const [currentNumSections, setCurrentNumSections] = useState(2);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentNumSections, setCurrentNumSections] = useState(2);
   const [isPaused, setIsPaused] = useState(false);
   const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
@@ -672,8 +657,10 @@ const GamePage = () => {
     : 0;
 
   // --- Rendering ---
+  // Remove redundant declaration
+
   if (isOnboarding) {
-    return <OnboardingScreen onNext={() => setIsOnboarding(false)} currentLevelSpan={currentLevelSpan} />;
+    return <OnboardingScreen onNext={() => setIsOnboarding(false)} currentLevelSpan={currentLevelSpan} isDarkMode={isDarkMode} />;
   }
 
   if (isPlaying) {
@@ -700,6 +687,7 @@ const GamePage = () => {
         handleSectionClick={handleSectionClick}
         handleKeyPress={handleKeyPress}
         isMobile={isMobile}
+        isDarkMode={isDarkMode}
       />
     );
   }
@@ -752,9 +740,9 @@ const GamePage = () => {
         </div>
 
         {/* Game Area */}
-        <div className="bg-white rounded-xl shadow-2xl p-4 md:p-8 mb-4 md:mb-6">
-          {/* Sections Display */}
-          <div className="relative h-[60vh] md:h-64 mb-6 md:mb-8 border-4 border-gray-200 rounded-xl bg-white overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 md:p-8 mb-4 md:mb-6 border dark:border-gray-800">
+          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 dark:text-white">Let's Warm Up!</h2>
+          <div className="relative h-[60vh] md:h-64 mb-6 md:mb-8 border-4 border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-950 overflow-hidden">
             <div className="h-full flex flex-col-reverse md:flex-row">
               {activeKeys.map((key, index) => {
                 const isActive = false;
@@ -779,7 +767,7 @@ const GamePage = () => {
               })}
             </div>
             {!isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/90 dark:bg-black/90">
                 <div className="text-center p-4">
                   <p className="text-2xl md:text-3xl text-gray-400 mb-4 font-bold">Ready to Play?</p>
                   <div className="space-y-2 text-base md:text-lg text-gray-600">
@@ -864,9 +852,9 @@ const GamePage = () => {
         )}
 
         {/* Settings Modal */}
-        {showSettings && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-4 md:p-6 max-w-md w-full shadow-2xl">
+      {showSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4 md:p-6 max-w-md w-full shadow-2xl border dark:border-gray-800">
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">Game Settings</h3>
               <div className="space-y-6">
                 <div>

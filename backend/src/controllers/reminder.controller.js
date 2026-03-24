@@ -56,32 +56,64 @@ exports.complete = async (req, res) => {
     reminder.status = 'completed';
     await reminder.save();
 
-    // Auto-generate next day instance if recurring
+    // Auto-generate next instance if recurring
     if (reminder.isRecurring) {
-  // Get tomorrow’s date based on today
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+      // Create for "tomorrow" relative to today to ensure the chain never breaks
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + 1);
+      nextDate.setHours(0, 0, 0, 0);
 
-  // If you have a specific reminder time (e.g. "14:30"), set it here
-  if (reminder.time) {
-    const [hours, minutes] = reminder.time.split(':').map(Number);
-    tomorrow.setHours(hours, minutes, 0, 0);
-  }
+      // Check if next occurrence already exists
+      const existingNext = await Reminder.findOne({
+        patient: reminder.patient,
+        title: reminder.title,
+        date: {
+          $gte: new Date(nextDate.getTime()),
+          $lt: new Date(nextDate.getTime() + 24 * 60 * 60 * 1000)
+        }
+      });
 
-  await Reminder.create({
-    patient: reminder.patient,
-    createdBy: req.user.id,
-    title: reminder.title,
-    text: reminder.text,
-    date: tomorrow,
-    time: reminder.time,
-    isRecurring: true
-  });
-}
+      if (!existingNext) {
+        await Reminder.create({
+          patient: reminder.patient,
+          createdBy: reminder.createdBy,
+          title: reminder.title,
+          text: reminder.text,
+          date: nextDate,
+          time: reminder.time,
+          isRecurring: true,
+          status: 'active'
+        });
+      }
+    }
 
 
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Complete failed', error: e.message });
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const reminder = await Reminder.findById(id);
+    if (!reminder) return res.status(404).json({ success: false, message: 'Not found' });
+    if (!(await ensureCanManagePatient(req.user.id, reminder.patient))) {
+      return res.status(403).json({ success: false, message: 'Not allowed' });
+    }
+    
+    const { title, text, date, time, isRecurring, status } = req.body;
+    if (title) reminder.title = title;
+    if (text !== undefined) reminder.text = text;
+    if (date) reminder.date = date;
+    if (time) reminder.time = time;
+    if (isRecurring !== undefined) reminder.isRecurring = !!isRecurring;
+    if (status) reminder.status = status;
+
+    await reminder.save();
+    res.json({ success: true, reminder });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Update failed', error: e.message });
   }
 };

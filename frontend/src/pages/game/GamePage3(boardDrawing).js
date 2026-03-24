@@ -2,11 +2,12 @@ import { Hands } from '@mediapipe/hands';
 import { Pose } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
-  CALIBRATION_SECONDS: 20,
+  CALIBRATION_SECONDS: 7,
   NUM_SHAPE_POINTS: 20,
   PICK_DISTANCE: 0.08,
   TRACE_TOLERANCE: 0.05,
@@ -18,7 +19,10 @@ const CONFIG = {
 };
 
 // ==================== SHAPE GENERATION ====================
-const SHAPES = ['circle', 'ellipse', 'triangle', 'square', 'hexagon'];
+const SHAPES = ['circle', 'ellipse', 'triangle', 'square', 'hexagon', 'star', 'heart', 'diamond'];
+
+const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
 
 const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
   const centerX = 0.5;
@@ -69,17 +73,53 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
         x = centerX + radius * Math.cos(theta);
         y = centerY + radius * Math.sin(theta);
         break;
+      case 'star':
+        const rInner = radius * 0.4;
+        const rOuter = radius;
+        const r = (i % 2 === 0) ? rOuter : rInner;
+        x = centerX + r * Math.cos(theta - Math.PI/2);
+        y = centerY + r * Math.sin(theta - Math.PI/2);
+        break;
+      case 'heart':
+        const t_h = (i / numPoints) * 2 * Math.PI;
+        // parametric heart: x = 16 sin^3(t), y = 13 cos(t) - 5 cos(2t) - 2 cos(3t) - cos(4t)
+        const hx = 16 * Math.pow(Math.sin(t_h), 3);
+        const hy = -(13 * Math.cos(t_h) - 5 * Math.cos(2*t_h) - 2 * Math.cos(3*t_h) - Math.cos(4*t_h));
+        x = centerX + (hx / 16) * radius;
+        y = centerY + (hy / 16) * radius + 0.05; // Slightly offset up
+        break;
+      case 'diamond':
+        const td = i / numPoints;
+        if (td < 0.25) { // Top to Right
+          x = centerX + (td/0.25) * radius;
+          y = centerY - (1 - td/0.25) * radius;
+        } else if (td < 0.5) { // Right to Bottom
+          x = centerX + (1 - (td-0.25)/0.25) * radius;
+          y = centerY + ((td-0.25)/0.25) * radius;
+        } else if (td < 0.75) { // Bottom to Left
+          x = centerX - ((td-0.5)/0.25) * radius;
+          y = centerY + (1 - (td-0.5)/0.25) * radius;
+        } else { // Left to Top
+          x = centerX - (1 - (td-0.75)/0.25) * radius;
+          y = centerY - ((td-0.75)/0.25) * radius;
+        }
+        break;
       default:
         x = centerX + radius * Math.cos(theta);
         y = centerY + radius * Math.sin(theta);
     }
-    points.push({ x, y });
+    // Final Clamp to ensure boundaries
+    points.push({ 
+      x: clamp(x, 0.05, 0.95), 
+      y: clamp(y, 0.05, 0.95) 
+    });
   }
   return points;
 };
 
 // ==================== MAIN COMPONENT ====================
 const DrawingGame = () => {
+  const { user, isDarkMode } = useAuth();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -140,8 +180,10 @@ const DrawingGame = () => {
     minX: 1, maxX: 0,
     minY: 1, maxY: 0,
     centerX: 0.5, centerY: 0.5,
-    maxReachNorm: 0.2
+    maxReachNorm: 0.2,
+    level: 1
   });
+
  
   const shapeRef = useRef(null);
   const currentTargetIdxRef = useRef(0);
@@ -174,26 +216,39 @@ const DrawingGame = () => {
   };
  
   // ==================== SPAWN SHAPE ====================
-  const spawnShape = useCallback(() => {
-    const type = SHAPES[Math.floor(Math.random() * SHAPES.length)];
-    const points = generateShapePoints(type);
+  const pickNewShape = useCallback(() => {
+    // Determine shape by level
+    const level = calibrationRef.current.level || 1;
+    let shapeType;
+    if (level <= SHAPES.length) {
+      shapeType = SHAPES[level - 1];
+    } else {
+      shapeType = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    }
+    
+    const points = generateShapePoints(shapeType);
     shapeRef.current = {
-      type,
+      type: shapeType,
       points,
       drawingHand: null,
       startTime: Date.now()
     };
     currentTargetIdxRef.current = 0;
     drawnPathRef.current = [];
-   
+    setStatusMessage({ text: `Level ${level}: Trace the ${shapeType.toUpperCase()}`, visible: true });
+    setTimeout(() => setStatusMessage(prev => ({ ...prev, visible: false })), 2000);
+  }, []);
+
+  const spawnShape = useCallback(() => {
+    pickNewShape();
     logsRef.current.push({
       timestamp: nowSec(),
       event: 'spawn_shape',
-      shape_type: type,
-      num_points: points.length,
+      shape_type: shapeRef.current.type,
+      num_points: shapeRef.current.points.length,
       score: scoreRef.current
     });
-  }, []);
+  }, [pickNewShape]);
  
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
@@ -409,11 +464,20 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             completion
           });
           if (completion >= CONFIG.MIN_COMPLETION) {
+            // Shape Success!
+            const newReps = reps + 1;
+            setReps(newReps);
             const newScore = scoreRef.current + CONFIG.SCORE_PER_SHAPE;
             setScore(newScore);
             scoreRef.current = newScore;
-            setReps(prev => prev + 1);
             successesRef.current++;
+            
+            // Advance level every 3 shapes
+            if (newReps % 3 === 0) {
+              calibrationRef.current.level = (calibrationRef.current.level || 1) + 1;
+            }
+
+            pickNewShape();
             attemptsRef.current++;
             logsRef.current.push({
               timestamp: nowSec(),
@@ -675,12 +739,22 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     calibrationRef.current.maxY = 0;
    
     setIsCalibrating(true);
-    setCalibTimeLeft(CONFIG.CALIBRATION_SECONDS);
-   
+    setCalibTimeLeft(7); // Changed from CONFIG.CALIBRATION_SECONDS to 7
+
+    // Auto-advance if landmarks are already stable
+    const checkStableInterval = setInterval(() => {
+        if (calibrationRef.current.maxX > 0) {
+            clearInterval(checkStableInterval);
+            clearInterval(calibIntervalRef.current);
+            finishCalibration();
+        }
+    }, 500);
+
     calibIntervalRef.current = setInterval(() => {
       setCalibTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(calibIntervalRef.current);
+          clearInterval(checkStableInterval); // Clear the checkStableInterval too
           finishCalibration();
           return 0;
         }
@@ -863,34 +937,79 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   }, [setupMediaPipe, mainLoop]);
  
   // ==================== RENDER ====================
+  // ==================== RENDER ====================
+  const themeStyles = {
+    container: {
+      ...styles.container,
+      background: isDarkMode ? '#000' : '#F4F7FE',
+      color: isDarkMode ? '#fff' : '#333'
+    },
+    panel: {
+      ...styles.panel,
+      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      borderRight: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+      backdropFilter: 'blur(20px)'
+    },
+    title: {
+      ...styles.title,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    muted: {
+      ...styles.muted,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    videoWrap: {
+      ...styles.videoWrap,
+      borderColor: isDarkMode ? '#1f2937' : '#eee',
+      background: '#000'
+    },
+    statItem: {
+      ...styles.statItem,
+      background: isDarkMode ? '#111827' : '#f9f9f9',
+      borderColor: isDarkMode ? '#1f2937' : '#eee'
+    },
+    statValue: {
+      ...styles.statValue,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    statLabel: {
+      ...styles.statLabel,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    note: {
+      ...styles.note,
+      background: isDarkMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+      color: isDarkMode ? '#94a3b8' : '#575f56',
+      borderTop: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)'
+    },
+    statusMessage: {
+      ...styles.statusMessage,
+      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      color: isDarkMode ? '#4ade80' : '#2f7a2f',
+      border: isDarkMode ? '1px solid #4ade80' : 'none'
+    },
+    actionButton: {
+        ...styles.actionButton,
+        background: isDarkMode ? '#374151' : '#e8e8e8',
+        color: isDarkMode ? '#fff' : '#333',
+    }
+  };
+
   return (
-    <div style={styles.container}>
-      <aside style={styles.panel}>
-        <h1 style={styles.title}>✏️ Shape Tracing – Drawing Rehab</h1>
-        <p style={styles.muted}>
-          Upper limb rehabilitation game: Close hand to start tracing at first point, keep closed to follow points in order, open hand after last point to complete. 5-minute therapeutic session.
+    <div style={themeStyles.container}>
+      <aside style={themeStyles.panel}>
+        <h1 style={themeStyles.title}>Trace & Master</h1>
+        <p style={themeStyles.muted}>
+          A surgical-grade motor rehabilitation module. Follow the patterns with high precision.
         </p>
-        <div style={styles.videoWrap}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={styles.video}
-          />
-          <canvas
-            ref={overlayRef}
-            style={styles.overlay}
-            onMouseMove={handleOverlayMouseMove}
-            onMouseDown={handleOverlayMouseDown}
-            onMouseUp={handleOverlayMouseUp}
-          />
+        
+        <div style={themeStyles.videoWrap}>
+          <video ref={videoRef} autoPlay playsInline muted style={styles.video} />
+          <canvas ref={overlayRef} style={styles.overlay} />
          
           {isCalibrating && (
-            <div style={styles.calibOverlay}>
-              <div style={styles.calibText}>
-                Calibrating... {calibTimeLeft}s - Move to corners & center!
-              </div>
+            <div style={themeStyles.statusMessage}>
+              Calibrating... {calibTimeLeft}s
             </div>
           )}
          
@@ -898,87 +1017,67 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             {leftHandVisible && (
               <div style={{...styles.handIndicator, ...(leftHandClosed ? styles.handClosed : styles.handOpen)}}>
                 <span style={styles.dot}></span>
-                <span>Left - {leftHandClosed ? 'CLOSED 🔴' : 'OPEN 🟢'}</span>
+                <span>Left {leftHandClosed ? '🔴' : '🟢'}</span>
               </div>
             )}
             {rightHandVisible && (
               <div style={{...styles.handIndicator, ...(rightHandClosed ? styles.handClosed : styles.handOpen)}}>
                 <span style={styles.dot}></span>
-                <span>Right - {rightHandClosed ? 'CLOSED 🔴' : 'OPEN 🟢'}</span>
+                <span>Right {rightHandClosed ? '🔴' : '🟢'}</span>
               </div>
             )}
           </div>
-         
-          {showDebug && debugInfo && (
-            <div style={styles.debugPanel}>
-              <pre style={{margin: 0, fontSize: '11px'}}>{debugInfo}</pre>
-            </div>
-          )}
         </div>
+
         <div style={styles.controls}>
           <button
             onClick={handleStartCalibration}
             style={styles.controlButton}
             disabled={isCalibrating}
           >
-            📏 Start 20s Calibration
+            📏 Calibrate System
           </button>
           <button
             onClick={handleStartSession}
-            style={{...styles.controlButton, ...(calibrationDone ? {} : styles.buttonDisabled)}}
-            disabled={!calibrationDone || isSessionActive}
+            style={styles.controlButton}
           >
-            ▶️ Start 5min Session
+            {isSessionActive ? '⏸ Pause' : '▶️ Start Therapy'}
           </button>
-          <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={usingMouseFallback}
-              onChange={handleMouseFallbackChange}
-              style={styles.checkbox}
-            />
-            <span>Use mouse fallback (if webcam fails)</span>
-          </label>
         </div>
-        <div style={styles.stats}>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Score</div>
-            <div style={styles.statValue}>{score}</div>
+
+        <div style={themeStyles.stats}>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Total Score</div>
+            <div style={themeStyles.statValue}>{score}</div>
           </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Shapes</div>
-            <div style={styles.statValue}>{reps}</div>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Success Rate</div>
+            <div style={themeStyles.statValue}>{Math.round(successRate)}%</div>
           </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Timer</div>
-            <div style={styles.statValue}>{formatTime(timeRemaining)}</div>
-          </div>
-          <div style={styles.statItem}>
-            <div style={styles.statLabel}>Success</div>
-            <div style={styles.statValue}>{successRate}%</div>
+          <div style={themeStyles.statItem}>
+            <div style={themeStyles.statLabel}>Session Timer</div>
+            <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>
           </div>
         </div>
+
         <div style={styles.actions}>
-          <button onClick={handleDownloadCSV} style={styles.actionButton}>
-            💾 Download CSV
+          <button onClick={() => window.history.back()} style={themeStyles.actionButton}>
+             Quit Session
           </button>
-          <button onClick={handleReset} style={styles.actionButton}>
-            🔄 Reset
+          <button onClick={handleReset} style={themeStyles.actionButton}>
+             Reset
           </button>
         </div>
-        <div style={styles.note}>
-          <strong style={styles.noteTitle}>How to play:</strong>
-          • <strong style={{color: '#dc3545'}}>CLOSE HAND (fist)</strong> near first point (red) to start tracing 🔴<br/>
-          • Keep closed, move to follow points in order (green when hit)<br/>
-          • <strong style={{color: '#28a745'}}>OPEN HAND</strong> after last point to complete 🟢<br/>
-          • Orange line shows your trace path<br/>
-          • Press <strong>'D'</strong> to show debug metrics
+
+        <div style={themeStyles.note}>
+          <strong style={themeStyles.statValue}>Clinical Focus:</strong> Fine motor precision and distal control.
         </div>
       </aside>
+
       <main style={styles.gameArea}>
         <canvas ref={gameCanvasRef} style={styles.gameCanvas} />
         {statusMessage.visible && (
-          <div style={styles.statusMessage}>
+          <div style={themeStyles.statusMessage}>
             {statusMessage.text}
           </div>
         )}

@@ -85,6 +85,7 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
 
 // ==================== MAIN COMPONENT ====================
 const DrawingGame = () => {
+  const { user, isDarkMode } = useAuth();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -686,12 +687,22 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     detectionCounterRef.current = 0;
    
     setIsCalibrating(true);
-    setCalibTimeLeft(CONFIG.CALIBRATION_SECONDS);
-   
+    setCalibTimeLeft(7); // Changed from CONFIG.CALIBRATION_SECONDS to 7
+
+    // Auto-advance if landmarks are already stable
+    const checkStableInterval = setInterval(() => {
+        if (calibrationRef.current.maxX > 0) {
+            clearInterval(checkStableInterval);
+            clearInterval(calibIntervalRef.current);
+            finishCalibration();
+        }
+    }, 500);
+
     calibIntervalRef.current = setInterval(() => {
       setCalibTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(calibIntervalRef.current);
+          clearInterval(checkStableInterval);
           finishCalibration();
           return 0;
         }
@@ -881,6 +892,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   }, [setupMediaPipe, mainLoop]);
  
   // ==================== RENDER ====================
+  const styles = getStyles(isDarkMode);
   return (
     <div style={styles.container}>
       <div style={styles.topPanel}>
@@ -897,7 +909,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
               style={styles.controlButton}
               disabled={isCalibrating}
             >
-              📏 Start 20s Calibration
+              📏 Start 7s Calibration
             </button>
             <button
               onClick={handleStartSession}
@@ -1008,11 +1020,11 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
 };
 
 // ==================== STYLES ====================
-const styles = {
+const getStyles = (isDarkMode) => ({
   container: {
     position: 'relative',
     height: '100vh',
-    background: 'linear-gradient(#eaf7ea, #f6faf3)',
+    background: isDarkMode ? '#000' : 'linear-gradient(#eaf7ea, #f6faf3)',
     fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial',
     overflow: 'hidden'
   },
@@ -1026,8 +1038,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     padding: '12px',
-    background: 'rgba(255, 255, 255, 0.)',
-    backdropFilter: 'blur(1px)',
+    background: isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(10px)',
+    borderBottom: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
     gap: '12px'
   },
   topLeft: {
@@ -1040,12 +1053,13 @@ const styles = {
     minWidth: '300px'
   },
   title: {
-    color: '#2f7a2f',
+    color: isDarkMode ? '#4ade80' : '#2f7a2f',
     margin: '0 0 8px',
-    fontSize: '22px'
+    fontSize: '22px',
+    fontWeight: '800'
   },
   muted: {
-    color: '#575f56',
+    color: isDarkMode ? '#94a3b8' : '#575f56',
     fontSize: '13px',
     margin: 0,
     lineHeight: 1.4
@@ -1080,16 +1094,18 @@ const styles = {
   },
   calibOverlay: {
     position: 'absolute',
-    left: '8px',
-    top: '8px',
-    padding: '10px 14px',
-    background: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: '6px',
+    left: '20px',
+    top: '20px',
+    padding: '16px 24px',
+    background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '16px',
     zIndex: 10,
-    fontSize: '13px',
-    fontWeight: 500,
-    maxWidth: '280px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+    fontSize: '14px',
+    fontWeight: '700',
+    color: isDarkMode ? '#f8fafc' : '#1e293b',
+    maxWidth: '320px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+    border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : 'none'
   },
   calibText: {
     margin: 0
@@ -1147,21 +1163,23 @@ const styles = {
     padding: '11px',
     borderRadius: '8px',
     border: 0,
-    background: '#2f7a2f',
+    background: isDarkMode ? '#10b981' : '#2f7a2f',
     color: 'white',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: 600,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
     transition: 'all 0.2s'
   },
   buttonDisabled: {
-    background: '#ccc',
+    background: isDarkMode ? '#374151' : '#ccc',
     cursor: 'not-allowed',
     opacity: 0.6
   },
   checkboxLabel: {
     fontSize: '13px',
-    color: '#575f56',
+    color: isDarkMode ? '#94a3b8' : '#575f56',
     marginTop: '6px',
     display: 'flex',
     alignItems: 'center',
@@ -1178,21 +1196,22 @@ const styles = {
   },
   statItem: {
     padding: '10px',
-    background: '#f9f9f9',
-    borderRadius: '6px',
-    border: '1px solid #eee'
+    background: isDarkMode ? '#1e293b' : '#f9f9f9',
+    borderRadius: '8px',
+    border: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid #eee'
   },
   statLabel: {
-    fontSize: '11px',
-    color: '#575f56',
+    fontSize: '10px',
+    color: isDarkMode ? '#64748b' : '#575f56',
     textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+    letterSpacing: '1px',
+    fontWeight: '800',
     marginBottom: '4px'
   },
   statValue: {
     fontSize: '20px',
-    fontWeight: 700,
-    color: '#2f7a2f'
+    fontWeight: 900,
+    color: isDarkMode ? '#10b981' : '#2f7a2f'
   },
   actions: {
     display: 'flex',
@@ -1203,12 +1222,12 @@ const styles = {
     padding: '9px',
     borderRadius: '8px',
     border: 0,
-    background: '#e8e8e8',
-    color: '#333',
+    background: isDarkMode ? '#334155' : '#e8e8e8',
+    color: isDarkMode ? '#f8fafc' : '#333',
     cursor: 'pointer',
     fontSize: '13px',
-    fontWeight: 500,
-    transition: 'background 0.2s'
+    fontWeight: 600,
+    transition: 'all 0.2s'
   },
   note: {
     position: 'absolute',
@@ -1217,35 +1236,38 @@ const styles = {
     right: 0,
     zIndex: 20,
     fontSize: '12px',
-    color: '#575f56',
-    padding: '12px',
-    background: 'rgba(255, 255, 255, 0.09)',
-    backdropFilter: 'blur(1px)',
-    borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+    color: isDarkMode ? '#94a3b8' : '#575f56',
+    padding: '14px',
+    background: isDarkMode ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.4)',
+    backdropFilter: 'blur(20px)',
+    borderTop: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)',
     lineHeight: 1.6,
-    borderLeft: '3px solid #2f7a2f'
+    borderLeft: `4px solid ${isDarkMode ? '#10b981' : '#2f7a2f'}`
   },
   noteTitle: {
-    color: '#2f7a2f',
+    color: isDarkMode ? '#10b981' : '#2f7a2f',
     display: 'block',
-    marginBottom: '6px'
+    marginBottom: '4px',
+    fontWeight: '800',
+    textTransform: 'uppercase'
   },
   statusMessage: {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    background: 'rgba(255, 255, 255, 0.95)',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#2f7a2f',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    zIndex: 10,
+    background: isDarkMode ? 'rgba(15, 23, 42, 0.98)' : 'rgba(255, 255, 255, 0.95)',
+    padding: '16px 32px',
+    borderRadius: '16px',
+    fontSize: '18px',
+    fontWeight: 800,
+    color: isDarkMode ? '#10b981' : '#2f7a2f',
+    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+    zIndex: 100,
     pointerEvents: 'none',
+    border: `2px solid ${isDarkMode ? '#10b981' : '#2f7a2f'}`,
     animation: 'slideDown 0.3s ease'
   }
-};
+});
 
 export default DrawingGame;

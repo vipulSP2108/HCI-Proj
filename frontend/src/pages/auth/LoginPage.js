@@ -104,7 +104,7 @@ className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blu
             </button>
 
             <button
-              onClick={() => handleDemoLogin('admin@gmail.com', 'aa@gmail.com')}
+              onClick={() => handleDemoLogin('caretaker@gmail.com', 'aa@gmail.com')}
               disabled={loading}
 className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
             >

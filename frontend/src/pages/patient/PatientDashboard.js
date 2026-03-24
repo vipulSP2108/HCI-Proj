@@ -50,7 +50,9 @@ import {
   XCircle,
   AlertCircle,
   Sun,
-  Moon
+  Moon,
+  List,
+  Download
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -62,7 +64,7 @@ import ChatPage from '../common/ChatPage';
 import PatientAppointments from './PatientAppointments';
 
 export default function PatientDashboard({ userId }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isDarkMode, toggleDarkMode } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,25 +78,14 @@ export default function PatientDashboard({ userId }) {
   // Sidebar collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Dark mode state
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark' || 
-             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-    return false;
-  });
+  // Reminders and logic
+  const [reminders, setReminders] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [editingReminder, setEditingReminder] = useState(null);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+  // Streak state
+  const [streakData, setStreakData] = useState({ currentStreak: 0, hasActivityToday: false });
+
 
   useEffect(() => {
     (async () => {
@@ -152,7 +143,7 @@ export default function PatientDashboard({ userId }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F4F7FE] text-gray-800">
+    <div className={`flex min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-black text-gray-100' : 'bg-[#F4F7FE] text-gray-800'}`}>
       {/* Sidebar - fixed, collapsible */}
       <aside className={`fixed top-0 left-0 h-screen transition-all duration-300 z-30 flex flex-col justify-between overflow-hidden shadow-lg border-r
         ${isCollapsed ? 'w-20' : 'w-64'} 
@@ -250,21 +241,22 @@ export default function PatientDashboard({ userId }) {
             onClick={() => changeSection('Settings')}
             collapsed={isCollapsed}
           />
-          <button 
-            onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl transition-all duration-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 group`}
-          >
-            <LogOut size={18} className="group-hover:scale-110 transition-transform" />
-            {!isCollapsed && <span className="font-bold text-sm uppercase tracking-wider">Logout</span>}
-          </button>
         </div>
       </aside>
 
       {/* Main content - scrollable, offset by sidebar */}
-      <div className={`h-screen overflow-y-auto px-4 flex-1 transition-all duration-300 fade-in pt-10
+      <div className={`h-screen ${activeSection === 'Chat' ? 'overflow-hidden' : 'overflow-y-auto'} px-10 flex-1 transition-all duration-300 fade-in
         ${isCollapsed ? 'ml-20' : 'ml-64'} 
         bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100`}>
-        <main className="flex-1">
+        {activeSection !== 'Chat' && (
+          <TopBar 
+            activeSection={activeSection} 
+            isDarkMode={isDarkMode} 
+            toggleDarkMode={toggleDarkMode} 
+            handleLogout={handleLogout} 
+          />
+        )}
+        <main className={`flex-1 ${activeSection === 'Chat' ? 'flex flex-col justify-center' : ''}`}>
           {activeSection === 'Dashboard' && <DashboardContent
             userData={userData}
             user={user}
@@ -273,12 +265,18 @@ export default function PatientDashboard({ userId }) {
             navigate={navigate}
             userId={userId}
             isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
+            toggleDarkMode={toggleDarkMode}
           />}
           {activeSection === 'Appointment' && <PatientAppointments isDarkMode={isDarkMode} />}
           {activeSection === 'Record' && <RecordContent isDarkMode={isDarkMode} />}
           {activeSection === 'Chat' && <ChatPage isDarkMode={isDarkMode} />}
-          {activeSection === 'Calendar' && <CalendarContent isDarkMode={isDarkMode} />}
+            {activeSection === 'Calendar' && (
+              <CalendarContent 
+                isDarkMode={isDarkMode} 
+                reminders={reminders} 
+                userData={userData} 
+              />
+            )}
           {activeSection === 'Settings' && <SettingsContent
             userData={userData}
             navigate={navigate}
@@ -369,10 +367,16 @@ const DarkModeToggle = ({ isDarkMode, setIsDarkMode, collapsed }) => (
 );
 
 // Extracted Dashboard content into its own component
-const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate, userId, isDarkMode, setIsDarkMode }) => {
+const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigate, userId, isDarkMode, toggleDarkMode }) => {
   const [selectedSession, setSelectedSession] = useState(0);
   const [reminders, setReminders] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [selectedPeriod, setSelectedPeriod] = useState("today");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const [editingReminder, setEditingReminder] = useState(null);
 
   // Computations for charts - moved inside DashboardContent
@@ -494,11 +498,13 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
   // Custom dot renderer for colored nodes based on correctness
   const renderDot = (props) => {
     const { cx, cy, payload } = props;
-    let fillColor = 'black'; // default for 0
+    let fillColor = 'black'; 
     if (payload.correct === 1) {
       fillColor = 'green';
     } else if (payload.correct === -1) {
       fillColor = 'red';
+    } else {
+      fillColor = isDarkMode ? '#374151' : '#E5E7EB';
     }
     return (
       <circle
@@ -519,10 +525,10 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
       const data = payload[0].payload;
       const status = data.correct === 1 ? 'Correct' : data.correct === -1 ? 'Incorrect' : 'Not Done';
       return (
-        <div className="bg-white p-2 border rounded shadow-lg">
-          <p className="font-bold">Attempt {data.attempt}</p>
-          <p>Response Time: {data.responseTime}s</p>
-          <p>Status: <span style={{ color: data.correct === 1 ? 'green' : data.correct === -1 ? 'red' : 'black' }}>{status}</span></p>
+        <div className="bg-white dark:bg-gray-900 p-3 border dark:border-gray-800 rounded-xl shadow-xl">
+          <p className="font-bold dark:text-white mb-1">Attempt {data.attempt}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Response Time: {data.responseTime}s</p>
+          <p className="text-sm font-medium mt-1">Status: <span style={{ color: data.correct === 1 ? '#10B981' : data.correct === -1 ? '#EF4444' : (isDarkMode ? '#94A3B8' : 'black') }}>{status}</span></p>
         </div>
       );
     }
@@ -611,28 +617,38 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium italic">How are you feeling today?</p>
         </div>
-
+        {/* Right side: Streak, Theme, Search, Notifications */}
         <div className="flex items-center gap-3">
-          {/* Streak Indicator */}
-          <div className="premium-card px-4 py-2.5 flex items-center gap-2 group transition-colors">
-            <div className="relative">
-              <span className="text-2xl animate-pulse group-hover:animate-none">🔥</span>
-            </div>
+          {/* Streak Indicator - Moved from dashboard content to navbar for better visibility */}
+          <div className="hidden lg:flex px-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl items-center gap-2 border border-transparent dark:border-gray-700/30 group hover:border-orange-500/20 transition-all cursor-pointer shadow-sm">
+            <span className="text-xl animate-pulse group-hover:animate-none">🔥</span>
             <div className="flex flex-col">
-              <span className="text-lg font-black text-orange-600 dark:text-orange-400 leading-none">{currentStreak}</span>
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Day Streak</span>
+              <span className={`text-base font-black leading-none ${currentStreak > 0 ? (streakData.hasActivityToday ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400') : 'text-gray-300'}`}>
+                {currentStreak}
+              </span>
+              <span className="text-[8px] text-gray-500 dark:text-gray-500 font-black uppercase tracking-widest">{streakData.hasActivityToday ? 'Active' : 'Streak'}</span>
             </div>
           </div>
 
-          <DarkModeToggle 
+          {/* <div className="relative group flex-1 md:flex-none">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors size-4" />
+            <input 
+              type="text" 
+              placeholder="Global search..." 
+              className="pl-12 pr-6 py-2.5 bg-gray-50 dark:bg-gray-800/50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none w-full md:w-64 dark:text-gray-200 transition-all font-medium text-sm"
+            />
+          </div> */}
+          
+          {/* <DarkModeToggle 
             isDarkMode={isDarkMode} 
-            setIsDarkMode={setIsDarkMode} 
+            setIsDarkMode={() => {}} // Controlled by context
             collapsed={false} 
+            toggleDarkMode={toggleDarkMode}
           />
 
           <button className="p-2.5 rounded-2xl bg-white dark:bg-gray-900 shadow-premium border border-transparent hover:border-primary-100 transition-all text-gray-400 hover:text-primary-500">
-            <Bell size={20} />
-          </button>
+            <Bell size={18} />
+          </button> */}
         </div>
       </div>
 
@@ -806,22 +822,24 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                       {/* Last 7 Games Counts */}
                       <div className="bg-primary-50/20 dark:bg-primary-900/10 rounded-2xl p-6 border border-primary-50/50 dark:border-primary-900/20">
                         <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2 tracking-tight">
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          Session Trends
+                          <Activity className="w-4 h-4 text-primary-500" />
+                          Performance Metrics
                         </h3>
                         <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={last7Data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
-                              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
-                              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
-                              <Legend iconType="circle" />
-                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
-                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
-                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
-                            </LineChart>
-                          </ResponsiveContainer>
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={last7Data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
+                                <Legend iconType="circle" />
+                                <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
+                                <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
+                                <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
 
@@ -832,18 +850,20 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                           Daily Progress
                         </h3>
                         <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={dailyTotalsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
-                              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
-                              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
-                              <Legend iconType="circle" />
-                              <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
-                              <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
-                              <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
-                            </LineChart>
-                          </ResponsiveContainer>
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={dailyTotalsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#374151' : '#E2E8F0'} />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }} />
+                                <Legend iconType="circle" />
+                                <Line type="monotone" dataKey="correct" stroke="#10B981" strokeWidth={3} dot={{ r: 3, fill: '#10B981' }} />
+                                <Line type="monotone" dataKey="incorrect" stroke="#EF4444" strokeWidth={3} dot={{ r: 3, fill: '#EF4444' }} />
+                                <Line type="monotone" dataKey="notDone" stroke="#F59E0B" strokeWidth={3} dot={{ r: 3, fill: '#F59E0B' }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -854,7 +874,7 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 tracking-tight">Detailed Plot: Last Game Performance</h3>
                         <select
-                          className="p-1 border rounded text-sm"
+                          className="p-2 border dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-200 outline-none focus:ring-2 focus:ring-primary-500/50"
                           value={selectedSession}
                           onChange={e => setSelectedSession(parseInt(e.target.value))}
                         >
@@ -867,15 +887,17 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                       </div>
                       {attemptData.length > 0 ? (
                         <div className="h-64">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={attemptData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="attempt" />
-                              <YAxis unit="s" />
-                              <Tooltip content={customTooltip} />
-                              <Line type="monotone" dataKey="responseTime" stroke="#82ca9d" strokeWidth={2} dot={renderDot} />
-                            </LineChart>
-                          </ResponsiveContainer>
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={attemptData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="attempt" />
+                                <YAxis unit="s" />
+                                <Tooltip content={customTooltip} />
+                                <Line type="monotone" dataKey="responseTime" stroke="#82ca9d" strokeWidth={2} dot={renderDot} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       ) : (
                         <p className="text-gray-500 text-center">No detailed play data available for this session.</p>
@@ -883,15 +905,15 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
                     </div>
 
                     {/* Performance Indicator */}
-                    <div className="mt-8 p-6 bg-primary-50/50 rounded-2xl border border-primary-100 flex items-start gap-4">
-                      <div className="bg-white p-2 rounded-xl shadow-sm">
+                    <div className="mt-8 p-6 bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/20 flex items-start gap-4">
+                      <div className="bg-white dark:bg-gray-800 p-2.5 rounded-xl shadow-sm">
                         <AlertCircle className="w-6 h-6 text-primary-500" />
                       </div>
                       <div>
-                        <p className="text-sm text-primary-900 font-bold mb-1">💡 Pro Tip for Better Results</p>
-                        <p className="text-sm text-primary-700 leading-relaxed">
+                        <p className="text-sm text-primary-900 dark:text-primary-100 font-bold mb-1">💡 Pro Tip for Better Results</p>
+                        <p className="text-sm text-primary-700 dark:text-primary-300 leading-relaxed font-medium">
                           Consistency is key! Try to maintain your streak by completing at least one session daily. 
-                          Aim for a response time under <span className="font-bold">{stats?.currentlevelspan || stats?.levelspan || 5}s</span> to maximize your score.
+                          Aim for a response time under <span className="font-bold text-primary-900 dark:text-primary-100">{stats?.currentlevelspan || stats?.levelspan || 5}s</span> to maximize your score.
                         </p>
                       </div>
                     </div>
@@ -970,29 +992,32 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
           </div>
 
           <button
-            onClick={() => navigate('/game')}
+            onClick={() => navigate('/game3')}
             className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-bold text-lg hover:shadow-xl hover:shadow-primary-200 dark:hover:shadow-none transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            // className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
             <Play className="w-5 h-5 fill-current" />
-            Piano Reaction Game
-          </button>
-
-          <button
-            onClick={() => navigate('/game3')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-          >
-            <Play className="w-5 h-5 text-primary-500 dark:text-primary-400" />
             Shape Tracing
           </button>
 
           <button
             onClick={() => navigate('/game4')}
-            className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-bold text-lg hover:shadow-xl hover:shadow-primary-200 dark:hover:shadow-none transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            // className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <Play className="w-5 h-5 text-primary-500 dark:text-primary-400" />
+            <Play className="w-5 h-5 fill-current" />
             Arm – Fruit Fetch
           </button>
 
+          <button
+            onClick={() => navigate('/game')}
+            className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-bold text-lg hover:shadow-xl hover:shadow-primary-200 dark:hover:shadow-none transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            // className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border-2 border-primary-50 dark:border-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg hover:border-primary-100 dark:hover:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+          >
+            <Play className="w-5 h-5 fill-current" />
+            Piano Reaction Game
+          </button>
+          
           {/* Total Counts Bar Chart - UPDATED with colors */}
           <div className="premium-card p-6 mb-4">
             <h3 className="text-base font-bold text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2 justify-center tracking-tight">
@@ -1000,24 +1025,26 @@ const DashboardContent = ({ userData, user, stats, setIsDoctorModalOpen, navigat
               Total Achievements
             </h3>
             <div className="h-64 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
-                  <YAxis hide={true} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }}
-                    formatter={(value) => [value, 'Count']} 
-                  />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {barData.map((entry, index) => {
-                      let color = isDarkMode ? "#374151" : "#E2E8F0"; // fallback
-                      if (entry.name === "Correct") color = "#10B981";
-                      else if (entry.name === "Incorrect") color = "#EF4444";
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {isMounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDarkMode ? '#9CA3AF' : '#94A3B8' }} />
+                    <YAxis hide={true} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#111827' : '#FFFFFF', color: isDarkMode ? '#F3F4F6' : '#111827' }}
+                      formatter={(value) => [value, 'Count']} 
+                    />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                      {barData.map((entry, index) => {
+                        let color = isDarkMode ? "#374151" : "#E2E8F0"; // fallback
+                        if (entry.name === "Correct") color = "#10B981";
+                        else if (entry.name === "Incorrect") color = "#EF4444";
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -1168,15 +1195,53 @@ const EditReminderModal = ({ reminder, onClose, onSave }) => {
   );
 };
 
+// --- 3. TopBar Component ---
+const TopBar = ({ activeSection, isDarkMode, toggleDarkMode, handleLogout }) => (
+  <div className="flex justify-between items-center py-8">
+    <div className="flex items-center gap-2">
+      <div className="w-2 h-8 bg-primary-500 rounded-full"></div>
+      <h2 className="text-2xl font-black dark:text-white tracking-widest uppercase">
+        {activeSection}
+      </h2>
+    </div>
+    
+    <div className="flex items-center gap-4">
+      {/* <div className="relative group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors" size={18} />
+        <input
+          type="text"
+          placeholder="Global search..."
+          className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-white pl-12 pr-6 py-3 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-primary-500/10 transition-all outline-none w-64 placeholder:text-gray-400"
+        />
+      </div> */}
+
+      <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={toggleDarkMode} />
+
+      <button className="p-3.5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-primary-500/50 transition-all shadow-sm relative">
+        <Bell size={20} />
+        <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+      </button>
+
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-2 px-5 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-all ml-2"
+      >
+        <LogOut size={18} />
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+);
+
 // Functional component for Medical Records
 const RecordContent = ({ userData, isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const records = [
-    { id: 1, title: 'Health Assessment', date: 'Mar 24, 2026', type: 'Routine', status: 'Completed', result: 'Healthy', doctor: 'Dr. Sarah Wilson' },
-    { id: 2, title: 'MRI Scan', date: 'Mar 20, 2026', type: 'Imaging', status: 'Completed', result: 'Normal', doctor: 'Dr. Michael Chen' },
-    { id: 3, title: 'Consultation', date: 'Mar 15, 2026', type: 'Laboratory', status: 'Completed', result: 'Standard Range', doctor: 'Dr. Sarah Wilson' },
-    { id: 4, title: 'General Checkup', date: 'Mar 10, 2026', type: 'Consultation', status: 'Completed', result: 'Follow-up in 3 months', doctor: 'Dr. Robert Brown' },
+    { id: 1, title: 'Health Assessment', date: '2026-03-24', type: 'Routine', status: 'Completed', result: 'Healthy', doctor: 'Dr. Sarah Wilson' },
+    { id: 2, title: 'MRI Scan', date: '2026-03-20', type: 'Imaging', status: 'Completed', result: 'Normal', doctor: 'Dr. Michael Chen' },
+    { id: 3, title: 'Blood Test', date: '2026-03-15', type: 'Laboratory', status: 'Completed', result: 'Standard Range', doctor: 'Dr. Sarah Wilson' },
+    { id: 4, title: 'General Checkup', date: '2026-03-10', type: 'Consultation', status: 'Completed', result: 'Follow-up in 3 months', doctor: 'Dr. Robert Brown' },
   ];
 
   const filteredRecords = records.filter(record => 
@@ -1185,68 +1250,81 @@ const RecordContent = ({ userData, isDarkMode }) => {
     record.doctor.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getRecordIcon = (type) => {
+    switch (type) {
+      case 'Imaging': return <Activity size={20} />;
+      case 'Laboratory': return <Award size={20} />;
+      case 'Consultation': return <MessageSquare size={20} />;
+      case 'Routine': return <ShieldCheck size={20} />;
+      default: return <FileText size={20} />;
+    }
+  };
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-10 fade-in pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black dark:text-white tracking-tight">Medical <span className="text-primary-500">Records</span></h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">View and manage your diagnostic history</p>
+      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 shadow-xl border border-transparent dark:border-gray-800/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl font-black dark:text-white tracking-tight">Clinical <span className="text-primary-500">History</span></h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">View and manage your rehabilitation diagnostic history</p>
+          </div>
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors size-5" />
+            <input 
+              type="text" 
+              placeholder="Search records..." 
+              className="pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-none rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none w-full md:w-80 dark:text-gray-200 shadow-inner transition-all font-medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors size-5" />
-          <input 
-            type="text" 
-            placeholder="Search records..." 
-            className="pl-12 pr-6 py-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl focus:ring-4 focus:ring-primary-500/10 outline-none w-full md:w-80 dark:text-gray-200 shadow-sm transition-all font-medium"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {filteredRecords.length > 0 ? filteredRecords.map((record) => (
-          <div key={record.id} className="premium-card p-6 flex items-center justify-between group">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-[#2B91D4] rounded-2xl group-hover:scale-110 transition-transform">
-                <FileText size={24} />
-              </div>
-              <div className="mt-4">
-                <h3 className="text-lg font-bold dark:text-white group-hover:text-blue-500 transition-colors uppercase">{record.title}</h3>
-                <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center gap-1"><Calendar size={14} /> {record.date}</span>
-                  <span className="w-1 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
-                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{record.type}</span>
+        <div className="grid grid-cols-1 gap-4">
+          {filteredRecords.map(record => (
+            <div key={record.id} className="p-6 rounded-[2rem] bg-gray-50/50 dark:bg-gray-800/20 border border-transparent dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all group flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900 flex items-center justify-center text-primary-500 shadow-sm group-hover:scale-110 transition-transform">
+                  {getRecordIcon(record.type)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black dark:text-white tracking-tight uppercase">{record.title}</h3>
+                  <div className="flex items-center space-x-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-1"><Calendar size={14} /> {record.date}</span>
+                    <span className="w-1 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
+                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{record.type}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-6 text-right">
-              <div className="hidden md:block">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Doctor</p>
-                <p className="text-sm dark:text-gray-300">{record.doctor}</p>
+              
+              <div className="flex items-center gap-8">
+                <div className="hidden lg:block text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Doctor</p>
+                  <p className="text-sm font-bold dark:text-gray-200">{record.doctor}</p>
+                </div>
+                <div className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-100 dark:border-green-900/30">
+                  {record.status}
+                </div>
+                <button className="p-3.5 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 rounded-xl hover:text-primary-500 dark:hover:text-primary-400 shadow-sm border border-transparent dark:border-gray-800 transition-all">
+                  <Download size={20} />
+                </button>
               </div>
-              <div className="hidden md:block">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                <span className="text-sm text-green-500 font-semibold">{record.status}</span>
-              </div>
-              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-[#2B91D4]">
-                <ChevronRight size={20} />
-              </button>
             </div>
-          </div>
-        )) : (
-          <div className="text-center py-20 text-gray-500">
-            No records found matching your search.
-          </div>
-        )}
+          ))}
+          {filteredRecords.length === 0 && (
+            <div className="text-center py-20 bg-gray-50/30 dark:bg-gray-800/10 rounded-[2.5rem] border-2 border-dashed border-gray-100 dark:border-gray-800">
+              <FileText className="w-16 h-16 text-gray-200 dark:text-gray-700 mx-auto mb-4" />
+              <p className="text-gray-500 font-bold">No clinical records found matching your search</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 // Functional component for Calendar
-const CalendarContent = ({ isDarkMode }) => {
+const CalendarContent = ({ isDarkMode, reminders, userData }) => {
   const [view, setView] = useState('Month'); // 'Today', 'Week', 'Month'
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -1285,17 +1363,35 @@ const CalendarContent = ({ isDarkMode }) => {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   // Mock events for visualization
-  const events = [
-    { id: 1, title: 'Checkup', date: '2026-03-25', type: 'Appointment', time: '10:00 AM', doctor: 'Dr. Sarah Wilson' },
-    { id: 2, title: 'Game Therapy', date: '2026-03-24', type: 'Reminder', time: '02:00 PM', doctor: 'System' },
-    { id: 3, title: 'Lab Test', date: '2026-03-28', type: 'Appointment', time: '09:00 AM', doctor: 'Dr. Michael Chen' },
-    { id: 4, title: 'Morning Exercise', date: new Date().toISOString().split('T')[0], type: 'Reminder', time: '08:00 AM', doctor: 'System' },
-    { id: 5, title: 'Doctor Consultation', date: new Date().toISOString().split('T')[0], type: 'Appointment', time: '11:00 AM', doctor: 'Dr. Robert Brown' },
-  ];
+  // Combined real reminders and mock appointments for calendar
+  const allEvents = useMemo(() => {
+    const reminderEvents = reminders.map(r => ({
+      id: `rem-${r._id}`,
+      title: r.title,
+      // reminders from backend have 'date' field
+      date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
+      type: 'Reminder',
+      time: r.time || '--:--',
+      status: r.status,
+      // For doctor field in calendar
+      doctor: r.isRecurring ? 'System' : (userData?.doctor?.[0]?.doctorName || 'Clinical Team')
+    }));
+
+    const mockAppointments = [
+      { id: 'app-1', title: 'Checkup', date: '2026-03-25', type: 'Appointment', time: '10:00 AM', doctor: userData?.doctor?.[0]?.doctorName || 'Dr. Sarah Wilson' },
+      { id: 'app-2', title: 'Lab Test', date: '2026-03-28', type: 'Appointment', time: '09:00 AM', doctor: 'Lab Specialist' },
+    ];
+
+    return [...reminderEvents, ...mockAppointments];
+  }, [reminders, userData]);
 
   const getDayEvents = (date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return events.filter(e => e.date === dateStr);
+    const dStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    return allEvents.filter(e => {
+      if (!e.date) return false;
+      const eDateStr = new Date(e.date).toLocaleDateString('en-CA');
+      return eDateStr === dStr;
+    });
   };
 
   const renderTodayView = () => {

@@ -115,13 +115,13 @@ Access the live demo directly via the frontend URL. No additional setup required
 
 ## Sample Login Credentials
 
-The app supports three user roles: Patient, Doctor, and Admin. Use these for testing (passwords are simple for demo purposes; change in production).
+The app supports three user roles: Patient, Doctor, and caretaker. Use these for testing (passwords are simple for demo purposes; change in production).
 
 | Role    | Username/Email          | Password | Notes |
 |---------|-------------------------|----------|-------|
 | Patient | patient@gmail.com    | a@gmail.com | Access dashboard, book appointments, play games. Starts with sample stats (e.g., 150 points, 3 badges). |
 | Doctor  | doctor@gmail.com     | vipul%colab25  | View patient schedules, chat history, approve consults. |
-| Caretaker   | admin@gmail.com      | aa@gmail.com   | Full access: Manage users, view analytics, edit gamification rules. |
+| Caretaker   | caretaker@gmail.com      | aa@gmail.com   |caretaker. |
 
 - Login via the `/login` route.
 - After login, redirect to `/dashboard` based on role.

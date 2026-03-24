@@ -2,11 +2,12 @@ import { Hands } from '@mediapipe/hands';
 import { Pose } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
-  CALIBRATION_SECONDS: 20,
+  CALIBRATION_SECONDS: 7,
   NUM_SHAPE_POINTS: 20,
   PICK_DISTANCE: 0.08,
   TRACE_TOLERANCE: 0.03,
@@ -80,6 +81,7 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
 
 // ==================== MAIN COMPONENT ====================
 const DrawingGame = () => {
+  const { user, isDarkMode } = useAuth();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -553,6 +555,7 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
      
       ctx.fillStyle = hand.closed ? '#ff6b6b' : '#51cf66';
       ctx.font = 'bold 14px Arial';
+      ctx.fillText(`Shape: ${shapeRef.current.type}`, 10, 30);
       ctx.fillText(`${label} ${stateText}`, pcx + 26, pcy);
      
       // Draw hand cursor using smoothPos (index tip)
@@ -657,12 +660,22 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
     calibrationRef.current.maxY = 0;
    
     setIsCalibrating(true);
-    setCalibTimeLeft(CONFIG.CALIBRATION_SECONDS);
-   
+    setCalibTimeLeft(7); // Changed from CONFIG.CALIBRATION_SECONDS to 7
+
+    // Auto-advance if landmarks are already stable
+    const checkStableInterval = setInterval(() => {
+        if (calibrationRef.current.maxX > 0) {
+            clearInterval(checkStableInterval);
+            clearInterval(calibIntervalRef.current);
+            finishCalibration();
+        }
+    }, 500);
+
     calibIntervalRef.current = setInterval(() => {
       setCalibTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(calibIntervalRef.current);
+          clearInterval(checkStableInterval); // Clear the checkStableInterval too
           finishCalibration();
           return 0;
         }
@@ -845,93 +858,119 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
   }, [setupMediaPipe, mainLoop]);
  
   // ==================== RENDER ====================
+  // --- DYNAMIC STYLES ---
+  const themeStyles = {
+    container: {
+      ...styles.container,
+      background: isDarkMode ? '#000' : '#F4F7FE'
+    },
+    topPanel: {
+      ...styles.topPanel,
+      background: isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)',
+      borderBottom: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+    },
+    title: {
+      ...styles.title,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    muted: {
+      ...styles.muted,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    calibOverlay: {
+      ...styles.calibOverlay,
+      background: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      color: isDarkMode ? '#fff' : '#000',
+      border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+    },
+    statItem: {
+      ...styles.statItem,
+      background: isDarkMode ? '#111827' : '#f9f9f9',
+      borderColor: isDarkMode ? '#1f2937' : '#eee'
+    },
+    statValue: {
+      ...styles.statValue,
+      color: isDarkMode ? '#4ade80' : '#2f7a2f'
+    },
+    statLabel: {
+      ...styles.statLabel,
+      color: isDarkMode ? '#94a3b8' : '#575f56'
+    },
+    note: {
+      ...styles.note,
+      background: isDarkMode ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.1)',
+      color: isDarkMode ? '#94a3b8' : '#575f56',
+      borderTop: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.2)'
+    },
+    statusMessage: {
+      ...styles.statusMessage,
+      background: isDarkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      color: isDarkMode ? '#4ade80' : '#2f7a2f',
+      border: isDarkMode ? '1px solid #4ade80' : 'none'
+    }
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.topPanel}>
+    <div style={themeStyles.container}>
+      {/* Top UI */}
+      <div style={themeStyles.topPanel}>
         <div style={styles.topLeft}>
-          <h1 style={styles.title}>✏️ Shape Tracing – Drawing Rehab</h1>
-          <p style={styles.muted}>
-            Upper limb rehabilitation game: Close hand to start tracing at first point, keep closed to follow points in order, open hand after last point to complete. 5-minute therapeutic session.
-          </p>
+          <h1 style={themeStyles.title}>Precision Drawing</h1>
+          <p style={themeStyles.muted}>Trace the anatomical patterns with your pointer finger.</p>
         </div>
         <div style={styles.topRight}>
-          <div style={styles.controls}>
-            <button
+          <div style={themeStyles.stats}>
+            <div style={themeStyles.statItem}>
+              <div style={themeStyles.statLabel}>Success Rate</div>
+              <div style={themeStyles.statValue}>{Math.round(successRate)}%</div>
+            </div>
+            <div style={themeStyles.statItem}>
+              <div style={themeStyles.statLabel}>Shapes Done</div>
+              <div style={themeStyles.statValue}>{reps}</div>
+            </div>
+            <div style={themeStyles.statItem}>
+              <div style={themeStyles.statLabel}>Timer</div>
+              <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>
+            </div>
+          </div>
+          <div style={styles.actions}>
+             <button
               onClick={handleStartCalibration}
               style={styles.controlButton}
               disabled={isCalibrating}
             >
-              📏 Start 20s Calibration
+              📏 Calibrate
             </button>
-            <button
-              onClick={handleStartSession}
-              style={{...styles.controlButton}}
-              // disabled={!calibrationDone || isSessionActive}
+            <button 
+              onClick={() => setIsSessionActive(!isSessionActive)}
+              style={styles.controlButton}
             >
-              ▶️ Start 5min Session
+              {isSessionActive ? 'Pause Session' : 'Start Session'}
             </button>
-            <label style={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={usingMouseFallback}
-                onChange={handleMouseFallbackChange}
-                style={styles.checkbox}
-              />
-              <span>Use mouse fallback (if webcam fails)</span>
-            </label>
-          </div>
-          <div style={styles.stats}>
-            <div style={styles.statItem}>
-              <div style={styles.statLabel}>Score</div>
-              <div style={styles.statValue}>{score}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statLabel}>Shapes</div>
-              <div style={styles.statValue}>{reps}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statLabel}>Timer</div>
-              <div style={styles.statValue}>{formatTime(timeRemaining)}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statLabel}>Success</div>
-              <div style={styles.statValue}>{successRate}%</div>
-            </div>
-          </div>
-          <div style={styles.actions}>
-            <button onClick={handleDownloadCSV} style={styles.actionButton}>
-              💾 Download CSV
-            </button>
-            <button onClick={handleReset} style={styles.actionButton}>
-              🔄 Reset
+            <button 
+              onClick={() => { window.history.back() }}
+              style={styles.actionButton}
+            >
+              Quit
             </button>
           </div>
         </div>
       </div>
+
+      {/* Main Video/Game Panel */}
       <div style={styles.videoWrap}>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          style={styles.video}
-        />
-        <canvas
-          ref={overlayRef}
-          style={styles.overlay}
-          onMouseMove={handleOverlayMouseMove}
-          onMouseDown={handleOverlayMouseDown}
-          onMouseUp={handleOverlayMouseUp}
-        />
-       
+        <video ref={videoRef} style={styles.video} playsInline muted />
+        <canvas ref={overlayRef} style={styles.overlay} />
+        
         {isCalibrating && (
-          <div style={styles.calibOverlay}>
-            <div style={styles.calibText}>
-              Calibrating... {calibTimeLeft}s - Move to corners & center!
-            </div>
+          <div style={themeStyles.calibOverlay}>
+            <p style={themeStyles.calibText}>
+              <strong>Calibration in progress... {calibTimeLeft}s</strong><br/>
+              Keep your hand steady in the center of the frame.
+            </p>
           </div>
         )}
-       
+
         <div style={styles.handStatus}>
           {leftHandVisible && (
             <div style={{...styles.handIndicator, ...(leftHandClosed ? styles.handClosed : styles.handOpen)}}>
@@ -946,26 +985,27 @@ State: ${isClosed ? '🔴 CLOSED' : '🟢 OPEN'}`);
             </div>
           )}
         </div>
-       
-        {showDebug && debugInfo && (
-          <div style={styles.debugPanel}>
-            <pre style={{margin: 0, fontSize: '11px'}}>{debugInfo}</pre>
-          </div>
-        )}
-       
+
         {statusMessage.visible && (
-          <div style={styles.statusMessage}>
+          <div style={themeStyles.statusMessage}>
             {statusMessage.text}
           </div>
         )}
+
+        {/* Debug UI */}
+        {showDebug && (
+          <div style={styles.debugPanel}>
+            FPS: {CONFIG.DRAW_FPS}<br/>
+            Points: {shapeRef.current?.length || 0}<br/>
+            Fallback: {usingMouseFallback ? 'Yes' : 'No'}
+          </div>
+        )}
       </div>
-      <div style={styles.note}>
-        <strong style={styles.noteTitle}>How to play:</strong>
-        • <strong style={{color: '#dc3545'}}>CLOSE HAND (fist)</strong> near first point (red) to start tracing 🔴<br/>
-        • Keep closed, move to follow points in order (green when hit)<br/>
-        • <strong style={{color: '#28a745'}}>OPEN HAND</strong> after last point to complete 🟢<br/>
-        • Orange line shows your trace path<br/>
-        • Press <strong>'D'</strong> to show debug metrics
+
+      {/* Footer Info */}
+      <div style={themeStyles.note}>
+        <strong style={themeStyles.statValue}>Therapy Note:</strong> This exercise focuses on fine motor control and spatial tracing.
+        Try to maintain a constant speed while following the green path.
       </div>
     </div>
   );
