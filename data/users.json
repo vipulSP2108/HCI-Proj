@@ -1,0 +1,3276 @@
+[
+  {
+    "patientDetails": {
+      "weight": 54,
+      "height": 144,
+      "blood": "A+",
+      "diagnosis": "nerve compression syndromes"
+    },
+    "availability": {
+      "endTime": "17:00",
+      "slotMinutes": 30,
+      "startTime": "09:00"
+    },
+    "_id": "68f360d2bce6ed3a964390c7",
+    "email": "patient@gmail.com",
+    "password": "$2a$10$SdZgnTiyuJel31i5f.azXu27EXvPUyi7LYBiJvguGa9LJ5ae4ctiq",
+    "phone": "8806549952",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "MBBS, MD",
+        "doctorName": "Dr. Parth Rathod",
+        "doctorphone": "8806549952",
+        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "_id": "68f360d2bce6ed3a964390c8"
+      },
+      {
+        "doctorDegree": "MBBS, MD",
+        "doctorName": "Dr. Sunil Patil",
+        "doctorphone": "8806549952",
+        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "_id": "68f360d2bce6ed3a964390c7"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 6,
+    "totalScore": 574,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "game": [
+      {
+        "type": "type1",
+        "name": "Reaction Game",
+        "eachGameStats": [
+          {
+            "time": "2025-10-18T11:34:25.643Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": -1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T11:37:16.725Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T11:37:37.195Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T14:49:18.765Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.7,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T14:54:31.127Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T14:57:18.553Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T15:03:17.520Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 21.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 3.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 6.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 3.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 5.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 18.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 3.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 51.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 4.9,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-18T15:06:43.731Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 3.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-19T20:55:17.505Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 2.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 3.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-20T15:50:16.369Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 3.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.1,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-22T10:18:35.874Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": -1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 2,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.9,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.8,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 2.8,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-22T11:03:07.197Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 3.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-10-29T12:38:35.782Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-10-29T16:13:35.754Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 2.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 3.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 2.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.7,
+                "correct": -1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-11-10T08:55:57.840Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": -1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-12T11:20:01.476Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 4,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 4.7,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 4.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 3.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-16T03:50:38.373Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 3.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.3,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-16T05:33:48.901Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 2.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.7,
+                "correct": -1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-16T14:54:05.976Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": -1,
+                "correct": 0
+              }
+            ]
+          },
+          {
+            "time": "2025-11-17T14:19:14.816Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 2.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": -1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 2,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-17T16:38:58.149Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.3,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.6,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.8,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2025-11-26T08:48:39.996Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 2.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2026-03-24T02:46:34.351Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 0.9,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.4,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.2,
+                "correct": -1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.7,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.9,
+                "correct": 1
+              },
+              {
+                "responsetime": 0.5,
+                "correct": 1
+              },
+              {
+                "responsetime": 1.1,
+                "correct": 1
+              }
+            ]
+          },
+          {
+            "time": "2026-03-24T03:20:37.714Z",
+            "levelspan": 5,
+            "play": [
+              {
+                "responsetime": 1.7,
+                "correct": 1
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "createdAt": "2025-10-18T09:41:38.807Z",
+    "updatedAt": "2026-05-25T10:17:02.143Z",
+    "__v": 24,
+    "degree": "Vipuls",
+    "name": "Vipuls"
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691bcf7a40b32e79703a3d20",
+    "email": "vipul.patil@iitgn.ac.in",
+    "password": "$2a$10$ekhHznAeN5W7E7PysVn/B.tYimR85GZrPtQVHBzzEvPleUPCd06uy",
+    "phone": "12345432345432",
+    "type": "doctor",
+    "createdBy": null,
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-18T01:44:26.761Z",
+    "updatedAt": "2025-11-18T01:44:26.761Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691b504e7713d9b48b29fc23",
+    "email": "markus@mail.com",
+    "password": "$2a$10$7CUW87X6mHlucNzPKIXebe1Ih6xJfvX5BfY.CNcbLcx48jW6lyBq6",
+    "phone": "2424242224",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 7,
+    "doctor": [
+      {
+        "doctorDegree": "MS",
+        "doctorName": "Vishwas Jakat",
+        "doctorphone": "8806549952",
+        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "_id": "691b504e7713d9b48b29fc24"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 2,
+    "totalScore": 100,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-17T16:41:50.314Z",
+    "updatedAt": "2026-05-22T02:02:15.648Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "endTime": "17:00",
+      "slotMinutes": 30,
+      "startTime": "09:00"
+    },
+    "_id": "69060b3d4fba7895c9b9b661",
+    "email": "caretaker@gmail.com",
+    "password": "$2a$10$njPtn6wDCvfI5P.kXIdHYOIb97/rPQvk2.6tC0wcADIMKqhiPzLH.",
+    "phone": "aa@gmail.com",
+    "type": "caretaker",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [
+      "68f360d2bce6ed3a964390c7",
+      "691b504e7713d9b48b29fc23"
+    ],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": "650282",
+    "resetOTPExpiry": "2025-11-17T20:15:31.971Z",
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-01T13:29:33.765Z",
+    "updatedAt": "2026-03-24T05:00:19.365Z",
+    "__v": 2
+  },
+  {
+    "availability": {
+      "endTime": "17:00",
+      "slotMinutes": 30,
+      "startTime": "09:00"
+    },
+    "_id": "68f34119751cfbfe79b3430c",
+    "email": "doctor@gmail.com",
+    "password": "$2a$10$pQfLayridhwt7oDYT8qbs.iLNhV0rrUfit2Y6xgZWxgV0IrUpRyBW",
+    "phone": "8806549952",
+    "type": "doctor",
+    "createdBy": null,
+    "currentlevelspan": 5,
+    "assignedCaretakers": [
+      "69060b3d4fba7895c9b9b661"
+    ],
+    "assignedPatients": [
+      "68f3415d751cfbfe79b34329",
+      "68f346ceea1c4de9da668184",
+      "68f35f90e2a5576a7850aa75",
+      "68f36048e2a5576a7850aae2",
+      "68f360d2bce6ed3a964390c7",
+      "691b504e7713d9b48b29fc23"
+    ],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-10-18T07:26:17.051Z",
+    "updatedAt": "2025-11-17T16:41:50.618Z",
+    "__v": 7,
+    "degree": "MS",
+    "name": "Vishwas Jakat"
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691f1343b02a070825875566",
+    "email": "xyz1@gmail.com",
+    "password": "$2a$10$RhtzO6NuTrDDZiTakW0SB.hECXxYdvutNGSEasfzfW.ZRoeYHdCL2",
+    "phone": "9989977890",
+    "type": "patient",
+    "createdBy": "691f10e8e51d09964ee8eecd",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "",
+        "doctorphone": "9999999999",
+        "doctoremail": "xyz@gmail.com",
+        "_id": "691f1343b02a070825875567"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 1,
+    "totalScore": 10,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-20T13:10:27.443Z",
+    "updatedAt": "2026-05-22T07:39:52.982Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691f10e8e51d09964ee8eecd",
+    "email": "xyz@gmail.com",
+    "password": "$2a$10$SspiWhtTAgSdiZWbPpmTsugrf2WGaQpfhFOIInXdpq3EFFjJvm4Zi",
+    "phone": "9999999999",
+    "type": "doctor",
+    "createdBy": null,
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [
+      "691f1343b02a070825875566"
+    ],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-20T13:00:24.904Z",
+    "updatedAt": "2025-11-20T13:10:27.783Z",
+    "__v": 1
+  }
+]

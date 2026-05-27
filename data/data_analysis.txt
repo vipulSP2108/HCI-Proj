@@ -1,0 +1,99 @@
+========================================================================
+                HCI MEDICAL PROJECT - GAME DATA ANALYSIS                 
+Report Generated on: 2026-05-25T10:30:00.410Z
+========================================================================
+
+## 1. USER PROFILE & CLINICAL ANALYSIS
+------------------------------------------------------------------------
+Total Users Registered: 7
+
+Breakdown by Role:
+  - UNDEFINED: 7
+
+Detailed Patient Info (Diagnosis & Impairment):
+
+
+## 2. GAME: BOARD DRAWING (TRAJECTORY & MOTOR COORDINATION)
+------------------------------------------------------------------------
+Total Board Drawing Game Records: 27
+Total Board Drawing Active Sessions: 19
+Total Individual Drawing Tries (Target Shapes): 63
+
+Shape-Specific Motor Performance metrics:
+  - Shape: CIRCLE
+    Total Tries: 16
+    Successes: 7 (43.75% success rate)
+    Average Trajectory Overlap/Accuracy: 60.00%
+  - Shape: TRIANGLE
+    Total Tries: 7
+    Successes: 7 (100.00% success rate)
+    Average Trajectory Overlap/Accuracy: 100.00%
+  - Shape: ELLIPSE
+    Total Tries: 4
+    Successes: 3 (75.00% success rate)
+    Average Trajectory Overlap/Accuracy: 78.75%
+  - Shape: HEART
+    Total Tries: 6
+    Successes: 6 (100.00% success rate)
+    Average Trajectory Overlap/Accuracy: 100.00%
+  - Shape: HEXAGON
+    Total Tries: 6
+    Successes: 5 (83.33% success rate)
+    Average Trajectory Overlap/Accuracy: 84.17%
+  - Shape: STAR
+    Total Tries: 4
+    Successes: 3 (75.00% success rate)
+    Average Trajectory Overlap/Accuracy: 77.50%
+  - Shape: DIAMOND
+    Total Tries: 16
+    Successes: 14 (87.50% success rate)
+    Average Trajectory Overlap/Accuracy: 90.00%
+  - Shape: SQUARE
+    Total Tries: 4
+    Successes: 4 (100.00% success rate)
+    Average Trajectory Overlap/Accuracy: 100.00%
+
+Hand-Specific Drawing Statistics (Impaired vs Non-Impaired analysis aid):
+  - Left Hand:
+    Total Tries: 12
+    Successes: 12 (100.00% success rate)
+  - Right Hand:
+    Total Tries: 51
+    Successes: 37 (72.55% success rate)
+
+
+## 3. GAME: PIANO REACTION (FINE MOTOR FINGER & WRIST REFLEXES)
+------------------------------------------------------------------------
+Total Piano Reaction Sessions: 5
+
+Average Score per Session: 59.00
+Play Mode Breakdown:
+  - LAPTOP Mode: 5 sessions
+Total Registered Key Transitions (Laptop Mode): 32
+Total Registered Finger Actions (Mobile Mode): 36
+
+Finger Reflex / Speed Timeouts configured:
+  - thumb: 0.20s limit
+  - index: 0.20s limit
+  - middle: 0.20s limit
+  - ring: 0.20s limit
+  - pinky: 0.20s limit
+  - leftPinky: 9.00s limit
+  - leftRing: 1.80s limit
+  - leftMiddle: 1.80s limit
+  - leftIndex: 1.80s limit
+  - rightIndex: 1.00s limit
+  - rightMiddle: 2.60s limit
+  - rightRing: 2.60s limit
+  - rightPinky: 2.60s limit
+
+
+## 4. GENERIC GAME SESSIONS (ARM REACH / FRUIT FETCHER & SYSTEM METRICS)
+------------------------------------------------------------------------
+Total Generic Game Session Records: 0
+
+No performance/system metrics recorded in existing game sessions.
+
+========================================================================
+                        END OF ANALYSIS REPORT                          
+========================================================================

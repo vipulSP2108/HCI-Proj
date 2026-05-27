@@ -1,0 +1,5 @@
+session_id,user,time,mode,gameType,gameName,sessionScore,levelspan,hits,misses,timeouts,total_keys,hit_rate,avg_rt,rt_std,is_valid,session_num
+6a13e0e5f7784aa3918a34a9,68f360d2bce6ed3a964390c7,2026-05-25 05:40:53.273000+00:00,laptop,piano_finger,Piano - Finger Dexterity,85,5,9,1,1,11,0.8181818181818182,0.9800000000000001,0.22271057451320092,True,1
+6a13e142f7784aa3918a34ea,68f360d2bce6ed3a964390c7,2026-05-25 05:42:26.186000+00:00,laptop,piano_finger,Piano - Finger Dexterity,115,5,12,6,1,19,0.631578947368421,0.9615384615384615,0.27883952246756705,True,2
+6a13e32844d197e8daee162d,68f360d2bce6ed3a964390c7,2026-05-25 05:50:32.893000+00:00,laptop,piano_ankle,Piano - Wrist Movement,65,5,7,0,1,8,0.875,1.0,0.7632168761236874,True,3
+6a14219e63a8dbfaa4a19f50,68f360d2bce6ed3a964390c7,2026-05-25 10:17:02.084000+00:00,laptop,piano_finger,Piano - Finger Dexterity,20,5,3,0,2,5,0.6,0.5,0.30331501776206204,True,4

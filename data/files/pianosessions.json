@@ -1,0 +1,1079 @@
+[
+  {
+    "fingerTimeouts": {
+      "thumb": -1,
+      "index": -1,
+      "middle": -1,
+      "ring": -1,
+      "pinky": -1,
+      "leftPinky": 10,
+      "leftRing": 1,
+      "leftMiddle": 1,
+      "leftIndex": 1,
+      "rightIndex": 0,
+      "rightMiddle": 2,
+      "rightRing": 2,
+      "rightPinky": 2
+    },
+    "_id": "6a13e0e5f7784aa3918a34a9",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_finger",
+    "gameName": "Piano - Finger Dexterity",
+    "time": "2026-05-25T05:40:53.273Z",
+    "levelspan": 5,
+    "sessionScore": 85,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 1.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": -1
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "K",
+        "toKey": "D",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34aa"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 97.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34ab"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34ac"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "D",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34ad"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "J",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34ae"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "F",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 872.5,
+        "fromY": 329.5,
+        "toX": 562.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34af"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "J",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 562.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34b0"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "D",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 872.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34b1"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "J",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a13e0e5f7784aa3918a34b2"
+      }
+    ],
+    "mobileMovements": [
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 1.6,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b3"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b4"
+      },
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b5"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b6"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b7"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34b8"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "leftIndex",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e0e5f7784aa3918a34b9"
+      },
+      {
+        "key": "F",
+        "finger": "leftIndex",
+        "expectedFinger": "leftIndex",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34ba"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34bb"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e0e5f7784aa3918a34bc"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightRing",
+        "responsetime": 1.1,
+        "correct": -1,
+        "_id": "6a13e0e5f7784aa3918a34bd"
+      }
+    ],
+    "createdAt": "2026-05-25T05:40:53.295Z",
+    "updatedAt": "2026-05-25T05:40:53.295Z",
+    "__v": 0,
+    "coordinates": []
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": -1,
+      "index": -1,
+      "middle": -1,
+      "ring": -1,
+      "pinky": -1,
+      "leftPinky": 10,
+      "leftRing": 1,
+      "leftMiddle": 1,
+      "leftIndex": 1,
+      "rightIndex": 0,
+      "rightMiddle": 2,
+      "rightRing": 2,
+      "rightPinky": 2
+    },
+    "_id": "6a13e142f7784aa3918a34ea",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_finger",
+    "gameName": "Piano - Finger Dexterity",
+    "time": "2026-05-25T05:42:26.186Z",
+    "levelspan": 5,
+    "sessionScore": 115,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 1.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": -1
+      },
+      {
+        "responsetime": 1.3,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 1.5,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": -1,
+        "correct": 0
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "A",
+        "toKey": "J",
+        "dx": 775,
+        "dy": 0,
+        "distance": 775,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34eb"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "A",
+        "dx": -775,
+        "dy": 0,
+        "distance": 775,
+        "fromX": 872.5,
+        "fromY": 329.5,
+        "toX": 97.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34ec"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34ed"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "L",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34ee"
+      },
+      {
+        "fromKey": "L",
+        "toKey": "K",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1182.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34ef"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "S",
+        "dx": -775,
+        "dy": 0,
+        "distance": 775,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 252.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f0"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "D",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 252.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f1"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "F",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 562.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f2"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "D",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 562.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f3"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "J",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f4"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "D",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 872.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f5"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 252.5,
+        "toY": 329.5,
+        "_id": "6a13e142f7784aa3918a34f6"
+      }
+    ],
+    "mobileMovements": [
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 1.4,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34f7"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34f8"
+      },
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34f9"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.5,
+        "correct": -1,
+        "_id": "6a13e142f7784aa3918a34fa"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 1.3,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34fb"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "leftPinky",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a34fc"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 1.5,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34fd"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "leftRing",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a34fe"
+      },
+      {
+        "key": "S",
+        "finger": "leftRing",
+        "expectedFinger": "leftRing",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a34ff"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "rightRing",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a3500"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3501"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "leftIndex",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a3502"
+      },
+      {
+        "key": "F",
+        "finger": "leftIndex",
+        "expectedFinger": "leftIndex",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3503"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3504"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "rightPinky",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a3505"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3506"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3507"
+      },
+      {
+        "key": "none",
+        "finger": "none",
+        "expectedFinger": "rightMiddle",
+        "responsetime": -1,
+        "correct": 0,
+        "_id": "6a13e142f7784aa3918a3508"
+      },
+      {
+        "key": "S",
+        "finger": "leftRing",
+        "expectedFinger": "leftRing",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a13e142f7784aa3918a3509"
+      }
+    ],
+    "createdAt": "2026-05-25T05:42:26.200Z",
+    "updatedAt": "2026-05-25T05:42:26.200Z",
+    "__v": 0,
+    "coordinates": []
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": 5,
+      "index": 5,
+      "middle": 5,
+      "ring": 5,
+      "pinky": 5,
+      "leftPinky": 5,
+      "leftRing": 5,
+      "leftMiddle": 5,
+      "leftIndex": 5,
+      "rightIndex": 5,
+      "rightMiddle": 5,
+      "rightRing": 5,
+      "rightPinky": 5
+    },
+    "_id": "6a13e32844d197e8daee162d",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_ankle",
+    "gameName": "Piano - Wrist Movement",
+    "time": "2026-05-25T05:50:32.893Z",
+    "levelspan": 5,
+    "sessionScore": 65,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 2.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": -1
+      }
+    ],
+    "coordinates": [
+      {
+        "x": 0.606,
+        "y": 0.883,
+        "timestamp": 1779688222386
+      },
+      {
+        "x": 0.417,
+        "y": 0.64,
+        "timestamp": 1779688223431
+      },
+      {
+        "x": 0.602,
+        "y": 0.674,
+        "timestamp": 1779688224580
+      },
+      {
+        "x": 0.461,
+        "y": 0.633,
+        "timestamp": 1779688225581
+      },
+      {
+        "x": 0.716,
+        "y": 0.53,
+        "timestamp": 1779688226598
+      },
+      {
+        "x": 0.365,
+        "y": 0.431,
+        "timestamp": 1779688229651
+      },
+      {
+        "x": 0.584,
+        "y": 0.54,
+        "timestamp": 1779688230914
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 341.5,
+        "toX": 485,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee162e"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 341.5,
+        "toX": 175,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee162f"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 175,
+        "fromY": 341.5,
+        "toX": 1105,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee1630"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "F",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 1105,
+        "fromY": 341.5,
+        "toX": 1105,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee1631"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "D",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 1105,
+        "fromY": 341.5,
+        "toX": 795,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee1632"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 341.5,
+        "toX": 485,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee1633"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "D",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 341.5,
+        "toX": 795,
+        "toY": 341.5,
+        "_id": "6a13e32844d197e8daee1634"
+      }
+    ],
+    "mobileMovements": [],
+    "createdAt": "2026-05-25T05:50:32.907Z",
+    "updatedAt": "2026-05-25T05:50:32.907Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": -1,
+      "index": -1,
+      "middle": -1,
+      "ring": -1,
+      "pinky": -1,
+      "leftPinky": 10,
+      "leftRing": 1,
+      "leftMiddle": 1,
+      "leftIndex": 1,
+      "rightIndex": 0,
+      "rightMiddle": 2,
+      "rightRing": 2,
+      "rightPinky": 2
+    },
+    "_id": "6a13ed7f44d197e8daee1bab",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_finger",
+    "gameName": "Piano - Finger Dexterity",
+    "time": "2026-05-25T06:34:39.028Z",
+    "levelspan": 5,
+    "sessionScore": 10,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      }
+    ],
+    "coordinates": [],
+    "mode": "laptop",
+    "laptopMovements": [],
+    "mobileMovements": [
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a13ed7f44d197e8daee1bac"
+      }
+    ],
+    "createdAt": "2026-05-25T06:34:39.044Z",
+    "updatedAt": "2026-05-25T06:34:39.044Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": -1,
+      "index": -1,
+      "middle": -1,
+      "ring": -1,
+      "pinky": -1,
+      "leftPinky": 10,
+      "leftRing": 1,
+      "leftMiddle": 1,
+      "leftIndex": 1,
+      "rightIndex": 0,
+      "rightMiddle": 2,
+      "rightRing": 2,
+      "rightPinky": 2
+    },
+    "_id": "6a14219e63a8dbfaa4a19f50",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_finger",
+    "gameName": "Piano - Finger Dexterity",
+    "time": "2026-05-25T10:17:02.084Z",
+    "levelspan": 5,
+    "sessionScore": 20,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 0.6,
+        "correct": -1
+      },
+      {
+        "responsetime": 0.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.1,
+        "correct": -1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      }
+    ],
+    "coordinates": [],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "F",
+        "toKey": "D",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 562.5,
+        "fromY": 329.5,
+        "toX": 407.5,
+        "toY": 329.5,
+        "_id": "6a14219e63a8dbfaa4a19f51"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "K",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a14219e63a8dbfaa4a19f52"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "J",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 872.5,
+        "toY": 329.5,
+        "_id": "6a14219e63a8dbfaa4a19f53"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "L",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 872.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a14219e63a8dbfaa4a19f54"
+      }
+    ],
+    "mobileMovements": [
+      {
+        "key": "F",
+        "finger": "leftIndex",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.6,
+        "correct": -1,
+        "_id": "6a14219e63a8dbfaa4a19f55"
+      },
+      {
+        "key": "D",
+        "finger": "leftMiddle",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.2,
+        "correct": 1,
+        "_id": "6a14219e63a8dbfaa4a19f56"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.1,
+        "correct": -1,
+        "_id": "6a14219e63a8dbfaa4a19f57"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a14219e63a8dbfaa4a19f58"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 0.9,
+        "correct": 1,
+        "_id": "6a14219e63a8dbfaa4a19f59"
+      }
+    ],
+    "createdAt": "2026-05-25T10:17:02.099Z",
+    "updatedAt": "2026-05-25T10:17:02.099Z",
+    "__v": 0
+  }
+]
