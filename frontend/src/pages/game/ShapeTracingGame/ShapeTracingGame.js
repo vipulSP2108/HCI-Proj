@@ -34,7 +34,21 @@ const CONFIG = {
 };
 
 // ==================== SHAPE GENERATION ====================
-const SHAPES = ["circle", "triangle", "square", "hexagon"];
+const SHAPES = ["circle", "triangle", "square", "hexagon", "star", "spiral", "infinity", "zigzag"];
+
+const getPolygonPoint = (numSides, t) => {
+  const side = Math.floor(t * numSides);
+  const sideT = (t * numSides) - side;
+  const startTheta = (side / numSides) * 2 * Math.PI - Math.PI / 2;
+  const endTheta = ((side + 1) / numSides) * 2 * Math.PI - Math.PI / 2;
+  const startX = Math.cos(startTheta);
+  const startY = Math.sin(startTheta);
+  const endX = Math.cos(endTheta);
+  const endY = Math.sin(endTheta);
+  const px = startX + sideT * (endX - startX);
+  const py = startY + sideT * (endY - startY);
+  return { px, py };
+};
 
 const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
   const centerX = 0.5;
@@ -54,11 +68,12 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
         x = centerX + radius * 1.5 * Math.cos(theta);
         y = centerY + radius * 0.8 * Math.sin(theta);
         break;
-      case "triangle":
-        theta += Math.PI / 2; // Start at top
-        x = centerX + radius * Math.cos(theta);
-        y = centerY + radius * Math.sin(theta);
+      case "triangle": {
+        const pTri = getPolygonPoint(3, i / numPoints);
+        x = centerX + radius * pTri.px;
+        y = centerY + radius * pTri.py;
         break;
+      }
       case "square":
         const t = i / numPoints;
         const sideFrac = 0.35;
@@ -80,10 +95,38 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
         x = centerX + radius * px;
         y = centerY + radius * py;
         break;
-      case "hexagon":
-        theta += Math.PI / 3; // Flat top
-        x = centerX + radius * Math.cos(theta);
-        y = centerY + radius * Math.sin(theta);
+      case "hexagon": {
+        const pHex = getPolygonPoint(6, i / numPoints);
+        x = centerX + radius * pHex.px;
+        y = centerY + radius * pHex.py;
+        break;
+      }
+      case "star":
+        const rInner = radius * 0.4;
+        const rOuter = radius;
+        const r = i % 2 === 0 ? rOuter : rInner;
+        x = centerX + r * Math.cos(theta - Math.PI / 2);
+        y = centerY + r * Math.sin(theta - Math.PI / 2);
+        break;
+      case "spiral":
+        const totalTheta = 2.5 * 2 * Math.PI;
+        const currentTheta = (i / numPoints) * totalTheta;
+        const spiralRadius = (currentTheta / totalTheta) * radius;
+        x = centerX + spiralRadius * Math.cos(currentTheta);
+        y = centerY + spiralRadius * Math.sin(currentTheta);
+        break;
+      case "infinity":
+        const t_inf = (i / numPoints) * 2 * Math.PI;
+        const den = Math.pow(Math.sin(t_inf), 2) + 1;
+        x = centerX + (radius * 1.5 * Math.cos(t_inf)) / den;
+        y = centerY + (radius * 1.5 * Math.cos(t_inf) * Math.sin(t_inf)) / den;
+        break;
+      case "zigzag":
+        const numZigs = 4;
+        const progress = i / numPoints;
+        x = centerX - radius + (progress * radius * 2);
+        const zigPhase = (progress * numZigs) % 2; 
+        y = centerY + (zigPhase < 1 ? zigPhase - 0.5 : 1.5 - zigPhase) * radius;
         break;
       default:
         x = centerX + radius * Math.cos(theta);

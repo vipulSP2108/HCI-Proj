@@ -68,6 +68,7 @@ import ChatPage from "../common/ChatPage";
 import PatientAppointments from "./PatientAppointments";
 import BoardDrawingTrajectoryReplay from "../game/BoardDrawingTrajectoryReplay";
 import DrawingPerformancePanel from "../../components/dashboard/DrawingPerformancePanel";
+import ArmReachVisualizer from "../game/ArmReachVisualizer";
 
 export default function PatientDashboard({ userId }) {
   const { user, logout, isDarkMode, toggleDarkMode } = useAuth();
@@ -736,6 +737,28 @@ const CoordinateVisualizer = ({ coordinates }) => {
                 </p>
               </div>
             </div>
+            {currentPoint?.elbowAngle !== undefined && currentPoint?.elbowAngle !== null && (
+              <div className="mt-3 pt-2.5 border-t dark:border-gray-700 grid grid-cols-3 gap-2 text-[10px]">
+                <div>
+                  <p className="text-gray-400 font-medium">Elbow Angle</p>
+                  <p className="font-bold font-mono text-indigo-600 dark:text-indigo-400">
+                    {currentPoint.elbowAngle}°
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 font-medium">Shoulder Angle</p>
+                  <p className="font-bold font-mono text-indigo-600 dark:text-indigo-400">
+                    {currentPoint.shoulderAngle}°
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 font-medium">Trunk Twist</p>
+                  <p className="font-bold font-mono text-indigo-600 dark:text-indigo-400">
+                    {currentPoint.trunkTwist}°
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2187,14 +2210,85 @@ const DashboardContent = ({
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: selectedGame.accent }}></div>
-                    <h3 className="text-base font-bold text-gray-800 dark:text-white">Hand/Cursor Movement Trajectory</h3>
+                    <h3 className="text-base font-bold text-gray-800 dark:text-white">
+                      {selectedGameType === "fruit_basket" ? "Arm Kinematics & Replay" : "Hand/Cursor Movement Trajectory"}
+                    </h3>
                     <span className="text-xs text-gray-400 font-medium">— Session {selectedSession + 1}</span>
                   </div>
-                  <CoordinateVisualizer coordinates={selectedSessionData?.session?.coordinates} />
+                  {selectedGameType === "fruit_basket" ? (
+                    <ArmReachVisualizer coordinates={selectedCoordinates} />
+                  ) : (
+                    <CoordinateVisualizer coordinates={selectedCoordinates} />
+                  )}
                 </div>
               )}
 
-              {console.log(selectedSessionData.session.coordinates)}
+              {selectedGameType === "fruit_basket" && selectedSessionData?.session?.play && selectedSessionData.session.play.length > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-150 dark:border-gray-700 shadow-sm mt-6">
+                  <h3 className="text-base font-bold text-gray-800 dark:text-white mb-2">Event Kinematics</h3>
+                  <p className="text-xs text-gray-400 mb-4">Joint angles recorded at each fruit interaction moment.</p>
+
+                  {/* Session Meta header */}
+                  {selectedSessionData.session.sessionMeta && (
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedSessionData.session.sessionMeta.mode === 'ASSISTIVE'
+                          ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                          : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}>
+                        Mode: {selectedSessionData.session.sessionMeta.mode || '—'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        Left Hand: {selectedSessionData.session.sessionMeta.handFunctionLeft || '—'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        Right Hand: {selectedSessionData.session.sessionMeta.handFunctionRight || '—'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b dark:border-gray-700">
+                          <th className="py-2 text-xs font-semibold text-gray-500">Event</th>
+                          <th className="py-2 text-xs font-semibold text-gray-500">Hand</th>
+                          <th className="py-2 text-xs font-semibold text-gray-500">Trial Time (s)</th>
+                          <th className="py-2 text-xs font-semibold text-gray-500">Elbow Angle</th>
+                          <th className="py-2 text-xs font-semibold text-gray-500">Shoulder Abd.</th>
+                          <th className="py-2 text-xs font-semibold text-gray-500">Arm Elevation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedSessionData.session.play
+                          .filter(p => ["pick", "drop_success", "drop_miss", "timeout"].includes(p.eventName))
+                          .map((entry, idx) => {
+                            const fmtAngle = (v) => (v == null || v === -1) ? <span className="text-gray-300 dark:text-gray-600">N/A</span> : `${Math.round(v)}°`;
+                            return (
+                              <tr key={idx} className="border-b border-gray-100 dark:border-gray-800 last:border-0 text-sm">
+                                <td className="py-3 font-semibold">
+                                  {entry.eventName === "pick"         && <span className="px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded text-xs">Pick</span>}
+                                  {entry.eventName === "drop_success" && <span className="px-2 py-1 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400 rounded text-xs">✓ Drop</span>}
+                                  {entry.eventName === "drop_miss"    && <span className="px-2 py-1 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded text-xs">✗ Miss</span>}
+                                  {entry.eventName === "timeout"      && <span className="px-2 py-1 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded text-xs">⏱ Timeout</span>}
+                                </td>
+                                <td className="py-3 text-xs font-bold">
+                                  {entry.hand === "Left"  && <span className="text-indigo-500">◀ Left</span>}
+                                  {entry.hand === "Right" && <span className="text-emerald-500">Right ▶</span>}
+                                  {!entry.hand && <span className="text-gray-400">—</span>}
+                                </td>
+                                <td className="py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">{entry.trialDurationSec != null ? entry.trialDurationSec.toFixed(2) : '--'}</td>
+                                <td className="py-3 text-orange-500 font-bold font-mono text-xs">{fmtAngle(entry.elbowAngle)}</td>
+                                <td className="py-3 text-amber-500 font-bold font-mono text-xs">{fmtAngle(entry.shoulderAngle)}</td>
+                                <td className="py-3 text-indigo-500 font-bold font-mono text-xs">{fmtAngle(entry.verticalAngle)}</td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* Laptop Visualizer */}
               {selectedGameType !== "board_drawing" && (selectedGame?.hasCoordinates || (selectedGameType === "type1" && pianoSubTab === "ankle")) && selectedCoordinates.length > 0 && (

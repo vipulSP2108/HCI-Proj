@@ -19,7 +19,9 @@ const gameSessionBuffer = {
       startedAt: new Date().toISOString(),
       playData: [],
       coordinates: [],
+      trials: [],            // per-trial trajectory slices (Fruit Basket)
       boardDrawingAttempts: [],
+      sessionMeta: null,     // static session-level metadata (Fruit Basket)
       systemMetrics: {
         userAgent: navigator.userAgent,
         resolution: `${window.innerWidth}x${window.innerHeight}`
@@ -30,7 +32,7 @@ const gameSessionBuffer = {
       fingerTimeouts: null,
       laptopMovements: [],
       mobileMovements: [],
-      meta: {} // any game-specific metadata
+      meta: {}
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     return session;
@@ -85,6 +87,17 @@ const gameSessionBuffer = {
   },
 
   /**
+   * Append a per-trial trajectory record (Fruit Basket).
+   */
+  addTrial(trialData) {
+    const session = this.get();
+    if (!session) return;
+    if (!session.trials) session.trials = [];
+    session.trials.push(trialData);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  },
+
+  /**
    * Append laptop movement data to the local buffer.
    */
   addLaptopMovement(movement) {
@@ -133,7 +146,9 @@ const gameSessionBuffer = {
       levelspan: session.levelspan,
       playData: session.playData,
       systemMetrics: session.systemMetrics,
-      coordinates: session.coordinates.length > 0 ? session.coordinates : undefined,
+      sessionMeta: session.sessionMeta || undefined,
+      coordinates: session.coordinates?.length > 0 ? session.coordinates : undefined,
+      trials: session.trials?.length > 0 ? session.trials : undefined,
       boardDrawingAttempts: session.boardDrawingAttempts?.length > 0 ? session.boardDrawingAttempts : undefined,
       mode: session.mode,
       fingerTimeouts: session.fingerTimeouts,

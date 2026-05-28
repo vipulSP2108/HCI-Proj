@@ -7,6 +7,7 @@ import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
 import {
   COORD_SAMPLE_INTERVAL_MS,
+  BOARD_DRAWING_COORD_SAMPLE_MS,
   MAX_COORDS_PER_SESSION,
   DEFAULT_SESSION_SECONDS,
   BOARD_DRAWING_CALIBRATION_SECONDS,
@@ -20,7 +21,9 @@ import {
   BOARD_DRAWING_DRAW_FPS,
   BOARD_DRAWING_DEFAULT_SAFE_ZONE_RADIUS,
   BOARD_DRAWING_DEFAULT_WARNING_ZONE_RADIUS,
+  TESTING_SHAPE_SEQUENCE,
 } from "../../../constants";
+import { useSettings } from "../../../context/SettingsContext";
 import * as GameStorage from "./gameStorage";
 // ==================== CONFIGURATION ====================
 const CONFIG = {
@@ -46,6 +49,9 @@ const SHAPES = [
   "star",
   "heart",
   "diamond",
+  "spiral",
+  "infinity",
+  "zigzag"
 ];
 
 const SHAPE_COMPLEXITY_MULTIPLIERS = {
@@ -57,10 +63,27 @@ const SHAPE_COMPLEXITY_MULTIPLIERS = {
   hexagon: 1.5,
   heart: 2.0,
   star: 2.5,
+  spiral: 3.0,
+  infinity: 2.5,
+  zigzag: 2.0,
 };
 
 
 const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+const getPolygonPoint = (numSides, t) => {
+  const side = Math.floor(t * numSides);
+  const sideT = (t * numSides) - side;
+  const startTheta = (side / numSides) * 2 * Math.PI - Math.PI / 2;
+  const endTheta = ((side + 1) / numSides) * 2 * Math.PI - Math.PI / 2;
+  const startX = Math.cos(startTheta);
+  const startY = Math.sin(startTheta);
+  const endX = Math.cos(endTheta);
+  const endY = Math.sin(endTheta);
+  const px = startX + sideT * (endX - startX);
+  const py = startY + sideT * (endY - startY);
+  return { px, py };
+};
 
 const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
   const centerX = 0.5;
@@ -80,11 +103,12 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
         x = centerX + radius * 1.5 * Math.cos(theta);
         y = centerY + radius * 0.8 * Math.sin(theta);
         break;
-      case "triangle":
-        theta += Math.PI / 2; // Start at top
-        x = centerX + radius * Math.cos(theta);
-        y = centerY + radius * Math.sin(theta);
+      case "triangle": {
+        const pTri = getPolygonPoint(3, i / numPoints);
+        x = centerX + radius * pTri.px;
+        y = centerY + radius * pTri.py;
         break;
+      }
       case "square":
         const t = i / numPoints;
         const sideFrac = 0.25;
@@ -106,11 +130,12 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
         x = centerX + radius * px;
         y = centerY + radius * py;
         break;
-      case "hexagon":
-        theta += Math.PI / 6; // Flat top
-        x = centerX + radius * Math.cos(theta);
-        y = centerY + radius * Math.sin(theta);
+      case "hexagon": {
+        const pHex = getPolygonPoint(6, i / numPoints);
+        x = centerX + radius * pHex.px;
+        y = centerY + radius * pHex.py;
         break;
+      }
       case "star":
         const rInner = radius * 0.4;
         const rOuter = radius;
@@ -150,6 +175,35 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
           x = centerX - (1 - (td - 0.75) / 0.25) * radius;
           y = centerY - ((td - 0.75) / 0.25) * radius;
         }
+        break;
+      case "spiral":
+        // Archimedean spiral: r = a + b * theta
+        // We want it to wrap a few times. Let's do 2.5 wraps.
+        const totalTheta = 2.5 * 2 * Math.PI;
+        const currentTheta = (i / numPoints) * totalTheta;
+        // Start near center, end at radius
+        const spiralRadius = (currentTheta / totalTheta) * radius;
+        x = centerX + spiralRadius * Math.cos(currentTheta);
+        y = centerY + spiralRadius * Math.sin(currentTheta);
+        break;
+      case "infinity":
+        // Lemniscate of Bernoulli
+        // x = (a * sqrt(2) * cos(t)) / (sin^2(t) + 1)
+        // y = (a * sqrt(2) * cos(t) * sin(t)) / (sin^2(t) + 1)
+        const t_inf = (i / numPoints) * 2 * Math.PI;
+        const den = Math.pow(Math.sin(t_inf), 2) + 1;
+        x = centerX + (radius * 1.5 * Math.cos(t_inf)) / den;
+        y = centerY + (radius * 1.5 * Math.cos(t_inf) * Math.sin(t_inf)) / den;
+        break;
+      case "zigzag":
+        // A simple W or zigzag shape across the screen
+        const numZigs = 4;
+        const progress = i / numPoints;
+        x = centerX - radius + (progress * radius * 2);
+        // y goes up and down
+        // 0 -> up, 1/4 -> down, 2/4 -> up, etc.
+        const zigPhase = (progress * numZigs) % 2; 
+        y = centerY + (zigPhase < 1 ? zigPhase - 0.5 : 1.5 - zigPhase) * radius;
         break;
       default:
         x = centerX + radius * Math.cos(theta);
@@ -193,7 +247,8 @@ const getMinDistanceToShapeOutline = (pos, points) => {
 
 // ==================== MAIN COMPONENT ====================
 const BoardDrawingGame = () => {
-  const { isDarkMode } = useAuth();
+  const { user, isDarkMode } = useAuth();
+  const { globalSettings } = useSettings();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -213,8 +268,17 @@ const BoardDrawingGame = () => {
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [successRate, setSuccessRate] = useState(0);
 
-  const [handPoseMode, setHandPoseModeState] = useState("strict");
-  const handPoseModeRef = useRef("strict");
+  const [handPoseMode, setHandPoseModeState] = useState(globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict");
+  const handPoseModeRef = useRef(globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict");
+  
+  useEffect(() => {
+    if (globalSettings?.boardDrawingAssistiveMode !== undefined) {
+      const mode = globalSettings.boardDrawingAssistiveMode ? "any" : "strict";
+      setHandPoseModeState(mode);
+      handPoseModeRef.current = mode;
+    }
+  }, [globalSettings?.boardDrawingAssistiveMode]);
+
   const toggleHandPoseMode = () => {
     const newMode = handPoseMode === "strict" ? "any" : "strict";
     setHandPoseModeState(newMode);
@@ -338,6 +402,36 @@ const BoardDrawingGame = () => {
       height: canvas?.height || canvas?.clientHeight || 0,
     };
   }, []);
+  // ==================== ANGLE COMPUTATION HELPERS ====================
+  const vecSub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
+  const vecDot = (a, b) => a.x * b.x + a.y * b.y;
+  const vecMag = (v) => Math.hypot(v.x, v.y);
+  const vecAngleDeg = (a, b) => {
+    const mag = vecMag(a) * vecMag(b);
+    if (mag === 0) return -1;
+    const cos = Math.max(-1, Math.min(1, vecDot(a, b) / mag));
+    return Math.round((Math.acos(cos) * 180) / Math.PI);
+  };
+  // Compute the 3 angles for one side (left or right)
+  // Returns { elbowAngle, shoulderAngle, verticalAngle } — all -1 if invisible
+  const computeSideAngles = useCallback((shoulder, otherShoulder, elbow, wrist) => {
+    if (!shoulder || !elbow) return { elbowAngle: -1, shoulderAngle: -1, verticalAngle: -1 };
+    const w = 640, h = 480;
+    const sh = { x: shoulder.x * w, y: shoulder.y * h };
+    const el = { x: elbow.x * w, y: elbow.y * h };
+    // 1. Elbow angle — needs wrist
+    const elbowAngle = wrist
+      ? vecAngleDeg(vecSub(sh, el), vecSub({ x: wrist.x * w, y: wrist.y * h }, el))
+      : -1;
+    // 2. Shoulder abduction — needs both shoulders
+    const shoulderAngle = otherShoulder
+      ? vecAngleDeg(vecSub({ x: otherShoulder.x * w, y: otherShoulder.y * h }, sh), vecSub(el, sh))
+      : -1;
+    // 3. Vertical angle — upper arm vs vertical down
+    const verticalAngle = vecAngleDeg(vecSub(el, sh), { x: 0, y: 1 });
+    return { elbowAngle, shoulderAngle, verticalAngle };
+  }, []);
+
   const makeTracePoint = useCallback((point, zone = "safe", color = "#51cf66") => {
     const canvas = getGameCanvasDimensions();
     const handState = handStateRef.current;
@@ -367,6 +461,10 @@ const BoardDrawingGame = () => {
       rightWrist = { x: handState.Right.landmarks[0].x, y: handState.Right.landmarks[0].y };
     }
 
+    // Compute biomechanical angles for both sides
+    const leftAngles  = computeSideAngles(leftShoulder, rightShoulder, leftElbow, leftWrist);
+    const rightAngles = computeSideAngles(rightShoulder, leftShoulder, rightElbow, rightWrist);
+
     return {
       x: point.x,
       y: point.y,
@@ -381,9 +479,15 @@ const BoardDrawingGame = () => {
       rightElbow,
       leftWrist,
       rightWrist,
-      palm: { x: point.x, y: point.y }
+      palm: { x: point.x, y: point.y },
+      elbowAngleLeft:    leftAngles.elbowAngle,
+      shoulderAngleLeft: leftAngles.shoulderAngle,
+      verticalAngleLeft: leftAngles.verticalAngle,
+      elbowAngleRight:    rightAngles.elbowAngle,
+      shoulderAngleRight: rightAngles.shoulderAngle,
+      verticalAngleRight: rightAngles.verticalAngle,
     };
-  }, [getGameCanvasDimensions, nowSec]);
+  }, [getGameCanvasDimensions, nowSec, computeSideAngles]);
   const copyPoint = (point) => ({
     x: point.x,
     y: point.y,
@@ -392,13 +496,19 @@ const BoardDrawingGame = () => {
     timestamp: point.timestamp,
     zone: point.zone,
     color: point.color,
-    leftShoulder: point.leftShoulder ? { x: point.leftShoulder.x, y: point.leftShoulder.y } : null,
+    leftShoulder:  point.leftShoulder  ? { x: point.leftShoulder.x,  y: point.leftShoulder.y  } : null,
     rightShoulder: point.rightShoulder ? { x: point.rightShoulder.x, y: point.rightShoulder.y } : null,
-    leftElbow: point.leftElbow ? { x: point.leftElbow.x, y: point.leftElbow.y } : null,
-    rightElbow: point.rightElbow ? { x: point.rightElbow.x, y: point.rightElbow.y } : null,
-    leftWrist: point.leftWrist ? { x: point.leftWrist.x, y: point.leftWrist.y } : null,
-    rightWrist: point.rightWrist ? { x: point.rightWrist.x, y: point.rightWrist.y } : null,
-    palm: point.palm ? { x: point.palm.x, y: point.palm.y } : null
+    leftElbow:     point.leftElbow     ? { x: point.leftElbow.x,     y: point.leftElbow.y     } : null,
+    rightElbow:    point.rightElbow    ? { x: point.rightElbow.x,    y: point.rightElbow.y    } : null,
+    leftWrist:     point.leftWrist     ? { x: point.leftWrist.x,     y: point.leftWrist.y     } : null,
+    rightWrist:    point.rightWrist    ? { x: point.rightWrist.x,    y: point.rightWrist.y    } : null,
+    palm:          point.palm          ? { x: point.palm.x,          y: point.palm.y          } : null,
+    elbowAngleLeft:    point.elbowAngleLeft    ?? -1,
+    shoulderAngleLeft: point.shoulderAngleLeft ?? -1,
+    verticalAngleLeft: point.verticalAngleLeft ?? -1,
+    elbowAngleRight:    point.elbowAngleRight    ?? -1,
+    shoulderAngleRight: point.shoulderAngleRight ?? -1,
+    verticalAngleRight: point.verticalAngleRight ?? -1,
   });
   const buildBoardDrawingAttempt = useCallback(({
     shape,
@@ -545,12 +655,21 @@ const BoardDrawingGame = () => {
     return true;
   }, [buildBoardDrawingAttempt, nowSec, persistBoardDrawingBuffer]);
 
+  const sequenceIndexRef = useRef(0);
+
   // ==================== SPAWN SHAPE ====================
   const pickNewShape = useCallback(() => {
     // Determine shape by level
     const level = calibrationRef.current.level || 1;
-    // Just pick a random shape every time to show variety
-    const shapeType = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    let shapeType;
+
+    if (globalSettings?.testingMode) {
+      const seq = globalSettings?.testingShapeSequence?.length > 0 ? globalSettings.testingShapeSequence : TESTING_SHAPE_SEQUENCE;
+      shapeType = seq[sequenceIndexRef.current % seq.length];
+      sequenceIndexRef.current++;
+    } else {
+      shapeType = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    }
 
     const points = generateShapePoints(shapeType);
     shapeRef.current = {
@@ -569,7 +688,7 @@ const BoardDrawingGame = () => {
       () => setStatusMessage((prev) => ({ ...prev, visible: false })),
       2000,
     );
-  }, []);
+  }, [globalSettings]);
 
   const spawnShape = useCallback(() => {
     pickNewShape();
@@ -833,12 +952,39 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       if (gestureResetRequiredRef.current) return;
       
       // Track downsampled coordinates for relative hand trajectory visualization
-      if (sessionStartRef.current && Date.now() - lastCoordTimeRef.current > COORD_SAMPLE_INTERVAL_MS) {
+      const coordSampleMs = globalSettings?.boardDrawingCoordSampleMs ?? BOARD_DRAWING_COORD_SAMPLE_MS;
+      if (sessionStartRef.current && Date.now() - lastCoordTimeRef.current > coordSampleMs) {
         if (coordinateLogRef.current.length < MAX_COORDS_PER_SESSION) {
+          // Capture current joint positions and angles
+          const pose = lastPoseResultsRef.current;
+          let ls = null, rs = null, le = null, re = null, lw = null, rw = null;
+          if (pose && pose.poseLandmarks) {
+            const pl = pose.poseLandmarks;
+            if (pl[11]?.visibility > 0.5) ls = { x: pl[11].x, y: pl[11].y };
+            if (pl[12]?.visibility > 0.5) rs = { x: pl[12].x, y: pl[12].y };
+            if (pl[13]?.visibility > 0.5) le = { x: pl[13].x, y: pl[13].y };
+            if (pl[14]?.visibility > 0.5) re = { x: pl[14].x, y: pl[14].y };
+            if (pl[15]?.visibility > 0.5) lw = { x: pl[15].x, y: pl[15].y };
+            if (pl[16]?.visibility > 0.5) rw = { x: pl[16].x, y: pl[16].y };
+          }
+          const hState = handStateRef.current;
+          if (hState.Left.landmarks?.[0])  lw = { x: hState.Left.landmarks[0].x,  y: hState.Left.landmarks[0].y };
+          if (hState.Right.landmarks?.[0]) rw = { x: hState.Right.landmarks[0].x, y: hState.Right.landmarks[0].y };
+          const lAngles = computeSideAngles(ls, rs, le, lw);
+          const rAngles = computeSideAngles(rs, ls, re, rw);
           coordinateLogRef.current.push({
             x: pos.x,
             y: pos.y,
-            timestamp: nowSec()
+            timestamp: nowSec(),
+            leftShoulder: ls, rightShoulder: rs,
+            leftElbow: le, rightElbow: re,
+            leftWrist: lw, rightWrist: rw,
+            elbowAngleLeft:    lAngles.elbowAngle,
+            shoulderAngleLeft: lAngles.shoulderAngle,
+            verticalAngleLeft: lAngles.verticalAngle,
+            elbowAngleRight:    rAngles.elbowAngle,
+            shoulderAngleRight: rAngles.shoulderAngle,
+            verticalAngleRight: rAngles.verticalAngle,
           });
         }
         lastCoordTimeRef.current = Date.now();
@@ -1498,8 +1644,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     lastCoordTimeRef.current = 0;
     sessionStartRef.current = Date.now();
 
+    const sessionSeconds = globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS;
+    
     spawnShape();
-    setTimeRemaining(CONFIG.SESSION_SECONDS);
+    setTimeRemaining(sessionSeconds);
     setSuccessRate(0);
     setIsSessionActive(true);
 
@@ -1509,7 +1657,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
     timerIntervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
-      const remaining = Math.max(0, CONFIG.SESSION_SECONDS - elapsed);
+      const remaining = Math.max(0, sessionSeconds - elapsed);
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {
@@ -1554,17 +1702,9 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       setShowAnalyticsBtn(true);
     }
 
-    try {
-      await gameSessionBuffer.saveAndExit();
-      alert(
-        `Session Complete!\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nYour drawing paths were saved to your dashboard.`,
-      );
-    } catch (error) {
-      console.error("Failed to save board drawing session:", error);
-      alert(
-        `Session Complete!\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nCould not save automatically. Use the 💾 Save & Exit button to retry.`,
-      );
-    }
+    alert(
+      `Session Complete!\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nUse the 💾 Save & Exit button to save your data.`
+    );
   };
 
   const handleReset = () => {

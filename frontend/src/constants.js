@@ -8,7 +8,12 @@ export const API_BASE_URL = IS_LOCAL
 // ─── Game Session Constants ───────────────────────────────────────────────────
 // How often (in milliseconds) to log a coordinate sample during gameplay.
 // Lower = more detail but larger payload. Recommended: 150–500ms.
-export const COORD_SAMPLE_INTERVAL_MS = 1000; // 1 sample per second
+export const COORD_SAMPLE_INTERVAL_MS = 1000; // 1 sample per second (legacy fallback)
+
+// Per-game trajectory coordinate sampling intervals (ms).
+// Lower = more detail, larger payload. Configurable from Admin Dashboard.
+export const FRUIT_BASKET_COORD_SAMPLE_MS = 150;    // session-level trajectory
+export const BOARD_DRAWING_COORD_SAMPLE_MS = 150;   // session-level trajectory
 
 // Maximum number of coordinates to store per session (prevents huge payloads).
 export const MAX_COORDS_PER_SESSION = 300;
@@ -59,3 +64,30 @@ export const SHAPE_TRACING_MIN_COMPLETION = 0.8;
 export const SHAPE_TRACING_SMOOTH_ALPHA = 0.5;
 export const SHAPE_TRACING_STABLE_FRAMES = 5;
 export const SHAPE_TRACING_DRAW_FPS = 30;
+
+// ─── Testing Mode Sequences ───────────────────────────────────────────────────
+// These deterministic sequences are used when GlobalSettings.testingMode is true
+// to ensure exact repeatability across sessions.
+
+// Sequence of shape names to draw/trace (loops if exhausted)
+export const TESTING_SHAPE_SEQUENCE = [
+  'circle', 'triangle', 'square', 'spiral', 'infinity', 'zigzag', 'star', 'hexagon'
+];
+
+// Sequence of key indices for Piano game (loops if exhausted)
+export const TESTING_PIANO_SEQUENCE = Array.from({ length: 400 }, (_, i) => Math.floor(Math.abs(Math.sin(i * 12.9898 + 78.233)) * 9));
+export const TESTING_PIANO_MOBILE_SEQUENCE = Array.from({ length: 400 }, (_, i) => Math.floor(Math.abs(Math.sin(i * 12.9898 + 78.233)) * 4));
+
+// Sequence of {sourceIdx, basketIdx} for Fruit Basket game (loops if exhausted)
+// Assuming a 3x3 grid (0-8 indices)
+export const TESTING_FRUIT_BASKET_SEQUENCE = [
+  { sourceIdx: 0, basketIdx: 8 },
+  { sourceIdx: 2, basketIdx: 6 },
+  { sourceIdx: 4, basketIdx: 0 },
+  { sourceIdx: 8, basketIdx: 2 },
+  { sourceIdx: 6, basketIdx: 4 },
+  { sourceIdx: 1, basketIdx: 7 },
+  { sourceIdx: 3, basketIdx: 5 },
+  { sourceIdx: 5, basketIdx: 3 },
+  { sourceIdx: 7, basketIdx: 1 }
+];

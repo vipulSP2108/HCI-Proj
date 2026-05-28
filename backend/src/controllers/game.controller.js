@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const GameSession = require('../models/gameSession.model');
 const BoardDrawingSession = require('../models/boardDrawingSession.model');
 const PianoSession = require('../models/pianoSession.model');
+const FruitBasketSession = require('../models/fruitBasketSession.model');
 
 const toNumber = (value, fallback = undefined) => {
   const number = Number(value);
@@ -30,7 +31,26 @@ const normalizePoint = (point) => ({
   rightElbow: normalizeJoint(point?.rightElbow),
   leftWrist: normalizeJoint(point?.leftWrist),
   rightWrist: normalizeJoint(point?.rightWrist),
-  palm: normalizeJoint(point?.palm)
+  palm: normalizeJoint(point?.palm),
+  // Per-side angles (Board Drawing)
+  elbowAngleLeft: toNumber(point?.elbowAngleLeft),
+  elbowAngleRight: toNumber(point?.elbowAngleRight),
+  shoulderAngleLeft: toNumber(point?.shoulderAngleLeft),
+  shoulderAngleRight: toNumber(point?.shoulderAngleRight),
+  verticalAngleLeft: toNumber(point?.verticalAngleLeft),
+  verticalAngleRight: toNumber(point?.verticalAngleRight),
+  // Single-hand fields (Fruit Basket)
+  hand: point?.hand,
+  shoulder: normalizeJoint(point?.shoulder),
+  elbow: normalizeJoint(point?.elbow),
+  elbowAngle: toNumber(point?.elbowAngle),
+  shoulderAngle: toNumber(point?.shoulderAngle),
+  verticalAngle: toNumber(point?.verticalAngle),
+  // Fruit Basket specific
+  event: point?.event,
+  trialId: toNumber(point?.trialId),
+  success: point?.success !== undefined ? Boolean(point?.success) : undefined,
+  aratScore: toNumber(point?.aratScore)
 });
 
 const normalizePath = (path) => {
@@ -173,6 +193,8 @@ exports.saveGameSession = async (req, res) => {
       boardDrawingAttempts,
       sessionScore: clientSessionScore,
       mode,
+      sessionMeta,
+      trials,
       fingerTimeouts,
       laptopMovements,
       mobileMovements
@@ -228,6 +250,46 @@ exports.saveGameSession = async (req, res) => {
         fingerTimeouts: fingerTimeouts || undefined,
         laptopMovements: laptopMovements || undefined,
         mobileMovements: mobileMovements || undefined
+      });
+    } else if (type === 'fruit_basket') {
+      // Normalize trial trajectory points
+      const normalizedTrials = Array.isArray(trials)
+        ? trials.map(trial => ({
+            trialId: toNumber(trial?.trialId),
+            fruitId: trial?.fruitId,
+            sourceIdx: toNumber(trial?.sourceIdx),
+            basketIdx: toNumber(trial?.basketIdx),
+            hand: trial?.hand,
+            startTimestamp: toNumber(trial?.startTimestamp),
+            endTimestamp: toNumber(trial?.endTimestamp),
+            outcome: trial?.outcome,
+            trajectory: Array.isArray(trial?.trajectory)
+              ? trial.trajectory.map(pt => ({
+                  timestamp: toNumber(pt?.timestamp),
+                  x: toNumber(pt?.x),
+                  y: toNumber(pt?.y),
+                  hand: pt?.hand,
+                  shoulder: normalizeJoint(pt?.shoulder),
+                  elbow: normalizeJoint(pt?.elbow),
+                  elbowAngle: toNumber(pt?.elbowAngle),
+                  shoulderAngle: toNumber(pt?.shoulderAngle),
+                  verticalAngle: toNumber(pt?.verticalAngle),
+                }))
+              : []
+          }))
+        : [];
+      newSession = new FruitBasketSession({
+        user: userId,
+        gameType: type,
+        gameName: name,
+        time: new Date(),
+        sessionScore: sessionScore,
+        sessionMeta: sessionMeta || undefined,
+        systemMetrics: systemMetrics || undefined,
+        coordinates: coordinates || undefined,
+        trials: normalizedTrials,
+        play: playData || [],
+        mode: mode || 'laptop'
       });
     } else {
       newSession = new GameSession({
@@ -295,7 +357,8 @@ exports.getDetailedAnalytics = async (req, res) => {
     const gameSessions = await GameSession.find({ user: userId }).lean();
     const boardSessions = await BoardDrawingSession.find({ user: userId }).lean();
     const pianoSessions = await PianoSession.find({ user: userId }).lean();
-    const sessions = [...gameSessions, ...boardSessions, ...pianoSessions].sort((a, b) => new Date(a.time) - new Date(b.time));
+    const fruitSessions = await FruitBasketSession.find({ user: userId }).lean();
+    const sessions = [...gameSessions, ...boardSessions, ...pianoSessions, ...fruitSessions].sort((a, b) => new Date(a.time) - new Date(b.time));
     
     // Group by game type
     const grouped = sessions.reduce((acc, session) => {
@@ -425,7 +488,8 @@ exports.getBasicStats = async (req, res) => {
     const gameSessions = await GameSession.find({ user: userId }).lean();
     const boardSessions = await BoardDrawingSession.find({ user: userId }).lean();
     const pianoSessions = await PianoSession.find({ user: userId }).lean();
-    const sessions = [...gameSessions, ...boardSessions, ...pianoSessions].sort((a, b) => new Date(a.time) - new Date(b.time));
+    const fruitSessions = await FruitBasketSession.find({ user: userId }).lean();
+    const sessions = [...gameSessions, ...boardSessions, ...pianoSessions, ...fruitSessions].sort((a, b) => new Date(a.time) - new Date(b.time));
     
     // Group by game type
     const grouped = sessions.reduce((acc, session) => {

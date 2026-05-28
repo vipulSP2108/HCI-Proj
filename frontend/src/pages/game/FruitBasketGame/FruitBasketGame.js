@@ -7,6 +7,7 @@ import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
 import {
   COORD_SAMPLE_INTERVAL_MS,
+  FRUIT_BASKET_COORD_SAMPLE_MS,
   MAX_COORDS_PER_SESSION,
   DEFAULT_SESSION_SECONDS,
   FRUIT_BASKET_CALIBRATION_SECONDS,
@@ -25,7 +26,9 @@ import {
   FRUIT_BASKET_MIN_SHOULDER_VISIBILITY,
   FRUIT_BASKET_IDEAL_SHOULDER_Y_RANGE,
   FRUIT_BASKET_MIN_SHOULDER_WIDTH,
+  TESTING_FRUIT_BASKET_SEQUENCE,
 } from "../../../constants";
+import { useSettings } from "../../../context/SettingsContext";
 
 // ==================== MEDIAPIPE MODULE-LEVEL SINGLETONS ====================
 // Stored outside the component so React StrictMode's double-mount does NOT
@@ -58,7 +61,8 @@ const CONFIG = {
 
 // ==================== MAIN COMPONENT ====================
 const FruitBasketGame = () => {
-  const { isDarkMode } = useAuth();
+  const { user, isDarkMode } = useAuth();
+  const { globalSettings } = useSettings();
   
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
@@ -128,6 +132,8 @@ const FruitBasketGame = () => {
   const trialIdRef = useRef(0);
   const lastTrialTimeLeftRef = useRef(10);
   const handleTrialTimeoutRef = useRef(null);
+  const dropMissCountRef = useRef(0);         // how many times fruit was dropped in current trial
+  const dropMissCooldownRef = useRef(false);  // short cooldown after a drop so open-hand doesn't re-trigger instantly
   const mainLoopRef = useRef(null);
   const isProcessingRef = useRef(false);
   const isPausedRef = useRef(false);
@@ -259,11 +265,22 @@ const FruitBasketGame = () => {
     gridHolesRef.current = holes;
   }, []);
   // ==================== SPAWN FRUIT ====================
+  const sequenceIndexRef = useRef(0);
   const spawnFruit = useCallback(() => {
-    let sourceIdx = Math.floor(Math.random() * gridHolesRef.current.length);
-    let bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
-    while (bIdx === sourceIdx) {
+    let sourceIdx, bIdx;
+
+    if (globalSettings?.testingMode) {
+      const seq = globalSettings?.testingFruitBasketSequence?.length > 0 ? globalSettings.testingFruitBasketSequence : TESTING_FRUIT_BASKET_SEQUENCE;
+      const seqItem = seq[sequenceIndexRef.current % seq.length];
+      sourceIdx = seqItem.sourceIdx;
+      bIdx = seqItem.basketIdx;
+      sequenceIndexRef.current++;
+    } else {
+      sourceIdx = Math.floor(Math.random() * gridHolesRef.current.length);
       bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
+      while (bIdx === sourceIdx) {
+        bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
+      }
     }
 
     basketIdxRef.current = bIdx;
@@ -274,6 +291,10 @@ const FruitBasketGame = () => {
       y: gridHolesRef.current[sourceIdx].y,
       attachedTo: null,
     };
+
+    // Reset drop-miss state for new trial
+    dropMissCountRef.current = 0;
+    dropMissCooldownRef.current = false;
 
     if (trialTimeoutIdRef.current) {
       clearTimeout(trialTimeoutIdRef.current);
@@ -291,15 +312,11 @@ const FruitBasketGame = () => {
       timestamp: nowSec(),
       event: "spawn",
       trial_id: trialIdRef.current,
-      mode: (assistiveModeLeftRef.current || assistiveModeRightRef.current) ? "ASSISTIVE" : "NORMAL",
-      hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-      hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
       fruit_id: fruitRef.current.id,
       source_idx: sourceIdx,
       basket_idx: bIdx,
-      score: aratTotalScoreRef.current,
     });
-  }, []);
+  }, [globalSettings]);
 
   // ==================== TRIAL TIMEOUT HANDLER ====================
   const handleTrialTimeout = useCallback(() => {
@@ -310,19 +327,10 @@ const FruitBasketGame = () => {
       timestamp: nowSec(),
       event: "timeout",
       trial_id: trialIdRef.current,
-      mode: (assistiveModeLeftRef.current || assistiveModeRightRef.current) ? "ASSISTIVE" : "NORMAL",
       hand: handLabel || "",
-      hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-      hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-      x_norm: handLabel ? (handStateRef.current[handLabel].smoothPos?.x || "") : "",
-      y_norm: handLabel ? (handStateRef.current[handLabel].smoothPos?.y || "") : "",
-      shoulder_x: handLabel ? (handStateRef.current[handLabel].shoulder?.x || "") : "",
-      shoulder_y: handLabel ? (handStateRef.current[handLabel].shoulder?.y || "") : "",
-      elbow_x: handLabel ? (handStateRef.current[handLabel].elbow?.x || "") : "",
-      elbow_y: handLabel ? (handStateRef.current[handLabel].elbow?.y || "") : "",
-      elbow_angle_deg: handLabel ? (handStateRef.current[handLabel].elbowAngle ?? "") : "",
-      shoulder_angle_deg: handLabel ? (handStateRef.current[handLabel].shoulderAngle ?? "") : "",
-      trunk_twist_deg: handLabel ? (handStateRef.current[handLabel].trunkTwist ?? "") : "",
+      elbow_angle_deg: handLabel ? (handStateRef.current[handLabel].elbowAngle ?? -1) : -1,
+      shoulder_angle_deg: handLabel ? (handStateRef.current[handLabel].shoulderAngle ?? -1) : -1,
+      vertical_angle_deg: handLabel ? (handStateRef.current[handLabel].verticalAngle ?? -1) : -1,
       fruit_id: fruitRef.current ? fruitRef.current.id : "",
       source_idx: fruitRef.current ? fruitRef.current.sourceIdx : "",
       basket_idx: basketIdxRef.current,
@@ -496,6 +504,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     if (results.poseLandmarks) {
       const pl = results.poseLandmarks;
 
+      // Because of selfieMode: true, the Hand Tracker labels are flipped relative to the physical body.
+      // Physical Right Hand -> Appears on left side of screen -> Hand Tracker says "Left"
+      // Physical Right Shoulder -> Appears on left side of screen -> Pose Tracker outputs pl[12] (RIGHT_SHOULDER)
+      // So Hand "Left" connects to Pose 12 (Right Shoulder) and 14 (Right Elbow).
       const update = (label, shoulderIdx, elbowIdx) => {
         if (pl[shoulderIdx] && pl[shoulderIdx].visibility > 0.5) {
           const shoulder = { x: pl[shoulderIdx].x, y: pl[shoulderIdx].y };
@@ -509,31 +521,51 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           handState[label].elbow = smoothPos(handState[label].elbow, elbow);
         }
       };
-      update("Left", 11, 13);
-      update("Right", 12, 14);
+      // Cross mapping to fix selfieMode mirroring!
+      update("Left", 12, 14); // "Left" hand label connects to Right Shoulder/Elbow
+      update("Right", 11, 13); // "Right" hand label connects to Left Shoulder/Elbow
 
       // ---------- COMPUTE BIOMECHANICAL ANGLES ----------
-      ["Left", "Right"].forEach((side) => {
-        const shIdx = side === "Left" ? 11 : 12;
-        const elIdx = side === "Left" ? 13 : 14;
-        const sh = pl[shIdx], el = pl[elIdx];
-        if (!sh || !el || sh.visibility < 0.3 || el.visibility < 0.3) {
-          handState[side].elbowAngle = null;
-          handState[side].shoulderAngle = null;
-          handState[side].trunkTwist = null;
-          return;
+      // Cross-index map: "Left" hand label → shoulder pl[12], elbow pl[14] (selfieMode mirroring)
+      //                  "Right" hand label → shoulder pl[11], elbow pl[13]
+      // otherShoulder for "Left" = pl[11], for "Right" = pl[12]
+      [["Left", 12, 14, 11], ["Right", 11, 13, 12]].forEach(([side, shIdx, elIdx, otherShIdx]) => {
+        const sh = pl[shIdx], el = pl[elIdx], otherSh = pl[otherShIdx];
+        const wristRaw = handState[side].smoothPos || null;
+
+        // Default to -1 (invisible/out-of-frame)
+        handState[side].elbowAngle = -1;
+        handState[side].shoulderAngle = -1;
+        handState[side].verticalAngle = -1;
+
+        if (!sh || !el || sh.visibility < 0.3 || el.visibility < 0.3 || !wristRaw) return;
+
+        const w = 640, h = 480;
+        handState[side].shoulder = { x: sh.x, y: sh.y };
+        handState[side].elbow = { x: el.x, y: el.y };
+
+        const wrist   = { x: wristRaw.x * w, y: wristRaw.y * h };
+        const shPixel = { x: sh.x * w, y: sh.y * h };
+        const elPixel = { x: el.x * w, y: el.y * h };
+
+        // 1. ELBOW ANGLE: interior angle at elbow vertex (wrist→elbow vs shoulder→elbow)
+        const vElbowToShoulder = vecSub(shPixel, elPixel);
+        const vElbowToWrist    = vecSub(wrist, elPixel);
+        handState[side].elbowAngle = Math.round(vecAngle(vElbowToShoulder, vElbowToWrist));
+
+        // 2. SHOULDER ABDUCTION ANGLE: shoulder→otherShoulder vs shoulder→elbow
+        //    Requires both shoulders visible
+        if (otherSh && otherSh.visibility >= 0.3) {
+          const otherShPixel = { x: otherSh.x * w, y: otherSh.y * h };
+          const vAcross    = vecSub(otherShPixel, shPixel); // shoulder → otherShoulder
+          const vToElbow   = vecSub(elPixel, shPixel);      // shoulder → elbow
+          handState[side].shoulderAngle = Math.round(vecAngle(vAcross, vToElbow));
         }
-        const wrist = handState[side].smoothPos || { x: 0, y: 0 };
-        const vUpper = vecSub({ x: el.x, y: el.y }, { x: sh.x, y: sh.y });
-        const vFore  = vecSub(wrist, { x: el.x, y: el.y });
-        handState[side].elbowAngle = Math.round(vecAngle(vUpper, vFore));
-        
-        const vTrunk = { x: 0, y: 1 }; // vertical down
-        handState[side].shoulderAngle = Math.round(vecAngle(vUpper, vTrunk));
-        
-        const vUpperH = { x: vUpper.x, y: 0 };
-        const vTrunkH = { x: 1, y: 0 };
-        handState[side].trunkTwist = Math.round(vecAngle(vUpperH, vTrunkH));
+
+        // 3. VERTICAL ANGLE: upper arm vs vertical down axis (elevation angle)
+        const vUpper  = vecSub(elPixel, shPixel);
+        const vTrunk  = { x: 0, y: 1 }; // vertical down
+        handState[side].verticalAngle = Math.round(vecAngle(vUpper, vTrunk));
       });
       // ----------------------------------------------------
 
@@ -655,12 +687,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       
       // Track downsampled coordinates for relative hand trajectory visualization
       const lastHandCoordTimeRef = label === "Left" ? lastLeftCoordTimeRef : lastRightCoordTimeRef;
-      if (sessionStartRef.current && Date.now() - lastHandCoordTimeRef.current > COORD_SAMPLE_INTERVAL_MS) {
+      const coordSampleMs = globalSettings?.fruitBasketCoordSampleMs ?? FRUIT_BASKET_COORD_SAMPLE_MS;
+      if (sessionStartRef.current && Date.now() - lastHandCoordTimeRef.current > coordSampleMs) {
         if (coordinateLogRef.current.length < MAX_COORDS_PER_SESSION) {
           coordinateLogRef.current.push({
             x: hand.smoothPos.x,
             y: hand.smoothPos.y,
-            timestamp: nowSec()
+            timestamp: nowSec(),
+            hand: label,
+            shoulder: hand.shoulder || null,
+            elbow: hand.elbow || null,
+            elbowAngle: hand.elbowAngle ?? -1,
+            shoulderAngle: hand.shoulderAngle ?? -1,
+            verticalAngle: hand.verticalAngle ?? -1,
           });
         }
         lastHandCoordTimeRef.current = Date.now();
@@ -686,22 +725,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
                 timestamp: nowSec(),
                 event: "pick",
                 trial_id: trialIdRef.current,
-                mode: "ASSISTIVE",
                 hand: label,
-                hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-                hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-                x_norm: hand.smoothPos.x,
-                y_norm: hand.smoothPos.y,
-                shoulder_x: hand.shoulder?.x || "",
-                shoulder_y: hand.shoulder?.y || "",
-                elbow_x: hand.elbow?.x || "",
-                elbow_y: hand.elbow?.y || "",
-                elbow_angle_deg: hand.elbowAngle ?? "",
-                shoulder_angle_deg: hand.shoulderAngle ?? "",
-                trunk_twist_deg: hand.trunkTwist ?? "",
+                elbow_angle_deg: hand.elbowAngle ?? -1,
+                shoulder_angle_deg: hand.shoulderAngle ?? -1,
+                vertical_angle_deg: hand.verticalAngle ?? -1,
                 fruit_id: fruitRef.current.id,
                 source_idx: fruitRef.current.sourceIdx,
                 basket_idx: basketIdxRef.current,
+                trial_duration_sec: 0
               });
 
               showStatus(`🤏 ${label} hand auto-grabbed fruit!`, 1000);
@@ -717,22 +748,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               timestamp: nowSec(),
               event: "pick",
               trial_id: trialIdRef.current,
-              mode: "NORMAL",
               hand: label,
-              hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-              hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-              x_norm: hand.smoothPos.x,
-              y_norm: hand.smoothPos.y,
-              shoulder_x: hand.shoulder?.x || "",
-              shoulder_y: hand.shoulder?.y || "",
-              elbow_x: hand.elbow?.x || "",
-              elbow_y: hand.elbow?.y || "",
-              elbow_angle_deg: hand.elbowAngle ?? "",
-              shoulder_angle_deg: hand.shoulderAngle ?? "",
-              trunk_twist_deg: hand.trunkTwist ?? "",
+              elbow_angle_deg: hand.elbowAngle ?? -1,
+              shoulder_angle_deg: hand.shoulderAngle ?? -1,
+              vertical_angle_deg: hand.verticalAngle ?? -1,
               fruit_id: fruitRef.current.id,
               source_idx: fruitRef.current.sourceIdx,
               basket_idx: basketIdxRef.current,
+              trial_duration_sec: 0
             });
 
             showStatus(`✊ ${label} hand grasped fruit!`, 1000);
@@ -770,19 +793,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
                 timestamp: nowSec(),
                 event: "drop_success",
                 trial_id: trialIdRef.current,
-                mode: "ASSISTIVE",
                 hand: label,
-                hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-                hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-                x_norm: hand.smoothPos.x,
-                y_norm: hand.smoothPos.y,
-                shoulder_x: hand.shoulder?.x || "",
-                shoulder_y: hand.shoulder?.y || "",
-                elbow_x: hand.elbow?.x || "",
-                elbow_y: hand.elbow?.y || "",
-                elbow_angle_deg: hand.elbowAngle ?? "",
-                shoulder_angle_deg: hand.shoulderAngle ?? "",
-                trunk_twist_deg: hand.trunkTwist ?? "",
+                elbow_angle_deg: hand.elbowAngle ?? -1,
+                shoulder_angle_deg: hand.shoulderAngle ?? -1,
+                vertical_angle_deg: hand.verticalAngle ?? -1,
                 fruit_id: fruitRef.current.id,
                 source_idx: fruitRef.current.sourceIdx,
                 basket_idx: basketIdxRef.current,
@@ -802,37 +816,43 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             hand.assistiveDropTimer = 0;
           }
         } else {
-          if (hand.openFrames >= CONFIG.STABLE_FRAMES) {
+          // Normal (non-assistive) drop
+          if (hand.openFrames >= CONFIG.STABLE_FRAMES && !dropMissCooldownRef.current) {
             if (handDistToBasket >= CONFIG.DROP_DISTANCE) {
-              attemptsRef.current++;
+              // ── DROP MISS: fruit slipped / released away from basket ──
+              // The trial is NOT over — fruit returns to source.
+              // To give the user a fair chance to try again, we reset the trial timeout timer.
               fruitRef.current.attachedTo = null;
               fruitRef.current.x = gridHolesRef.current[fruitRef.current.sourceIdx].x;
               fruitRef.current.y = gridHolesRef.current[fruitRef.current.sourceIdx].y;
 
               const trialDuration = Date.now() - trialStartTimeRef.current;
+              dropMissCountRef.current += 1;
 
+              // Reset the trial timeout timer and start time
               if (trialTimeoutIdRef.current) {
                 clearTimeout(trialTimeoutIdRef.current);
-                trialTimeoutIdRef.current = null;
               }
+              trialStartTimeRef.current = Date.now();
+              trialTimeoutIdRef.current = setTimeout(() => {
+                if (handleTrialTimeoutRef.current) {
+                  handleTrialTimeoutRef.current();
+                }
+              }, CONFIG.TRIAL_TIMEOUT_MS);
+
+              // Brief cooldown (800 ms) so the open hand doesn't immediately
+              // re-trigger another drop_miss while the user re-closes their hand.
+              dropMissCooldownRef.current = true;
+              setTimeout(() => { dropMissCooldownRef.current = false; }, 800);
 
               logsRef.current.push({
                 timestamp: nowSec(),
                 event: "drop_miss",
                 trial_id: trialIdRef.current,
-                mode: "NORMAL",
                 hand: label,
-                hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-                hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-                x_norm: hand.smoothPos.x,
-                y_norm: hand.smoothPos.y,
-                shoulder_x: hand.shoulder?.x || "",
-                shoulder_y: hand.shoulder?.y || "",
-                elbow_x: hand.elbow?.x || "",
-                elbow_y: hand.elbow?.y || "",
-                elbow_angle_deg: hand.elbowAngle ?? "",
-                shoulder_angle_deg: hand.shoulderAngle ?? "",
-                trunk_twist_deg: hand.trunkTwist ?? "",
+                elbow_angle_deg: hand.elbowAngle ?? -1,
+                shoulder_angle_deg: hand.shoulderAngle ?? -1,
+                vertical_angle_deg: hand.verticalAngle ?? -1,
                 fruit_id: fruitRef.current.id,
                 source_idx: fruitRef.current.sourceIdx,
                 basket_idx: basketIdxRef.current,
@@ -841,14 +861,9 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
                 arat_score: 0,
               });
 
-              const rate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
-              setSuccessRate(rate);
+              showStatus(`⚠️ Dropped! Pick it up again (${dropMissCountRef.current} drop${dropMissCountRef.current > 1 ? 's' : ''})`, 1200);
+              // Do NOT call spawnFruit() — the same trial continues!
 
-              showStatus("⚠️ Missed! Release over basket", 1500);
-
-              setTimeout(() => {
-                spawnFruit();
-              }, 1500);
             } else {
               const trialDuration = Date.now() - trialStartTimeRef.current;
               const aratScore = calculateAratScore(trialDuration);
@@ -874,19 +889,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
                 timestamp: nowSec(),
                 event: "drop_success",
                 trial_id: trialIdRef.current,
-                mode: "NORMAL",
                 hand: label,
-                hand_function_left: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? "full" : "limited",
-                hand_function_right: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? "full" : "limited",
-                x_norm: hand.smoothPos.x,
-                y_norm: hand.smoothPos.y,
-                shoulder_x: hand.shoulder?.x || "",
-                shoulder_y: hand.shoulder?.y || "",
-                elbow_x: hand.elbow?.x || "",
-                elbow_y: hand.elbow?.y || "",
-                elbow_angle_deg: hand.elbowAngle ?? "",
-                shoulder_angle_deg: hand.shoulderAngle ?? "",
-                trunk_twist_deg: hand.trunkTwist ?? "",
+                elbow_angle_deg: hand.elbowAngle ?? -1,
+                shoulder_angle_deg: hand.shoulderAngle ?? -1,
+                vertical_angle_deg: hand.verticalAngle ?? -1,
                 fruit_id: fruitRef.current.id,
                 source_idx: fruitRef.current.sourceIdx,
                 basket_idx: basketIdxRef.current,
@@ -1412,21 +1418,24 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     attemptsRef.current = 0;
     successesRef.current = 0;
     logsRef.current = [];
+    
+    const sessionSeconds = globalSettings?.fruitBasketSessionSeconds || CONFIG.SESSION_SECONDS;
+    setTimeRemaining(sessionSeconds);
     sessionStartRef.current = Date.now();
+    
     pausedTimeRef.current = 0;
     isPausedRef.current = false;
     setIsPaused(false);
 
     setupGrid();
     spawnFruit();
-    setTimeRemaining(CONFIG.SESSION_SECONDS);
     setSuccessRate(0);
     setIsSessionActive(true);
 
     timerIntervalRef.current = setInterval(() => {
       if (isPausedRef.current) return; // freeze timer while paused
       const elapsed = Math.floor((Date.now() - sessionStartRef.current - pausedTimeRef.current) / 1000);
-      const remaining = Math.max(0, CONFIG.SESSION_SECONDS - elapsed);
+      const remaining = Math.max(0, sessionSeconds - elapsed);
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {
@@ -1480,65 +1489,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       showStatus("▶️ Session resumed!", 2000);
     }
   };
-  const saveSessionDataToBuffer = useCallback(() => {
-    const playData = logsRef.current
-      .filter(log => ['drop_success', 'drop_miss', 'timeout'].includes(log.event))
-      .map(log => {
-        let correct = 0;
-        let responseTimeVal = -1;
-        
-        if (log.event === 'drop_success') {
-          correct = 1;
-          responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0;
-        } else if (log.event === 'drop_miss') {
-          correct = -1;
-          responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0;
-        } else if (log.event === 'timeout') {
-          correct = 0;
-          responseTimeVal = -1;
-        }
-        
-        return {
-          responsetime: responseTimeVal,
-          correct: correct,
-          eventName: log.event,
-          score: log.score || scoreRef.current,
-          hand: log.hand || '',
-          trial_id: log.trial_id || 0,
-          mode: log.mode || ''
-        };
-      });
-
-    const coordinateLogs = logsRef.current.map(log => ({
-      timestamp: log.timestamp,
-      event: log.event,
-      trialId: log.trial_id || 0,
-      mode: log.mode || '',
-      hand: log.hand || '',
-      handFunctionLeft: log.hand_function_left || '',
-      handFunctionRight: log.hand_function_right || '',
-      xNorm: log.x_norm || 0,
-      yNorm: log.y_norm || 0,
-      shoulderX: log.shoulder_x || 0,
-      shoulderY: log.shoulder_y || 0,
-      elbowX: log.elbow_x || 0,
-      elbowY: log.elbow_y || 0,
-      elbowAngle: log.elbow_angle_deg || 0,
-      shoulderAngle: log.shoulder_angle_deg || 0,
-      trunkTwist: log.trunk_twist_deg || 0,
-      fruitId: log.fruit_id || '',
-      sourceIdx: log.source_idx || 0,
-      basketIdx: log.basket_idx || 0,
-      success: log.success || false,
-      aratScore: log.arat_score || 0
-    }));
-
-    gameSessionBuffer.update({
-      sessionScore: scoreRef.current,
-      playData,
-      coordinates: coordinateLogs
-    });
-  }, []);
+  useEffect(() => {
+    // We intentionally do not write to localStorage continuously to avoid frame drops.
+    // Data is stored in memory via refs and written on Save & Exit.
+  }, [isSessionActive]);
 
   const handleEndSession = async () => {
     setIsSessionActive(false);
@@ -1559,16 +1513,94 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
         : 0;
 
-    // Buffer play data locally
-    const playData = logsRef.current.map(log => ({
-      eventName: log.event,
-      score: log.score,
-      hand: log.hand,
-      responsetime: log.timestamp
+    // Build lean play data — only fields that change per event
+    const playData = logsRef.current.map(log => {
+      let correct = undefined;
+      let responseTimeVal = log.timestamp;
+      if (log.event === 'drop_success') {
+        correct = 1;
+        responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0;
+      } else if (log.event === 'drop_miss') {
+        correct = -1;
+        responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0;
+      } else if (log.event === 'timeout') {
+        correct = 0;
+        responseTimeVal = -1;
+      }
+      const entry = {
+        eventName: log.event,
+        responsetime: responseTimeVal,
+        trialId: log.trial_id || undefined,
+        hand: log.hand || undefined,
+        score: log.score !== undefined ? log.score : undefined,
+        correct,
+        elbowAngle: log.elbow_angle_deg !== undefined ? Number(log.elbow_angle_deg) : undefined,
+        shoulderAngle: log.shoulder_angle_deg !== undefined ? Number(log.shoulder_angle_deg) : undefined,
+        verticalAngle: log.vertical_angle_deg !== undefined ? Number(log.vertical_angle_deg) : undefined,
+        fruitId: log.fruit_id || undefined,
+        sourceIdx: log.source_idx !== undefined ? log.source_idx : undefined,
+        basketIdx: log.basket_idx !== undefined ? log.basket_idx : undefined,
+        trialDurationSec: log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : undefined,
+        success: log.success !== undefined ? log.success : undefined,
+        aratScore: log.arat_score !== undefined ? log.arat_score : undefined,
+      };
+      // Remove undefined keys to keep payload lean
+      Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
+      return entry;
+    });
+
+    // Session-level static metadata (stored once, not per event)
+    const sessionMeta = {
+      mode: (assistiveModeLeftRef.current || assistiveModeRightRef.current) ? 'ASSISTIVE' : 'NORMAL',
+      handFunctionLeft: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? 'full' : 'limited',
+      handFunctionRight: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? 'full' : 'limited',
+    };
+
+    // Build per-trial trajectory by slicing coordinateLogRef by timestamp
+    // spawnFruit sets trialStartTimeRef at each spawn; we derive per-trial time windows
+    // from the spawn/drop_success/drop_miss/timeout log entries
+    const trialWindows = [];
+    let currentWindow = null;
+    for (const log of logsRef.current) {
+      if (log.event === 'spawn') {
+        currentWindow = {
+          trialId: log.trial_id,
+          fruitId: log.fruit_id,
+          sourceIdx: log.source_idx,
+          basketIdx: log.basket_idx,
+          startTimestamp: log.timestamp,
+          endTimestamp: null,
+          hand: null,
+          outcome: null,
+        };
+      } else if (currentWindow && (log.event === 'drop_success' || log.event === 'drop_miss' || log.event === 'timeout')) {
+        currentWindow.endTimestamp = log.timestamp;
+        currentWindow.hand = log.hand || null;
+        currentWindow.outcome = log.event === 'drop_success' ? 'success' : log.event === 'drop_miss' ? 'miss' : 'timeout';
+        trialWindows.push({ ...currentWindow });
+        currentWindow = null;
+      }
+    }
+
+    const trials = trialWindows.map(win => ({
+      trialId: win.trialId,
+      fruitId: win.fruitId,
+      sourceIdx: win.sourceIdx,
+      basketIdx: win.basketIdx,
+      hand: win.hand,
+      startTimestamp: win.startTimestamp,
+      endTimestamp: win.endTimestamp,
+      outcome: win.outcome,
+      trajectory: coordinateLogRef.current.filter(
+        pt => pt.timestamp >= win.startTimestamp && pt.timestamp <= (win.endTimestamp ?? Infinity)
+      ).map(pt => ({ ...pt })),
     }));
+
     gameSessionBuffer.update({
       sessionScore: scoreRef.current,
+      sessionMeta,
       playData,
+      trials,
       coordinates: coordinateLogRef.current.map(p => ({ ...p }))
     });
 
@@ -1984,15 +2016,60 @@ Calibration:
         )}
       </main>
       <SaveExitButton onBeforeSave={() => {
-        const playData = logsRef.current.map(log => ({
-          eventName: log.event,
-          score: log.score,
-          hand: log.hand,
-          responsetime: log.timestamp
+        const playData = logsRef.current.map(log => {
+          let correct = undefined;
+          let responseTimeVal = log.timestamp;
+          if (log.event === 'drop_success') { correct = 1; responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0; }
+          else if (log.event === 'drop_miss') { correct = -1; responseTimeVal = log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : 0; }
+          else if (log.event === 'timeout') { correct = 0; responseTimeVal = -1; }
+          const entry = {
+            eventName: log.event,
+            responsetime: responseTimeVal,
+            trialId: log.trial_id || undefined,
+            hand: log.hand || undefined,
+            score: log.score !== undefined ? log.score : undefined,
+            correct,
+            elbowAngle: log.elbow_angle_deg !== undefined ? Number(log.elbow_angle_deg) : undefined,
+            shoulderAngle: log.shoulder_angle_deg !== undefined ? Number(log.shoulder_angle_deg) : undefined,
+            verticalAngle: log.vertical_angle_deg !== undefined ? Number(log.vertical_angle_deg) : undefined,
+            fruitId: log.fruit_id || undefined,
+            sourceIdx: log.source_idx !== undefined ? log.source_idx : undefined,
+            basketIdx: log.basket_idx !== undefined ? log.basket_idx : undefined,
+            trialDurationSec: log.trial_duration_sec ? parseFloat(log.trial_duration_sec) : undefined,
+            success: log.success !== undefined ? log.success : undefined,
+            aratScore: log.arat_score !== undefined ? log.arat_score : undefined,
+          };
+          Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
+          return entry;
+        });
+        const sessionMeta = {
+          mode: (assistiveModeLeftRef.current || assistiveModeRightRef.current) ? 'ASSISTIVE' : 'NORMAL',
+          handFunctionLeft: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? 'full' : 'limited',
+          handFunctionRight: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? 'full' : 'limited',
+        };
+        const trialWindows = [];
+        let currentWindow = null;
+        for (const log of logsRef.current) {
+          if (log.event === 'spawn') {
+            currentWindow = { trialId: log.trial_id, fruitId: log.fruit_id, sourceIdx: log.source_idx, basketIdx: log.basket_idx, startTimestamp: log.timestamp, endTimestamp: null, hand: null, outcome: null };
+          } else if (currentWindow && (log.event === 'drop_success' || log.event === 'drop_miss' || log.event === 'timeout')) {
+            currentWindow.endTimestamp = log.timestamp;
+            currentWindow.hand = log.hand || null;
+            currentWindow.outcome = log.event === 'drop_success' ? 'success' : log.event === 'drop_miss' ? 'miss' : 'timeout';
+            trialWindows.push({ ...currentWindow });
+            currentWindow = null;
+          }
+        }
+        const trials = trialWindows.map(win => ({
+          trialId: win.trialId, fruitId: win.fruitId, sourceIdx: win.sourceIdx, basketIdx: win.basketIdx,
+          hand: win.hand, startTimestamp: win.startTimestamp, endTimestamp: win.endTimestamp, outcome: win.outcome,
+          trajectory: coordinateLogRef.current.filter(pt => pt.timestamp >= win.startTimestamp && pt.timestamp <= (win.endTimestamp ?? Infinity)).map(pt => ({ ...pt })),
         }));
         gameSessionBuffer.update({ 
-          sessionScore: scoreRef.current, 
+          sessionScore: scoreRef.current,
+          sessionMeta,
           playData,
+          trials,
           coordinates: coordinateLogRef.current.map(p => ({ ...p }))
         });
       }} />

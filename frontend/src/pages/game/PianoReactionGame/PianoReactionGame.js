@@ -4,7 +4,8 @@ import { useAuth } from "../../../context/AuthContext";
 import { gameService } from "../../../services/gameService";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
-import { COORD_SAMPLE_INTERVAL_MS } from "../../../constants";
+import { COORD_SAMPLE_INTERVAL_MS, TESTING_PIANO_SEQUENCE, TESTING_PIANO_MOBILE_SEQUENCE } from "../../../constants";
+import { useSettings } from "../../../context/SettingsContext";
 import {
   Play,
   Pause,
@@ -225,6 +226,7 @@ const OnboardingScreen = ({ onNext, currentLevelSpan, isDarkMode }) => {
 };
 
 const PlayingGame = ({
+  timeRemaining,
   currentLevelSpan,
   currentNumSections,
   isPaused,
@@ -403,7 +405,13 @@ const PlayingGame = ({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2 p-3 bg-white border-b">
+      <div className="grid grid-cols-5 gap-2 p-3 bg-white border-b">
+        <div className="text-center border-r">
+          <p className="text-xs text-gray-600">Time</p>
+          <p className="text-lg font-bold text-blue-600">
+            {timeRemaining !== null ? `${Math.floor(timeRemaining / 60)}:${String(timeRemaining % 60).padStart(2, "0")}` : "--:--"}
+          </p>
+        </div>
         <div className="text-center">
           <p className="text-xs text-gray-600">Attempts</p>
           <p className="text-lg font-bold text-gray-800">{attemptCount}</p>
@@ -556,6 +564,7 @@ const PlayingGame = ({
 // --- Main Game Page Component ---
 const PianoReactionGame = () => {
   const { user, isDarkMode } = useAuth();
+  const { globalSettings } = useSettings();
   const navigate = useNavigate();
 
   // Detect screen size
@@ -615,6 +624,9 @@ const PianoReactionGame = () => {
   const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
   const [sectionStartTime, setSectionStartTime] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const overallTimerRef = useRef(null);
+  const sessionStartTimeRef = useRef(null);
   const [attemptCount, setAttemptCount] = useState(0);
   const [feedbackSection, setFeedbackSection] = useState(null);
   const [feedbackType, setFeedbackType] = useState(null);
@@ -892,6 +904,21 @@ const PianoReactionGame = () => {
     setSectionStartTime(Date.now());
     lastPressedKeyRef.current = null;
     
+    // Overall Timer
+    const sessionSeconds = globalSettings?.pianoSessionSeconds || 300;
+    setTimeRemaining(sessionSeconds);
+    sessionStartTimeRef.current = Date.now();
+    if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    overallTimerRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      const remaining = Math.max(0, sessionSeconds - elapsed);
+      setTimeRemaining(remaining);
+      if (remaining <= 0) {
+        clearInterval(overallTimerRef.current);
+        endGame();
+      }
+    }, 1000);
+    
     const targetGameType = exerciseType;
     const targetGameName = exerciseType === 'piano_finger' ? 'Piano - Finger Dexterity' : 'Piano - Wrist Movement';
 
@@ -905,7 +932,9 @@ const PianoReactionGame = () => {
       activeKeys.forEach(k => {
         const f = getFingerForKey(k);
         if (f) {
-          activeFingerTimeouts[f] = disabledKeys.includes(k) ? 0 : (fingerTimeouts[f] || 5);
+          const effDisabledKeys = globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys;
+          const effTimeout = globalSettings?.testingMode ? (globalSettings?.testingPianoKeyTimer || 5) : (fingerTimeouts[f] || 5);
+          activeFingerTimeouts[f] = effDisabledKeys.includes(k) ? 0 : effTimeout;
         }
       });
     }
@@ -929,36 +958,62 @@ const PianoReactionGame = () => {
     });
   };
 
+  const sequenceIndexRef = useRef(0);
+
   const showNextSection = (prevSection = null) => {
     const current = prevSection !== null ? prevSection : currentSection;
-    const validSections = activeKeys.map((key, idx) => ({ key, idx })).filter(item => !disabledKeys.includes(item.key));
+    const effectiveDisabledKeys = globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys;
+    const validSections = activeKeys.map((key, idx) => ({ key, idx })).filter(item => !effectiveDisabledKeys.includes(item.key));
     
-    let randomSection = current;
-    if (validSections.length > 1) {
-      do {
-        const randomIndex = Math.floor(Math.random() * validSections.length);
-        randomSection = validSections[randomIndex].idx;
-      } while (randomSection === current);
-    } else if (validSections.length === 1) {
-      randomSection = validSections[0].idx;
+    let nextSectionIdx = current;
+
+    if (globalSettings?.testingMode) {
+      let seq;
+      if (platform === 'mobile') {
+        seq = globalSettings?.testingPianoMobileSequence?.length > 0 ? globalSettings.testingPianoMobileSequence : TESTING_PIANO_MOBILE_SEQUENCE;
+      } else {
+        seq = globalSettings?.testingPianoSequence?.length > 0 ? globalSettings.testingPianoSequence : TESTING_PIANO_SEQUENCE;
+      }
+      let sequenceKeyIndex = seq[sequenceIndexRef.current % seq.length];
+      let sequenceKey = keysAll[sequenceKeyIndex];
+      sequenceIndexRef.current++;
+      const foundIdx = activeKeys.indexOf(sequenceKey);
+      if (foundIdx !== -1 && !effectiveDisabledKeys.includes(sequenceKey)) {
+        nextSectionIdx = foundIdx;
+      } else if (validSections.length > 0) {
+        nextSectionIdx = validSections[0].idx;
+      }
     } else {
-      randomSection = 0;
+      if (validSections.length > 1) {
+        do {
+          const randomIndex = Math.floor(Math.random() * validSections.length);
+          nextSectionIdx = validSections[randomIndex].idx;
+        } while (nextSectionIdx === current);
+      } else if (validSections.length === 1) {
+        nextSectionIdx = validSections[0].idx;
+      } else {
+        nextSectionIdx = 0;
+      }
     }
     
-    setCurrentSection(randomSection);
+    setCurrentSection(nextSectionIdx);
     setSectionStartTime(Date.now());
     setAttemptCount((old) => old + 1);
     if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
 
-    const targetKey = activeKeys[randomSection];
+    const targetKey = activeKeys[nextSectionIdx];
     const activeFinger = getFingerForKey(targetKey);
-    const timeoutSec = (activeFinger && fingerTimeouts[activeFinger])
+    let timeoutSec = (activeFinger && fingerTimeouts[activeFinger])
       ? fingerTimeouts[activeFinger]
       : currentLevelSpan;
 
+    if (globalSettings?.testingMode && globalSettings?.testingPianoKeyTimer) {
+      timeoutSec = globalSettings.testingPianoKeyTimer;
+    }
+
     sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
-        recordResponse("none", -1, 0, activeKeys[randomSection]);
+        recordResponse("none", -1, 0, activeKeys[nextSectionIdx]);
         if (platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) {
           gameSessionBuffer.addMobileMovement({
             key: 'none',
@@ -968,13 +1023,13 @@ const PianoReactionGame = () => {
             correct: 0
           });
         }
-        setFeedbackSection(randomSection);
+        setFeedbackSection(nextSectionIdx);
         setFeedbackType("notdone");
         playFeedbackSound("notdone");
         setTimeout(() => {
           setFeedbackSection(null);
           setFeedbackType(null);
-          showNextSection(randomSection);
+          showNextSection(nextSectionIdx);
         }, 300);
       }
     }, timeoutSec * 1000);
@@ -1223,6 +1278,7 @@ const PianoReactionGame = () => {
   if (isPlaying) {
     return (
       <PlayingGame
+        timeRemaining={timeRemaining}
         currentLevelSpan={currentLevelSpan}
         currentNumSections={activeKeys.length}
         isPaused={isPaused}
@@ -1251,7 +1307,7 @@ const PianoReactionGame = () => {
         keyboardLayout={keyboardLayout}
         mobileKeysCount={mobileKeysCount}
         fingerTimeouts={fingerTimeouts}
-        disabledKeys={disabledKeys}
+        disabledKeys={globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys}
       />
     );
   }

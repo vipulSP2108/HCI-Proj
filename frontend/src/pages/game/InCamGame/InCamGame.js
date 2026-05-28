@@ -5,7 +5,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
-import { COORD_SAMPLE_INTERVAL_MS, MAX_COORDS_PER_SESSION } from "../../../constants";
+import { COORD_SAMPLE_INTERVAL_MS, MAX_COORDS_PER_SESSION, TESTING_SHAPE_SEQUENCE } from "../../../constants";
+import { useSettings } from "../../../context/SettingsContext";
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: 300,
@@ -89,6 +90,7 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
 // ==================== MAIN COMPONENT ====================
 const InCamGame = () => {
   const { user, isDarkMode } = useAuth();
+  const { globalSettings } = useSettings();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -208,8 +210,16 @@ const InCamGame = () => {
   };
 
   // ==================== SPAWN SHAPE ====================
+  const sequenceIndexRef = useRef(0);
   const spawnShape = useCallback(() => {
-    const type = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    let type;
+    if (globalSettings?.testingMode) {
+      type = TESTING_SHAPE_SEQUENCE[sequenceIndexRef.current % TESTING_SHAPE_SEQUENCE.length];
+      sequenceIndexRef.current++;
+    } else {
+      type = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    }
+
     const points = generateShapePoints(type);
     shapeRef.current = {
       type,
@@ -227,7 +237,7 @@ const InCamGame = () => {
       num_points: points.length,
       score: scoreRef.current,
     });
-  }, []);
+  }, [globalSettings]);
 
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
@@ -899,14 +909,15 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     logsRef.current = [];
     sessionStartRef.current = Date.now();
 
+    const sessionSeconds = globalSettings?.inCamGameSessionSeconds || CONFIG.SESSION_SECONDS;
     spawnShape();
-    setTimeRemaining(CONFIG.SESSION_SECONDS);
+    setTimeRemaining(sessionSeconds);
     setSuccessRate(0);
     setIsSessionActive(true);
 
     timerIntervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
-      const remaining = Math.max(0, CONFIG.SESSION_SECONDS - elapsed);
+      const remaining = Math.max(0, sessionSeconds - elapsed);
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {

@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true, minlength: 6 },
   phone: { type: String, required: true },
-  type: { type: String, enum: ['doctor', 'patient', 'caretaker'], required: true },
+  type: { type: String, enum: ['doctor', 'patient', 'caretaker', 'admin'], required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   currentlevelspan: { type: Number, default: 5 },
   degree: { type: String },

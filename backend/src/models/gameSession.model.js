@@ -13,13 +13,31 @@ const coordinateSchema = new mongoose.Schema({
   timestamp: Number,
   zone: String,
   color: String,
+  // Joint positions
   leftShoulder: jointCoordinateSchema,
   rightShoulder: jointCoordinateSchema,
   leftElbow: jointCoordinateSchema,
   rightElbow: jointCoordinateSchema,
   leftWrist: jointCoordinateSchema,
   rightWrist: jointCoordinateSchema,
-  palm: jointCoordinateSchema
+  palm: jointCoordinateSchema,
+  // Per-side angles (Board Drawing - both sides tracked simultaneously)
+  elbowAngleLeft: Number,     // interior angle at left elbow, -1 if invisible
+  elbowAngleRight: Number,
+  shoulderAngleLeft: Number,  // abduction: otherShoulder→shoulder vs shoulder→elbow, -1 if invisible
+  shoulderAngleRight: Number,
+  verticalAngleLeft: Number,  // upper arm vs vertical down, -1 if invisible
+  verticalAngleRight: Number,
+  // Single-hand fields (Fruit Basket / Piano)
+  hand: String,
+  elbowAngle: Number,
+  shoulderAngle: Number,
+  verticalAngle: Number,
+  // Fruit Basket specific
+  event: String,
+  trialId: Number,
+  success: Boolean,
+  aratScore: Number
 }, { _id: false });
 
 const boardDrawingAttemptSchema = new mongoose.Schema({
@@ -32,7 +50,7 @@ const boardDrawingAttemptSchema = new mongoose.Schema({
   canvasWidth: { type: Number },
   canvasHeight: { type: Number },
   targetPath: [coordinateSchema],
-  drawnPath: [coordinateSchema],
+  drawnPath: [coordinateSchema],  // includes per-point angles
   pathMatrix: [[Number]],
   hits: { type: Number },
   total: { type: Number },
@@ -47,14 +65,25 @@ const boardDrawingAttemptSchema = new mongoose.Schema({
 
 const playEntrySchema = new mongoose.Schema({
   responsetime: { type: Number },
-  correct: { type: Number }, // -1, 0, 1 for legacy support
+  correct: { type: Number },
   score: { type: Number },
   accuracy: { type: Number },
   attempts: { type: Number },
   successes: { type: Number },
   eventName: { type: String },
   shapeType: { type: String },
-  hand: { type: String }
+  hand: { type: String },
+  trialId: { type: Number },
+  elbowAngle: { type: Number },
+  shoulderAngle: { type: Number },
+  verticalAngle: { type: Number },
+  fruitId: { type: String },
+  sourceIdx: { type: Number },
+  basketIdx: { type: Number },
+  trialDurationSec: { type: Number },
+  success: { type: Boolean },
+  aratScore: { type: Number },
+  meta: { type: mongoose.Schema.Types.Mixed }
 }, { _id: false });
 
 const systemMetricsSchema = new mongoose.Schema({
