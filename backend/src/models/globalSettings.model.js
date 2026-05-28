@@ -124,6 +124,18 @@ const globalSettingsSchema = new mongoose.Schema({
   boardDrawingCoordSampleMs: {
     type: Number,
     default: 150
+  },
+  fruitBasketCooldownSeconds: {
+    type: Number,
+    default: 3
+  },
+  fruitBasketMaxAttempts: {
+    type: Number,
+    default: 3
+  },
+  fruitBasketAttemptTimeoutSeconds: {
+    type: Number,
+    default: 10
   }
 }, { timestamps: true });
 

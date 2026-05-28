@@ -6,17 +6,26 @@ import { useNavigate } from 'react-router-dom';
  * Sticky "Save & Exit" floating button for all games.
  * Shows a confirmation dialog, flushes local buffer to backend, then navigates back.
  */
-const SaveExitButton = ({ onBeforeSave, disabled }) => {
+const SaveExitButton = ({ onBeforeSave, onSaveStart, onSaveCancel, disabled }) => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveAndExit = async () => {
     if (isSaving) return;
 
+    if (onSaveStart) {
+      onSaveStart();
+    }
+
     const confirmed = window.confirm(
       'Save your session and exit the game?\n\nYour progress will be saved to your dashboard.'
     );
-    if (!confirmed) return;
+    if (!confirmed) {
+      if (onSaveCancel) {
+        onSaveCancel();
+      }
+      return;
+    }
 
     setIsSaving(true);
     try {

@@ -41,7 +41,10 @@ const updateSettings = async (req, res) => {
       'testingShapeSessionSeconds',
       'testingPianoWristKeysCount',
       'testingPianoWristTimer',
-      'testingPianoWristSequence'
+      'testingPianoWristSequence',
+      'fruitBasketCooldownSeconds',
+      'fruitBasketMaxAttempts',
+      'fruitBasketAttemptTimeoutSeconds'
     ];
     fields.forEach(field => {
       if (req.body[field] !== undefined) settings[field] = req.body[field];

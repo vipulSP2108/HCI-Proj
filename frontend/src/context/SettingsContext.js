@@ -13,7 +13,10 @@ export const SettingsProvider = ({ children }) => {
     boardDrawingSessionSeconds: 300,
     fruitBasketSessionSeconds: 300,
     shapeTracingSessionSeconds: 300,
-    inCamGameSessionSeconds: 300
+    inCamGameSessionSeconds: 300,
+    fruitBasketCooldownSeconds: 3,
+    fruitBasketMaxAttempts: 3,
+    fruitBasketAttemptTimeoutSeconds: 10
   });
 
   const fetchSettings = async () => {

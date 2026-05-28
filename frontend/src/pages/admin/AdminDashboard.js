@@ -26,6 +26,9 @@ const AdminDashboard = () => {
     testingPianoWristKeysCount: 4,
     testingPianoWristTimer: 5,
     testingPianoWristSequence: TESTING_PIANO_SEQUENCE,
+    fruitBasketCooldownSeconds: 3,
+    fruitBasketMaxAttempts: 3,
+    fruitBasketAttemptTimeoutSeconds: 10
   });
   const { isDarkMode, toggleDarkMode } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -58,6 +61,9 @@ const AdminDashboard = () => {
           testingPianoWristKeysCount: response.data.testingPianoWristKeysCount ?? 4,
           testingPianoWristTimer: response.data.testingPianoWristTimer ?? 5,
           testingPianoWristSequence: response.data.testingPianoWristSequence ?? TESTING_PIANO_SEQUENCE,
+          fruitBasketCooldownSeconds: response.data.fruitBasketCooldownSeconds ?? 3,
+          fruitBasketMaxAttempts: response.data.fruitBasketMaxAttempts ?? 3,
+          fruitBasketAttemptTimeoutSeconds: response.data.fruitBasketAttemptTimeoutSeconds ?? 10,
         });
       }
     } catch (err) {
@@ -399,6 +405,55 @@ const AdminDashboard = () => {
                     />
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Fruit Fetch Configuration */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Settings className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                <h3 className="text-lg font-semibold">Fruit Fetch Game Settings</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Cooldown Time (seconds)</label>
+                  <input
+                    type="number"
+                    name="fruitBasketCooldownSeconds"
+                    value={settings.fruitBasketCooldownSeconds}
+                    onChange={handleChange}
+                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                    min="1"
+                    max="10"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-0.5">Time between fruit spawns</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Max Attempts per Trial</label>
+                  <input
+                    type="number"
+                    name="fruitBasketMaxAttempts"
+                    value={settings.fruitBasketMaxAttempts}
+                    onChange={handleChange}
+                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                    min="1"
+                    max="10"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-0.5">Attempts allowed before trial fails</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Attempt Timeout (seconds)</label>
+                  <input
+                    type="number"
+                    name="fruitBasketAttemptTimeoutSeconds"
+                    value={settings.fruitBasketAttemptTimeoutSeconds}
+                    onChange={handleChange}
+                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                    min="2"
+                    max="60"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-0.5">Timer for each attempt/failure</p>
+                </div>
               </div>
             </div>
 

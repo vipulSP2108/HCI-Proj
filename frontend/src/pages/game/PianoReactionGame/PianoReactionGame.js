@@ -542,7 +542,7 @@ const PlayingGame = ({
 
       </div>
 
-      <SaveExitButton onBeforeSave={onBeforeSave} />
+      <SaveExitButton onBeforeSave={onBeforeSave} onSaveStart={onPause} onSaveCancel={onResume} />
 
       {!isPaused && (
         <div
@@ -1225,6 +1225,17 @@ const PianoReactionGame = () => {
   };
 
   const handleBeforeSave = () => {
+    setIsPlaying(false);
+    setIsPaused(true);
+    if (sectionTimerRef.current) {
+      clearTimeout(sectionTimerRef.current);
+      sectionTimerRef.current = null;
+    }
+    if (overallTimerRef.current) {
+      clearInterval(overallTimerRef.current);
+      overallTimerRef.current = null;
+    }
+
     const calculatedScore = playData.reduce((acc, p) => {
       if (p.correct === 1) return acc + 10;
       if (p.correct === -1) return acc - 5;
@@ -1852,7 +1863,7 @@ const PianoReactionGame = () => {
         )}
 
       </div>
-      <SaveExitButton onBeforeSave={handleBeforeSave} />
+      <SaveExitButton onBeforeSave={handleBeforeSave} onSaveStart={pauseGame} onSaveCancel={resumeGame} />
     </div>
   );
 };
