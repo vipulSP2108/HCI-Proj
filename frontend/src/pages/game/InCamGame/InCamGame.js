@@ -1008,6 +1008,38 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     window.location.reload();
   };
 
+  const handleQuitOrBack = async () => {
+    if (gameSessionBuffer.hasPending()) {
+      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
+      if (save) {
+        const playData = logsRef.current.map(log => ({
+          eventName: log.event,
+          score: log.score,
+          hand: log.hand,
+          responsetime: log.timestamp,
+          shapeType: log.shape_type
+        }));
+        gameSessionBuffer.update({
+          sessionScore: scoreRef.current,
+          playData,
+          coordinates: coordinateLogRef.current.map(p => ({ ...p }))
+        });
+        if (gameSessionBuffer.hasPending()) {
+          await gameSessionBuffer.saveAndExit();
+        }
+        window.history.back();
+      } else {
+        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
+        if (discard) {
+          gameSessionBuffer.discard();
+          window.history.back();
+        }
+      }
+    } else {
+      window.history.back();
+    }
+  };
+
   const handleMouseFallbackChange = (e) => {
     const checked = e.target.checked;
     setUsingMouseFallback(checked);
@@ -1193,6 +1225,9 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             </button>
             <button onClick={handleReset} style={styles.actionButton}>
               🔄 Reset
+            </button>
+            <button onClick={handleQuitOrBack} style={{ ...styles.actionButton, backgroundColor: '#dc3545', color: '#fff' }}>
+              🚪 Quit
             </button>
           </div>
         </div>

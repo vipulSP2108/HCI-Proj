@@ -268,27 +268,71 @@ const BoardDrawingGame = () => {
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [successRate, setSuccessRate] = useState(0);
 
-  const [handPoseMode, setHandPoseModeState] = useState(globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict");
+  const [selectedShape, setSelectedShape] = useState(() => {
+    return localStorage.getItem("board_drawing_selected_shape") || "random";
+  });
+  const selectedShapeRef = useRef("random");
+
+  useEffect(() => {
+    selectedShapeRef.current = selectedShape;
+    localStorage.setItem("board_drawing_selected_shape", selectedShape);
+  }, [selectedShape]);
+
+  const [handPoseMode, setHandPoseModeState] = useState(() => {
+    const saved = localStorage.getItem("board_drawing_hand_pose_mode");
+    if (saved) return saved;
+    return globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict";
+  });
   const handPoseModeRef = useRef(globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict");
   
   useEffect(() => {
-    if (globalSettings?.boardDrawingAssistiveMode !== undefined) {
+    if (globalSettings?.boardDrawingAssistiveMode !== undefined && !localStorage.getItem("board_drawing_hand_pose_mode")) {
       const mode = globalSettings.boardDrawingAssistiveMode ? "any" : "strict";
       setHandPoseModeState(mode);
       handPoseModeRef.current = mode;
     }
   }, [globalSettings?.boardDrawingAssistiveMode]);
 
+  useEffect(() => {
+    handPoseModeRef.current = handPoseMode;
+    localStorage.setItem("board_drawing_hand_pose_mode", handPoseMode);
+  }, [handPoseMode]);
+
   const toggleHandPoseMode = () => {
     const newMode = handPoseMode === "strict" ? "any" : "strict";
     setHandPoseModeState(newMode);
-    handPoseModeRef.current = newMode;
   };
 
-  const [safeZoneRadius, setSafeZoneRadius] = useState(BOARD_DRAWING_DEFAULT_SAFE_ZONE_RADIUS);
+  const [safeZoneRadius, setSafeZoneRadius] = useState(() => {
+    const saved = localStorage.getItem("board_drawing_safe_zone_radius");
+    return saved ? parseFloat(saved) : BOARD_DRAWING_DEFAULT_SAFE_ZONE_RADIUS;
+  });
   const safeZoneRadiusRef = useRef(BOARD_DRAWING_DEFAULT_SAFE_ZONE_RADIUS);
-  const [warningZoneRadius, setWarningZoneRadius] = useState(BOARD_DRAWING_DEFAULT_WARNING_ZONE_RADIUS);
+  const [warningZoneRadius, setWarningZoneRadius] = useState(() => {
+    const saved = localStorage.getItem("board_drawing_warning_zone_radius");
+    return saved ? parseFloat(saved) : BOARD_DRAWING_DEFAULT_WARNING_ZONE_RADIUS;
+  });
   const warningZoneRadiusRef = useRef(BOARD_DRAWING_DEFAULT_WARNING_ZONE_RADIUS);
+
+  useEffect(() => {
+    safeZoneRadiusRef.current = safeZoneRadius;
+    localStorage.setItem("board_drawing_safe_zone_radius", safeZoneRadius.toString());
+  }, [safeZoneRadius]);
+
+  useEffect(() => {
+    warningZoneRadiusRef.current = warningZoneRadius;
+    localStorage.setItem("board_drawing_warning_zone_radius", warningZoneRadius.toString());
+  }, [warningZoneRadius]);
+
+  const isSessionActiveRef = useRef(false);
+  const shapeTimerRef = useRef(null);
+
+  useEffect(() => {
+    isSessionActiveRef.current = isSessionActive;
+    if (!isSessionActive) {
+      if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    }
+  }, [isSessionActive]);
 
   // Hand State
   const [leftHandVisible, setLeftHandVisible] = useState(false);
@@ -668,7 +712,7 @@ const BoardDrawingGame = () => {
       shapeType = seq[sequenceIndexRef.current % seq.length];
       sequenceIndexRef.current++;
     } else {
-      shapeType = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      shapeType = selectedShapeRef.current === "random" ? SHAPES[Math.floor(Math.random() * SHAPES.length)] : selectedShapeRef.current;
     }
 
     const points = generateShapePoints(shapeType);
@@ -703,7 +747,28 @@ const BoardDrawingGame = () => {
     if (localGameIdRef.current) {
       GameStorage.updateBgCoordinates(localGameIdRef.current, shapeRef.current.points);
     }
-  }, [pickNewShape, nowSec]);
+
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    if (globalSettings?.testingMode) {
+      const timerSec = globalSettings.testingShapeTimer || 120;
+      shapeTimerRef.current = setTimeout(() => {
+        if (isSessionActiveRef.current) {
+          showStatus("⏱️ Target shape timed out! Loading next...", 2000);
+          if (shapeRef.current) {
+            logsRef.current.push({
+              timestamp: nowSec(),
+              event: "shape_timeout",
+              shape_type: shapeRef.current.type,
+            });
+            attemptsRef.current++;
+          }
+          currentTargetIdxRef.current = 0;
+          drawnPathRef.current = [];
+          spawnShape();
+        }
+      }, timerSec * 1000);
+    }
+  }, [pickNewShape, nowSec, globalSettings]);
 
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
@@ -1132,6 +1197,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               2000,
             );
             gestureResetRequiredRef.current = true;
+            if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
             spawnShape();
           } else {
             boardDrawingAttemptsRef.current.push(
@@ -1407,7 +1473,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       ctx.beginPath();
       ctx.fillStyle = canDraw
         ? "rgba(50, 200, 80, 0.95)" // green for can draw
-        : "rgba(220, 50, 50, 0.95)"; // red for cannot draw
+        : "rgba(220, 50, 50, 0.95)" // red for cannot draw
       ctx.arc(px, py, 14 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#fff";
@@ -1644,7 +1710,9 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     lastCoordTimeRef.current = 0;
     sessionStartRef.current = Date.now();
 
-    const sessionSeconds = globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS;
+    const sessionSeconds = globalSettings?.testingMode
+       ? (globalSettings?.testingShapeSessionSeconds || 600)
+       : (globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS);
     
     spawnShape();
     setTimeRemaining(sessionSeconds);
@@ -1707,7 +1775,31 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     );
   };
 
+  const handleQuitOrBack = async () => {
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    if (gameSessionBuffer.hasPending()) {
+      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
+      if (save) {
+        finalizeActiveDrawingAttempt();
+        persistBoardDrawingBuffer();
+        if (gameSessionBuffer.hasPending()) {
+          await gameSessionBuffer.saveAndExit();
+        }
+        window.history.back();
+      } else {
+        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
+        if (discard) {
+          gameSessionBuffer.discard();
+          window.history.back();
+        }
+      }
+    } else {
+      window.history.back();
+    }
+  };
+
   const handleReset = () => {
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
     window.location.reload();
   };
 
@@ -1939,6 +2031,35 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             {handPoseMode === "strict" ? "✊ Posture: Strict (Pinch to Draw)" : "✋ Posture: Any (Always Draw)"}
           </button>
           
+          <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
+            <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
+              🎯 Target Figure/Shape
+            </div>
+            <select
+              value={selectedShape}
+              onChange={(e) => setSelectedShape(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid ' + (isDarkMode ? '#475569' : '#cbd5e1'),
+                background: isDarkMode ? '#0f172a' : '#ffffff',
+                color: isDarkMode ? '#f8fafc' : '#0f172a',
+                fontSize: '13px',
+                fontWeight: '600',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="random">Randomize (Change Each Round)</option>
+              {SHAPES.map(s => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
             <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
               🔧 Tracing Zone Adjustments
@@ -2011,14 +2132,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
         <div style={styles.actions}>
           <button
-            onClick={() => {
-              if (gameSessionBuffer.hasPending()) {
-                const discard = window.confirm('You have unsaved data. Discard and quit?');
-                if (discard) { gameSessionBuffer.discard(); window.history.back(); }
-              } else {
-                window.history.back();
-              }
-            }}
+            onClick={handleQuitOrBack}
             style={themeStyles.actionButton}
           >
             Quit Session

@@ -1,5 +1,5 @@
 // Toggle this to false when pushing to production/Vercel
-export const IS_LOCAL = false;
+export const IS_LOCAL = true;
 
 export const API_BASE_URL = IS_LOCAL
   ? "http://localhost:5001/api"
@@ -70,8 +70,12 @@ export const SHAPE_TRACING_DRAW_FPS = 30;
 // to ensure exact repeatability across sessions.
 
 // Sequence of shape names to draw/trace (loops if exhausted)
+// export const TESTING_SHAPE_SEQUENCE = [
+//   'circle', 'triangle', 'square', 'spiral', 'infinity', 'zigzag', 'star', 'hexagon'
+// ];
+
 export const TESTING_SHAPE_SEQUENCE = [
-  'circle', 'triangle', 'square', 'spiral', 'infinity', 'zigzag', 'star', 'hexagon'
+  'circle', 'triangle', 'square', 'spiral', 'star'
 ];
 
 // Sequence of key indices for Piano game (loops if exhausted)
@@ -89,5 +93,36 @@ export const TESTING_FRUIT_BASKET_SEQUENCE = [
   { sourceIdx: 1, basketIdx: 7 },
   { sourceIdx: 3, basketIdx: 5 },
   { sourceIdx: 5, basketIdx: 3 },
-  { sourceIdx: 7, basketIdx: 1 }
+  { sourceIdx: 7, basketIdx: 1 },
+  { sourceIdx: 0, basketIdx: 5 },
+  { sourceIdx: 8, basketIdx: 3 },
+  { sourceIdx: 2, basketIdx: 7 },
+  { sourceIdx: 6, basketIdx: 1 },
+  { sourceIdx: 4, basketIdx: 8 },
+  { sourceIdx: 1, basketIdx: 6 },
+  { sourceIdx: 7, basketIdx: 2 },
+  { sourceIdx: 3, basketIdx: 8 },
+  { sourceIdx: 5, basketIdx: 0 },
+  { sourceIdx: 0, basketIdx: 7 },
+  { sourceIdx: 8, basketIdx: 1 },
+  { sourceIdx: 2, basketIdx: 5 },
+  { sourceIdx: 6, basketIdx: 3 },
+  { sourceIdx: 4, basketIdx: 6 },
+  { sourceIdx: 1, basketIdx: 8 },
+  { sourceIdx: 7, basketIdx: 0 },
+  { sourceIdx: 3, basketIdx: 6 },
+  { sourceIdx: 5, basketIdx: 2 },
+  { sourceIdx: 0, basketIdx: 6 },
+  { sourceIdx: 8, basketIdx: 0 },
+  { sourceIdx: 2, basketIdx: 8 },
+  { sourceIdx: 6, basketIdx: 2 },
+  { sourceIdx: 4, basketIdx: 7 },
+  { sourceIdx: 1, basketIdx: 5 },
+  { sourceIdx: 7, basketIdx: 3 },
+  { sourceIdx: 3, basketIdx: 7 },
+  { sourceIdx: 5, basketIdx: 1 },
+  { sourceIdx: 0, basketIdx: 3 },
+  { sourceIdx: 8, basketIdx: 5 },
+  { sourceIdx: 2, basketIdx: 4 },
+  { sourceIdx: 6, basketIdx: 8 }
 ];

@@ -3,6 +3,7 @@ import { Pose } from "@mediapipe/pose";
 import { Camera } from "@mediapipe/camera_utils";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { useSettings } from "../../../context/SettingsContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
 import {
@@ -18,6 +19,7 @@ import {
   SHAPE_TRACING_SMOOTH_ALPHA,
   SHAPE_TRACING_STABLE_FRAMES,
   SHAPE_TRACING_DRAW_FPS,
+  TESTING_SHAPE_SEQUENCE,
 } from "../../../constants";
 // ==================== CONFIGURATION ====================
 const CONFIG = {
@@ -140,12 +142,34 @@ const generateShapePoints = (type, numPoints = CONFIG.NUM_SHAPE_POINTS) => {
 // ==================== MAIN COMPONENT ====================
 const ShapeTracingGame = () => {
   const { user, isDarkMode } = useAuth();
+  const { globalSettings } = useSettings();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [selectedShape, setSelectedShape] = useState(() => {
+    return localStorage.getItem("shape_tracing_selected_shape") || "random";
+  });
+  const selectedShapeRef = useRef("random");
+
+  useEffect(() => {
+    selectedShapeRef.current = selectedShape;
+    localStorage.setItem("shape_tracing_selected_shape", selectedShape);
+  }, [selectedShape]);
+
+  const isSessionActiveRef = useRef(false);
+  const shapeTimerRef = useRef(null);
+  const sequenceIndexRef = useRef(0);
+
+  useEffect(() => {
+    isSessionActiveRef.current = isSessionActive;
+    if (!isSessionActive) {
+      if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    }
+  }, [isSessionActive]);
+
   const [usingMouseFallback, setUsingMouseFallback] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [statusMessage, setStatusMessage] = useState({
@@ -258,7 +282,15 @@ const ShapeTracingGame = () => {
 
   // ==================== SPAWN SHAPE ====================
   const spawnShape = useCallback(() => {
-    const type = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    let type;
+    if (globalSettings?.testingMode) {
+      const seq = globalSettings?.testingShapeSequence?.length > 0 ? globalSettings.testingShapeSequence : TESTING_SHAPE_SEQUENCE;
+      type = seq[sequenceIndexRef.current % seq.length];
+      sequenceIndexRef.current++;
+    } else {
+      type = selectedShapeRef.current === "random" ? SHAPES[Math.floor(Math.random() * SHAPES.length)] : selectedShapeRef.current;
+    }
+
     const points = generateShapePoints(type);
     shapeRef.current = {
       type,
@@ -276,7 +308,28 @@ const ShapeTracingGame = () => {
       num_points: points.length,
       score: scoreRef.current,
     });
-  }, []);
+
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    if (globalSettings?.testingMode) {
+      const timerSec = globalSettings.testingShapeTimer || 120;
+      shapeTimerRef.current = setTimeout(() => {
+        if (isSessionActiveRef.current) {
+          showStatus("⏱️ Target shape timed out! Loading next...", 2000);
+          if (shapeRef.current) {
+            logsRef.current.push({
+              timestamp: nowSec(),
+              event: "shape_timeout",
+              shape_type: shapeRef.current.type,
+            });
+            attemptsRef.current++;
+          }
+          currentTargetIdxRef.current = 0;
+          drawnPathRef.current = [];
+          spawnShape();
+        }
+      }, timerSec * 1000);
+    }
+  }, [selectedShape, nowSec, globalSettings]);
 
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
@@ -579,6 +632,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               `✅ Shape completed! ${Math.round(completion * 100)}% accuracy +${CONFIG.SCORE_PER_SHAPE} points`,
               2000,
             );
+            if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
             spawnShape();
           } else {
             attemptsRef.current++;
@@ -917,14 +971,18 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     logsRef.current = [];
     sessionStartRef.current = Date.now();
 
+    const sessionSeconds = globalSettings?.testingMode
+      ? (globalSettings?.testingShapeSessionSeconds || 600)
+      : CONFIG.SESSION_SECONDS;
+
     spawnShape();
-    setTimeRemaining(CONFIG.SESSION_SECONDS);
+    setTimeRemaining(sessionSeconds);
     setSuccessRate(0);
     setIsSessionActive(true);
 
     timerIntervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
-      const remaining = Math.max(0, CONFIG.SESSION_SECONDS - elapsed);
+      const remaining = Math.max(0, sessionSeconds - elapsed);
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {
@@ -1011,7 +1069,41 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     URL.revokeObjectURL(url);
   };
 
+  const handleQuitOrBack = async () => {
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+    if (gameSessionBuffer.hasPending()) {
+      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
+      if (save) {
+        const playData = logsRef.current.map(log => ({
+          eventName: log.event,
+          score: log.score,
+          hand: log.hand,
+          responsetime: log.timestamp,
+          shapeType: log.shape_type
+        }));
+        gameSessionBuffer.update({
+          sessionScore: scoreRef.current,
+          playData,
+          coordinates: coordinateLogRef.current.map(p => ({ ...p }))
+        });
+        if (gameSessionBuffer.hasPending()) {
+          await gameSessionBuffer.saveAndExit();
+        }
+        window.history.back();
+      } else {
+        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
+        if (discard) {
+          gameSessionBuffer.discard();
+          window.history.back();
+        }
+      }
+    } else {
+      window.history.back();
+    }
+  };
+
   const handleReset = () => {
+    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
     window.location.reload();
   };
 
@@ -1230,6 +1322,35 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               </div>
             </div>
           </div>
+          {/* Target Shape Select Dropdown */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#575f56', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
+              🎯 Target Figure/Shape
+            </label>
+            <select
+              value={selectedShape}
+              onChange={(e) => setSelectedShape(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid ' + (isDarkMode ? '#4b5563' : '#ccc'),
+                background: isDarkMode ? '#111827' : '#fff',
+                color: isDarkMode ? '#fff' : '#333',
+                fontSize: '13px',
+                fontWeight: '600',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="random">Randomize (Change Each Round)</option>
+              {SHAPES.map(s => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
           <div style={styles.actions}>
             <button
               onClick={handleStartCalibration}
@@ -1239,20 +1360,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               📏 Calibrate
             </button>
             <button
-              onClick={() => setIsSessionActive(!isSessionActive)}
+              onClick={() => {
+                if (isSessionActive) {
+                  handleEndSession();
+                } else {
+                  handleStartSession();
+                }
+              }}
               style={styles.controlButton}
             >
               {isSessionActive ? "Pause Session" : "Start Session"}
             </button>
             <button
-              onClick={() => {
-                if (gameSessionBuffer.hasPending()) {
-                  const discard = window.confirm('You have unsaved data. Discard and quit?');
-                  if (discard) { gameSessionBuffer.discard(); window.history.back(); }
-                } else {
-                  window.history.back();
-                }
-              }}
+              onClick={handleQuitOrBack}
               style={styles.actionButton}
             >
               Quit

@@ -370,7 +370,7 @@ const PlayingGame = ({
         <div className="flex flex-col">
           <h1 className="text-xl font-bold">Piano Reaction Game</h1>
           <span className="text-[10px] text-white/80 font-bold uppercase tracking-wider">
-            {platform === 'laptop' 
+            {platform === 'laptop'
               ? `💻 Laptop Mode - ${exerciseType === 'piano_finger' ? 'Finger Dexterity' : 'Wrist Movement (Cursor Only)'}`
               : `📱 Mobile Mode - Wrist Movement (${mobileKeysCount} keys)`
             }
@@ -379,9 +379,8 @@ const PlayingGame = ({
         <div className="flex gap-2 items-center">
           <button
             onClick={isPaused ? onResume : onPause}
-            className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-semibold ${
-              isPaused ? "bg-green-500 hover:bg-green-600 text-white" : "bg-yellow-400 hover:bg-yellow-500 text-gray-900"
-            }`}
+            className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-semibold ${isPaused ? "bg-green-500 hover:bg-green-600 text-white" : "bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+              }`}
           >
             {isPaused ? (
               <><Play className="w-4 h-4" /> Resume</>
@@ -413,7 +412,7 @@ const PlayingGame = ({
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-600">Attempts</p>
+          <p className="text-xs text-gray-600">Current Attempt</p>
           <p className="text-lg font-bold text-gray-800">{attemptCount}</p>
         </div>
         <div className="text-center">
@@ -511,32 +510,36 @@ const PlayingGame = ({
         </div>
 
         {/* Keyboard / Touch Hints */}
-        <div className="flex justify-center flex-wrap gap-2">
-          {activeKeys.map((key, index) => {
-            const fingerLabel = getFingerLabel(index, activeKeys.length);
-            const activeFinger = getFingerForKey(key);
-            const timeoutVal = (activeFinger && fingerTimeouts[activeFinger])
-              ? fingerTimeouts[activeFinger]
-              : currentLevelSpan;
-            return (
-              <div
-                key={key}
-                className="px-4 py-3 rounded-lg shadow-lg border-2 text-center touch-manipulation min-w-[70px]"
-                style={{
-                  backgroundColor: LIGHT_BLUE,
-                  borderColor: PRIMARY_BLUE,
-                }}
-              >
-                <p className="text-xs md:text-sm text-white font-semibold">{fingerLabel || 'Key'}</p>
-                <p className="text-3xl md:text-4xl font-bold text-white">{key}</p>
-                <p className="text-sm text-white/80">{noteNames[index]}</p>
-                {(platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) && (
-                  <p className="text-xs md:text-sm text-white/95 font-bold mt-1">({timeoutVal}s)</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {
+          exerciseType === 'piano_finger' &&
+          <div className="flex justify-center flex-wrap gap-2">
+            {activeKeys.map((key, index) => {
+              const fingerLabel = getFingerLabel(index, activeKeys.length);
+              const activeFinger = getFingerForKey(key);
+              const timeoutVal = (activeFinger && fingerTimeouts[activeFinger])
+                ? fingerTimeouts[activeFinger]
+                : currentLevelSpan;
+              return (
+                <div
+                  key={key}
+                  className="px-4 py-3 rounded-lg shadow-lg border-2 text-center touch-manipulation min-w-[70px]"
+                  style={{
+                    backgroundColor: LIGHT_BLUE,
+                    borderColor: PRIMARY_BLUE,
+                  }}
+                >
+                  <p className="text-xs md:text-sm text-white font-semibold">{fingerLabel || 'Key'}</p>
+                  <p className="text-3xl md:text-4xl font-bold text-white">{key}</p>
+                  <p className="text-sm text-white/80">{noteNames[index]}</p>
+                  {(platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) && (
+                    <p className="text-xs md:text-sm text-white/95 font-bold mt-1">({timeoutVal}s)</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        }
+
       </div>
 
       <SaveExitButton onBeforeSave={onBeforeSave} />
@@ -546,7 +549,7 @@ const PlayingGame = ({
           tabIndex={-1}
           className="invisible fixed inset-0"
           onKeyDown={(e) => {
-            if (exerciseType === 'piano_ankle') return;
+            if (exerciseType === 'piano_ankle' || exerciseType === 'piano_wrist' || platform === 'mobile') return;
             const userKey = e.key.toLowerCase();
             const activeKeysLower = activeKeys.map(k => k.toLowerCase());
             if (activeKeysLower.includes(userKey)) {
@@ -605,7 +608,7 @@ const PianoReactionGame = () => {
       rightIndex: 5, rightMiddle: 5, rightRing: 5, rightPinky: 5
     };
     if (saved) {
-      try { return { ...defaults, ...JSON.parse(saved) }; } catch (e) {}
+      try { return { ...defaults, ...JSON.parse(saved) }; } catch (e) { }
     }
     return defaults;
   });
@@ -617,9 +620,15 @@ const PianoReactionGame = () => {
 
   // Base state settings
   const [isOnboarding, setIsOnboarding] = useState(true);
-  const [currentLevelSpan, setCurrentLevelSpan] = useState(5);
+  const [currentLevelSpan, setCurrentLevelSpan] = useState(() => {
+    const saved = localStorage.getItem("piano_level_span");
+    return saved ? parseInt(saved, 10) : 5;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentNumSections, setCurrentNumSections] = useState(4); // Default to 4 keys for Laptop Ankle
+  const [currentNumSections, setCurrentNumSections] = useState(() => {
+    const saved = localStorage.getItem("piano_num_sections");
+    return saved ? parseInt(saved, 10) : 4;
+  }); // Default to 4 keys for Laptop Ankle
   const [isPaused, setIsPaused] = useState(false);
   const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
@@ -639,6 +648,7 @@ const PianoReactionGame = () => {
 
   const sectionTimerRef = useRef(null);
   const lastPressedKeyRef = useRef(null);
+  const lastPlayedKeyRef = useRef(null);
   const audioContextRef = useRef(null);
 
   // Sync to localStorage
@@ -661,6 +671,14 @@ const PianoReactionGame = () => {
   useEffect(() => {
     localStorage.setItem("piano_finger_timeouts", JSON.stringify(fingerTimeouts));
   }, [fingerTimeouts]);
+
+  useEffect(() => {
+    localStorage.setItem("piano_level_span", currentLevelSpan.toString());
+  }, [currentLevelSpan]);
+
+  useEffect(() => {
+    localStorage.setItem("piano_num_sections", currentNumSections.toString());
+  }, [currentNumSections]);
 
   // Load backend configurations
   useEffect(() => {
@@ -775,6 +793,9 @@ const PianoReactionGame = () => {
         }
         return keyboardLayout === 'left' ? ['A', 'S', 'D', 'F'] : ['H', 'J', 'K', 'L'];
       } else {
+        if (globalSettings?.testingMode && globalSettings?.testingPianoWristKeysCount !== undefined) {
+          return keysAll.slice(0, globalSettings.testingPianoWristKeysCount);
+        }
         return keysAll.slice(0, currentNumSections);
       }
     }
@@ -790,6 +811,9 @@ const PianoReactionGame = () => {
         }
         return keyboardLayout === 'left' ? ['A', 'S', 'D', 'F'] : ['H', 'J', 'K', 'L'];
       } else {
+        if (globalSettings?.testingMode && globalSettings?.testingPianoWristKeysCount !== undefined) {
+          return noteNamesAll.slice(0, globalSettings.testingPianoWristKeysCount);
+        }
         return noteNamesAll.slice(0, currentNumSections);
       }
     }
@@ -903,7 +927,8 @@ const PianoReactionGame = () => {
     setFeedbackType(null);
     setSectionStartTime(Date.now());
     lastPressedKeyRef.current = null;
-    
+    lastPlayedKeyRef.current = null;
+
     // Overall Timer
     const sessionSeconds = globalSettings?.pianoSessionSeconds || 300;
     setTimeRemaining(sessionSeconds);
@@ -918,7 +943,7 @@ const PianoReactionGame = () => {
         endGame();
       }
     }, 1000);
-    
+
     const targetGameType = exerciseType;
     const targetGameName = exerciseType === 'piano_finger' ? 'Piano - Finger Dexterity' : 'Piano - Wrist Movement';
 
@@ -963,16 +988,26 @@ const PianoReactionGame = () => {
   const showNextSection = (prevSection = null) => {
     const current = prevSection !== null ? prevSection : currentSection;
     const effectiveDisabledKeys = globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys;
-    const validSections = activeKeys.map((key, idx) => ({ key, idx })).filter(item => !effectiveDisabledKeys.includes(item.key));
-    
+    let validSections = activeKeys.map((key, idx) => ({ key, idx })).filter(item => !effectiveDisabledKeys.includes(item.key));
+
+    // Exclude the last played key to ensure p=0 for it (avoid consecutive same keys)
+    if (lastPlayedKeyRef.current && validSections.length > 1) {
+      const filtered = validSections.filter(item => item.key !== lastPlayedKeyRef.current);
+      if (filtered.length > 0) {
+        validSections = filtered;
+      }
+    }
+
     let nextSectionIdx = current;
 
     if (globalSettings?.testingMode) {
       let seq;
       if (platform === 'mobile') {
         seq = globalSettings?.testingPianoMobileSequence?.length > 0 ? globalSettings.testingPianoMobileSequence : TESTING_PIANO_MOBILE_SEQUENCE;
-      } else {
+      } else if (exerciseType === 'piano_finger') {
         seq = globalSettings?.testingPianoSequence?.length > 0 ? globalSettings.testingPianoSequence : TESTING_PIANO_SEQUENCE;
+      } else {
+        seq = globalSettings?.testingPianoWristSequence?.length > 0 ? globalSettings.testingPianoWristSequence : TESTING_PIANO_SEQUENCE;
       }
       let sequenceKeyIndex = seq[sequenceIndexRef.current % seq.length];
       let sequenceKey = keysAll[sequenceKeyIndex];
@@ -995,7 +1030,7 @@ const PianoReactionGame = () => {
         nextSectionIdx = 0;
       }
     }
-    
+
     setCurrentSection(nextSectionIdx);
     setSectionStartTime(Date.now());
     setAttemptCount((old) => old + 1);
@@ -1007,12 +1042,21 @@ const PianoReactionGame = () => {
       ? fingerTimeouts[activeFinger]
       : currentLevelSpan;
 
-    if (globalSettings?.testingMode && globalSettings?.testingPianoKeyTimer) {
-      timeoutSec = globalSettings.testingPianoKeyTimer;
+    if (globalSettings?.testingMode) {
+      if (platform === 'mobile' || exerciseType === 'piano_finger') {
+        if (globalSettings?.testingPianoKeyTimer) {
+          timeoutSec = globalSettings.testingPianoKeyTimer;
+        }
+      } else {
+        if (globalSettings?.testingPianoWristTimer) {
+          timeoutSec = globalSettings.testingPianoWristTimer;
+        }
+      }
     }
 
     sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
+        lastPlayedKeyRef.current = activeKeys[nextSectionIdx];
         recordResponse("none", -1, 0, activeKeys[nextSectionIdx]);
         if (platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) {
           gameSessionBuffer.addMobileMovement({
@@ -1036,10 +1080,13 @@ const PianoReactionGame = () => {
   };
 
   const handleKeyPress = (key) => {
+    if (exerciseType === 'piano_ankle' || exerciseType === 'piano_wrist' || platform === 'mobile') return;
+    if (feedbackSection !== null) return;
     if (!isPlaying || isPaused || currentSection === null) return;
     const responseTime = (Date.now() - sectionStartTime) / 1000;
     const userKey = key.toUpperCase();
     const expectedKey = activeKeys[currentSection];
+    lastPlayedKeyRef.current = expectedKey;
     const userIndex = activeKeys.indexOf(userKey);
     let correct;
 
@@ -1083,10 +1130,13 @@ const PianoReactionGame = () => {
   };
 
   const handleSectionClick = (clickedIndex) => {
+    if (platform === 'laptop' && exerciseType === 'piano_finger') return; // Disable cursor/mouse triggers in keys mode!
+    if (feedbackSection !== null) return;
     if (!isPlaying || isPaused || currentSection === null) return;
     const responseTime = (Date.now() - sectionStartTime) / 1000;
     const userKey = activeKeys[clickedIndex];
     const expectedKey = activeKeys[currentSection];
+    lastPlayedKeyRef.current = expectedKey;
     let correct;
 
     if (clickedIndex === currentSection) {
@@ -1135,6 +1185,7 @@ const PianoReactionGame = () => {
   useEffect(() => {
     const onKeyDown = (e) => {
       if (exerciseType === 'piano_ankle') return;
+      if (exerciseType === 'piano_wrist' || platform === 'mobile') return; // Disable keyboard triggers in wrist/cursor mode!
       const userKey = e.key.toLowerCase();
       const activeKeysLower = activeKeys.map(k => k.toLowerCase());
       if (activeKeysLower.includes(userKey)) {
@@ -1154,7 +1205,6 @@ const PianoReactionGame = () => {
     setCurrentSection(null);
     if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
     if (playData.length === 0) {
-      alert("No data recorded. Play at least one round!");
       return;
     }
     const calculatedScore = playData.reduce((acc, p) => {
@@ -1202,6 +1252,25 @@ const PianoReactionGame = () => {
     });
   };
 
+  const handleQuitOrBack = async () => {
+    if (gameSessionBuffer.hasPending()) {
+      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
+      if (save) {
+        handleBeforeSave();
+        await gameSessionBuffer.saveAndExit();
+        navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+      } else {
+        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
+        if (discard) {
+          gameSessionBuffer.discard();
+          navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+        }
+      }
+    } else {
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    }
+  };
+
   const pauseGame = () => {
     setIsPaused(true);
     if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
@@ -1218,6 +1287,7 @@ const PianoReactionGame = () => {
 
     sectionTimerRef.current = setTimeout(() => {
       if (isPlaying && !isPaused) {
+        lastPlayedKeyRef.current = activeKeys[currentSection];
         recordResponse("none", -1, 0, activeKeys[currentSection]);
         if (platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) {
           gameSessionBuffer.addMobileMovement({
@@ -1315,7 +1385,7 @@ const PianoReactionGame = () => {
   return (
     <div className={`min-h-screen p-4 md:p-8 transition-colors duration-300 ${isDarkMode ? "bg-black text-white" : "bg-gray-50 text-gray-900"}`}>
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         {/* Header Banner */}
         <div
           className="rounded-2xl shadow-xl p-6 flex flex-col md:flex-row items-center justify-between text-white transition-all hover:scale-[1.01]"
@@ -1334,7 +1404,7 @@ const PianoReactionGame = () => {
           </div>
           <div className="flex gap-3 mt-4 md:mt-0">
             <button
-              onClick={() => navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard')}
+              onClick={handleQuitOrBack}
               className="p-3 bg-white/20 hover:bg-white/40 rounded-xl transition text-white backdrop-blur-md shadow-lg"
               title="Go back to Dashboard"
             >
@@ -1345,12 +1415,12 @@ const PianoReactionGame = () => {
 
         {/* Setup Configuration Panel & Setup Preview Grid */}
         <div className="gap-x-12">
-          
-          
+
+
 
           {/* Setup Preview & Start Button */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             {/* Piano layout preview */}
             <div className="bg-white mb-4 dark:bg-gray-900 border dark:border-gray-800 rounded-3xl p-6 shadow-xl justify-between h-full min-h-[350px]">
               <div>
@@ -1361,7 +1431,7 @@ const PianoReactionGame = () => {
                     : `Active interactive keys on play screen: ${activeKeys.join(', ')}`
                   }
                 </p>
-                
+
                 {/* Visual piano grid */}
                 <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden mt-6 h-36 flex bg-gray-50 dark:bg-gray-950">
                   {activeKeys.map((key, idx) => {
@@ -1370,11 +1440,10 @@ const PianoReactionGame = () => {
                       <div
                         key={idx}
                         onClick={() => toggleDisableKey(key)}
-                        className={`cursor-pointer border-r border-gray-200 dark:border-gray-800 last:border-0 flex-1 flex flex-col items-center justify-center p-2 transition-all ${
-                          isDisabled 
-                            ? 'bg-gray-200 dark:bg-gray-800 opacity-50 grayscale' 
+                        className={`cursor-pointer border-r border-gray-200 dark:border-gray-800 last:border-0 flex-1 flex flex-col items-center justify-center p-2 transition-all ${isDisabled
+                            ? 'bg-gray-200 dark:bg-gray-800 opacity-50 grayscale'
                             : 'bg-white dark:bg-gray-900 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <span className="text-2xl font-black text-gray-400">{key}</span>
                         <span className="text-[10px] text-gray-400 font-mono mt-1">{noteNames[idx]}</span>
@@ -1418,11 +1487,10 @@ const PianoReactionGame = () => {
                     onClick={() => {
                       setPlatform('laptop');
                     }}
-                    className={`flex items-center justify-center gap-3 py-4 rounded-2xl font-extrabold text-lg border-2 transition-all ${
-                      platform === 'laptop'
+                    className={`flex items-center justify-center gap-3 py-4 rounded-2xl font-extrabold text-lg border-2 transition-all ${platform === 'laptop'
                         ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-400 scale-[1.02] shadow-lg'
                         : 'border-gray-200 text-gray-400 dark:border-gray-800 hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-200'
-                    }`}
+                      }`}
                   >
                     💻 Laptop / Desktop
                   </button>
@@ -1430,11 +1498,10 @@ const PianoReactionGame = () => {
                     onClick={() => {
                       setPlatform('mobile');
                     }}
-                    className={`flex items-center justify-center gap-3 py-4 rounded-2xl font-extrabold text-lg border-2 transition-all ${
-                      platform === 'mobile'
+                    className={`flex items-center justify-center gap-3 py-4 rounded-2xl font-extrabold text-lg border-2 transition-all ${platform === 'mobile'
                         ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-400 scale-[1.02] shadow-lg'
                         : 'border-gray-200 text-gray-400 dark:border-gray-800 hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-200'
-                    }`}
+                      }`}
                   >
                     📱 Mobile Tablet / Phone
                   </button>
@@ -1454,11 +1521,10 @@ const PianoReactionGame = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button
                       onClick={() => setExerciseType('piano_finger')}
-                      className={`flex flex-col items-center p-4 rounded-2xl font-bold border-2 transition-all text-center ${
-                        exerciseType === 'piano_finger'
+                      className={`flex flex-col items-center p-4 rounded-2xl font-bold border-2 transition-all text-center ${exerciseType === 'piano_finger'
                           ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-400 scale-[1.02] shadow-lg'
                           : 'border-gray-200 text-gray-400 dark:border-gray-800 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <span className="text-2xl mb-1">🖐️</span>
                       <span className="text-base font-black">Finger Dexterity</span>
@@ -1466,11 +1532,10 @@ const PianoReactionGame = () => {
                     </button>
                     <button
                       onClick={() => setExerciseType('piano_ankle')}
-                      className={`flex flex-col items-center p-4 rounded-2xl font-bold border-2 transition-all text-center ${
-                        exerciseType === 'piano_ankle'
+                      className={`flex flex-col items-center p-4 rounded-2xl font-bold border-2 transition-all text-center ${exerciseType === 'piano_ankle'
                           ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-400 scale-[1.02] shadow-lg'
                           : 'border-gray-200 text-gray-400 dark:border-gray-800 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <span className="text-2xl mb-1">⌚</span>
                       <span className="text-base font-black">Wrist Movement</span>
@@ -1489,31 +1554,28 @@ const PianoReactionGame = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
                       onClick={() => setKeyboardLayout('both')}
-                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${
-                        keyboardLayout === 'both'
+                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${keyboardLayout === 'both'
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md'
                           : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                     >
                       Both Hands
                     </button>
                     <button
                       onClick={() => setKeyboardLayout('left')}
-                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${
-                        keyboardLayout === 'left'
+                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${keyboardLayout === 'left'
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md'
                           : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                     >
                       Left Hand (A, S, D, F)
                     </button>
                     <button
                       onClick={() => setKeyboardLayout('right')}
-                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${
-                        keyboardLayout === 'right'
+                      className={`py-3 rounded-xl font-bold border transition-all text-xs md:text-sm ${keyboardLayout === 'right'
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md'
                           : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-850'
-                      }`}
+                        }`}
                     >
                       Right Hand (H, J, K, L)
                     </button>
@@ -1530,21 +1592,19 @@ const PianoReactionGame = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => setMobileKeysCount(4)}
-                      className={`py-3 rounded-xl font-bold border transition-all ${
-                        mobileKeysCount === 4
+                      className={`py-3 rounded-xl font-bold border transition-all ${mobileKeysCount === 4
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md'
                           : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                     >
                       4 Keys (No Thumb)
                     </button>
                     <button
                       onClick={() => setMobileKeysCount(5)}
-                      className={`py-3 rounded-xl font-bold border transition-all ${
-                        mobileKeysCount === 5
+                      className={`py-3 rounded-xl font-bold border transition-all ${mobileKeysCount === 5
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md'
                           : 'border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                     >
                       5 Keys (With Thumb)
                     </button>
@@ -1567,7 +1627,7 @@ const PianoReactionGame = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">
                       Adjust timeout (seconds) per finger independently. Left keys represent fingers sequentially.
                     </p>
-                    
+
                     {/* Render corresponding active finger sliders */}
                     <div className="space-y-4">
                       {platform === 'mobile' && (

@@ -21,6 +21,11 @@ const AdminDashboard = () => {
     boardDrawingAssistiveMode: true,
     fruitBasketCoordSampleMs: 150,
     boardDrawingCoordSampleMs: 150,
+    testingShapeTimer: 120,
+    testingShapeSessionSeconds: 600,
+    testingPianoWristKeysCount: 4,
+    testingPianoWristTimer: 5,
+    testingPianoWristSequence: TESTING_PIANO_SEQUENCE,
   });
   const { isDarkMode, toggleDarkMode } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -48,6 +53,11 @@ const AdminDashboard = () => {
           boardDrawingAssistiveMode: response.data.boardDrawingAssistiveMode ?? true,
           fruitBasketCoordSampleMs: response.data.fruitBasketCoordSampleMs ?? 150,
           boardDrawingCoordSampleMs: response.data.boardDrawingCoordSampleMs ?? 150,
+          testingShapeTimer: response.data.testingShapeTimer ?? 120,
+          testingShapeSessionSeconds: response.data.testingShapeSessionSeconds ?? 600,
+          testingPianoWristKeysCount: response.data.testingPianoWristKeysCount ?? 4,
+          testingPianoWristTimer: response.data.testingPianoWristTimer ?? 5,
+          testingPianoWristSequence: response.data.testingPianoWristSequence ?? TESTING_PIANO_SEQUENCE,
         });
       }
     } catch (err) {
@@ -242,17 +252,84 @@ const AdminDashboard = () => {
                       />
                       <p className="text-[10px] text-gray-500 mt-0.5">Time given per key in deterministic mode</p>
                     </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Piano Wrist Keys Count (2-9)</label>
+                      <input 
+                        type="number" 
+                        name="testingPianoWristKeysCount"
+                        value={settings.testingPianoWristKeysCount} 
+                        onChange={handleChange}
+                        min="2"
+                        max="9"
+                        className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      />
+                      <p className="text-[10px] text-gray-500 mt-0.5">Number of active keys for Piano Wrist mode in testing</p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Piano Wrist Key Timer (seconds)</label>
+                      <input 
+                        type="number" 
+                        name="testingPianoWristTimer"
+                        value={settings.testingPianoWristTimer} 
+                        onChange={handleChange}
+                        min="1"
+                        max="20"
+                        className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      />
+                      <p className="text-[10px] text-gray-500 mt-0.5">Time given per key in Piano Wrist mode in testing</p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Drawing Shape Timer (seconds)</label>
+                      <input 
+                        type="number" 
+                        name="testingShapeTimer"
+                        value={settings.testingShapeTimer} 
+                        onChange={handleChange}
+                        min="10"
+                        max="600"
+                        className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      />
+                      <p className="text-[10px] text-gray-500 mt-0.5">Time given per shape in Trace & Master in testing (default: 120s)</p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Drawing Shape Session Timer (seconds)</label>
+                      <input 
+                        type="number" 
+                        name="testingShapeSessionSeconds"
+                        value={settings.testingShapeSessionSeconds} 
+                        onChange={handleChange}
+                        min="60"
+                        max="3600"
+                        className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      />
+                      <p className="text-[10px] text-gray-500 mt-0.5">Total session duration for Trace & Master in testing (default: 600s)</p>
+                    </div>
                     <div className="md:col-span-2 mt-4 pt-4 border-t dark:border-gray-700">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Deterministic Sequences</h4>
                       
                       <div className="space-y-4">
                         {/* Piano Sequence */}
                         <div className="flex flex-col gap-1">
-                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Piano / Finger Dexterity / Wrist Movement (Comma Separated Indices 0-8)</label>
+                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Piano Finger Dexterity Sequence (Comma Separated Indices 0-8)</label>
                           <textarea
                             rows={3}
                             defaultValue={settings.testingPianoSequence?.join(', ')}
                             onChange={(e) => handleNumArrayChange(e, 'testingPianoSequence')}
+                            className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} font-mono text-xs`}
+                          />
+                        </div>
+
+                        {/* Piano Wrist Sequence */}
+                        <div className="flex flex-col gap-1">
+                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Piano Wrist Movement Sequence (Comma Separated Indices 0-8)</label>
+                          <textarea
+                            rows={3}
+                            defaultValue={settings.testingPianoWristSequence?.join(', ')}
+                            onChange={(e) => handleNumArrayChange(e, 'testingPianoWristSequence')}
                             className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} font-mono text-xs`}
                           />
                         </div>

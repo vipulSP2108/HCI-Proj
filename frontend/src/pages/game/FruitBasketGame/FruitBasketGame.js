@@ -94,12 +94,14 @@ const FruitBasketGame = () => {
   const [debugInfo, setDebugInfo] = useState("");
 
   // Game 2 States
-  const [assistiveMode, setAssistiveMode] = useState(false);
-  const [assistiveModeLeft, setAssistiveModeLeft] = useState(false);
-  const [assistiveModeRight, setAssistiveModeRight] = useState(false);
+  const [assistiveMode, setAssistiveMode] = useState(true);
+  const [assistiveModeLeft, setAssistiveModeLeft] = useState(true);
+  const [assistiveModeRight, setAssistiveModeRight] = useState(true);
   const [isPositionedCorrectly, setIsPositionedCorrectly] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState("positioning");
   const [trialTimeLeft, setTrialTimeLeft] = useState(10);
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
 
   // Refs
   const videoRef = useRef(null);
@@ -123,15 +125,16 @@ const FruitBasketGame = () => {
   const showDebugRef = useRef(showDebug);
 
   // Game 2 Refs
-  const assistiveModeRef = useRef(assistiveMode);
-  const assistiveModeLeftRef = useRef(assistiveModeLeft);
-  const assistiveModeRightRef = useRef(assistiveModeRight);
+  const assistiveModeRef = useRef(true);
+  const assistiveModeLeftRef = useRef(true);
+  const assistiveModeRightRef = useRef(true);
   const isPositionedCorrectlyRef = useRef(isPositionedCorrectly);
   const trialStartTimeRef = useRef(null);
   const trialTimeoutIdRef = useRef(null);
   const trialIdRef = useRef(0);
   const lastTrialTimeLeftRef = useRef(10);
   const handleTrialTimeoutRef = useRef(null);
+  const isCooldownRef = useRef(false);
   const dropMissCountRef = useRef(0);         // how many times fruit was dropped in current trial
   const dropMissCooldownRef = useRef(false);  // short cooldown after a drop so open-hand doesn't re-trigger instantly
   const mainLoopRef = useRef(null);
@@ -283,6 +286,10 @@ const FruitBasketGame = () => {
       }
     }
 
+    setIsCooldown(false);
+    isCooldownRef.current = false;
+    setCooldownTimeLeft(0);
+
     basketIdxRef.current = bIdx;
     fruitRef.current = {
       id: `F${Date.now()}`,
@@ -349,8 +356,10 @@ const FruitBasketGame = () => {
       fruitRef.current.attachedTo = null;
     }
 
-    showStatus("⏱️ Timeout! New fruit spawning...", 2000);
-    spawnFruit();
+    fruitRef.current = null;
+    setIsCooldown(true);
+    isCooldownRef.current = true;
+    setCooldownTimeLeft(3);
 
     const total = attemptsRef.current;
     const succ = successesRef.current;
@@ -361,6 +370,24 @@ const FruitBasketGame = () => {
   useEffect(() => {
     handleTrialTimeoutRef.current = handleTrialTimeout;
   }, [handleTrialTimeout]);
+
+  // Cooldown countdown timer effect
+  useEffect(() => {
+    if (isPaused || !isSessionActive) return;
+    if (cooldownTimeLeft === 0 && isCooldownRef.current) {
+      spawnFruit();
+      return;
+    }
+    if (cooldownTimeLeft <= 0) return;
+
+    showStatus(`⏱️ Next fruit in ${cooldownTimeLeft}...`, 1000);
+
+    const timer = setTimeout(() => {
+      setCooldownTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [cooldownTimeLeft, isPaused, isSessionActive, spawnFruit]);
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
     const handState = handStateRef.current;
@@ -682,6 +709,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
     const handState = handStateRef.current;
     ["Left", "Right"].forEach((label) => {
+      if (!fruitRef.current) return; // Skip if fruit was cleared (e.g. cooldown started) by the other hand in this tick
       const hand = handState[label];
       if (!hand.smoothPos || !hand.visible) return;
       
@@ -809,8 +837,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               const rate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
               setSuccessRate(rate);
 
-              showStatus(`✅ Success! +${CONFIG.SCORE_PER_DROP} points (ARAT: +${aratScore})`, 1500);
-              spawnFruit();
+              fruitRef.current = null;
+              setIsCooldown(true);
+              isCooldownRef.current = true;
+              setCooldownTimeLeft(3);
             }
           } else {
             hand.assistiveDropTimer = 0;
@@ -904,14 +934,16 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               const rate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
               setSuccessRate(rate);
 
-              showStatus(`✅ Success! +${CONFIG.SCORE_PER_DROP} points (ARAT: +${aratScore})`, 1500);
-              spawnFruit();
+              fruitRef.current = null;
+              setIsCooldown(true);
+              isCooldownRef.current = true;
+              setCooldownTimeLeft(3);
             }
           }
         }
       }
 
-      if (fruitRef.current.attachedTo === label) {
+      if (fruitRef.current && fruitRef.current.attachedTo === label) {
         fruitRef.current.x = hand.smoothPos.x;
         fruitRef.current.y = hand.smoothPos.y;
       }
@@ -1078,7 +1110,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     gridHolesRef.current.forEach((hole, idx) => {
       const px = hole.x * w;
       const py = hole.y * h;
-      const isBasket = idx === basketIdxRef.current;
+      const isBasket = !isCooldown && idx === basketIdxRef.current;
       // Basket is drawn 2× larger so it is easy to see and aim for
       const r = isBasket
         ? Math.max(70 * scale, CONFIG.DROP_DISTANCE * Math.min(w, h))
@@ -1155,7 +1187,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       ctx.textBaseline = "middle";
       ctx.fillText(label[0], px, py);
     });
-  }, []);
+  }, [isCooldown]);
   const syncCanvasSizes = useCallback(() => {
     if (overlayRef.current && videoRef.current) {
       if (overlayRef.current.width !== videoRef.current.videoWidth) {
@@ -1502,6 +1534,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       trialTimeoutIdRef.current = null;
     }
 
+    setCooldownTimeLeft(0);
+    setIsCooldown(false);
+    isCooldownRef.current = false;
+
     logsRef.current.push({
       timestamp: nowSec(),
       event: "session_end",
@@ -1513,7 +1549,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
         : 0;
 
-    // Build lean play data — only fields that change per event
+    prepareSessionBuffer();
+
+    alert(
+      `Session Complete!\n\nScore: ${scoreRef.current}\nARAT Score: ${aratTotalScoreRef.current}\nReps: ${reps}\nSuccess Rate: ${successRateVal}%\n\nUse the 💾 Save & Exit button to save your data.`,
+    );
+  };
+
+  const prepareSessionBuffer = () => {
     const playData = logsRef.current.map(log => {
       let correct = undefined;
       let responseTimeVal = log.timestamp;
@@ -1544,21 +1587,16 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         success: log.success !== undefined ? log.success : undefined,
         aratScore: log.arat_score !== undefined ? log.arat_score : undefined,
       };
-      // Remove undefined keys to keep payload lean
       Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
       return entry;
     });
 
-    // Session-level static metadata (stored once, not per event)
     const sessionMeta = {
       mode: (assistiveModeLeftRef.current || assistiveModeRightRef.current) ? 'ASSISTIVE' : 'NORMAL',
       handFunctionLeft: calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose ? 'full' : 'limited',
       handFunctionRight: calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose ? 'full' : 'limited',
     };
 
-    // Build per-trial trajectory by slicing coordinateLogRef by timestamp
-    // spawnFruit sets trialStartTimeRef at each spawn; we derive per-trial time windows
-    // from the spawn/drop_success/drop_miss/timeout log entries
     const trialWindows = [];
     let currentWindow = null;
     for (const log of logsRef.current) {
@@ -1603,10 +1641,27 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       trials,
       coordinates: coordinateLogRef.current.map(p => ({ ...p }))
     });
+  };
 
-    alert(
-      `Session Complete!\n\nScore: ${scoreRef.current}\nARAT Score: ${aratTotalScoreRef.current}\nReps: ${reps}\nSuccess Rate: ${successRateVal}%\n\nUse the 💾 Save & Exit button to save your data.`,
-    );
+  const handleQuitOrBack = async () => {
+    if (gameSessionBuffer.hasPending()) {
+      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
+      if (save) {
+        prepareSessionBuffer();
+        if (gameSessionBuffer.hasPending()) {
+          await gameSessionBuffer.saveAndExit();
+        }
+        window.history.back();
+      } else {
+        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
+        if (discard) {
+          gameSessionBuffer.discard();
+          window.history.back();
+        }
+      }
+    } else {
+      window.history.back();
+    }
   };
 
   const handleReset = () => {
@@ -1981,14 +2036,7 @@ Calibration:
         
         <div style={styles.actions}>
           <button
-            onClick={() => {
-              if (gameSessionBuffer.hasPending()) {
-                const discard = window.confirm('You have unsaved data. Discard and quit?');
-                if (discard) { gameSessionBuffer.discard(); window.history.back(); }
-              } else {
-                window.history.back();
-              }
-            }}
+            onClick={handleQuitOrBack}
             style={styles.actionButton}
           >
             Quit
@@ -2005,7 +2053,7 @@ Calibration:
       <main style={styles.gameArea}>
         <canvas ref={gameCanvasRef} style={styles.gameCanvas} />
         
-        {isSessionActive && (
+        {isSessionActive && !isCooldown && (
           <div style={styles.trialTimer}>
             ⏱️ {trialTimeLeft}s
           </div>
