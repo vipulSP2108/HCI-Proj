@@ -4,6 +4,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Healthcare Game App</title>
+    <script>
+      /**
+       * MediaPipe CDN asset-loader race condition suppressor.
+       *
+       * When a game component unmounts while MediaPipe is still downloading
+       * its WASM/data assets from jsdelivr, the XHR progress handler fires
+       * against an already-GC'd internal tracking map → TypeError spam.
+       * This is a known upstream MediaPipe bug (tracked in mediapipe#4413).
+       * The error is fully benign — the game still works — but it floods the
+       * React dev overlay.  We intercept it at the window level before React
+       * gets a chance to show the overlay.
+       */
+      window.addEventListener('error', function(event) {
+        var src = (event.filename || '');
+        if (
+          src.includes('mediapipe') ||
+          src.includes('jsdelivr.net/npm/@mediapipe') ||
+          (event.message && event.message.includes('hands_solution_packed_assets'))
+        ) {
+          event.preventDefault();   // stops the React error overlay
+          event.stopPropagation();  // stops it bubbling further
+          return true;
+        }
+      }, true /* capture phase — fires before React's handler */);
+
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event.reason || {};
+        var msg = (reason.message || reason.toString() || '');
+        if (msg.includes('mediapipe') || msg.includes('hands_solution_packed_assets')) {
+          event.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

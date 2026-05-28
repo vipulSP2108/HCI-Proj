@@ -21,7 +21,7 @@ const User = require(path.join(backendDir, 'src/models/user.model'));
 const BoardDrawingGame = require(path.join(backendDir, 'src/models/boardDrawingGame.model'));
 const BoardDrawingSession = require(path.join(backendDir, 'src/models/boardDrawingSession.model'));
 const BoardDrawingTry = require(path.join(backendDir, 'src/models/boardDrawingTry.model'));
-const GameSession = require(path.join(backendDir, 'src/models/gameSession.model'));
+const fruitBasketSession = require(path.join(backendDir, 'src/models/fruitBasketSession.model'));
 const PianoSession = require(path.join(backendDir, 'src/models/pianoSession.model'));
 
 const collectionsToBackup = [
@@ -29,7 +29,7 @@ const collectionsToBackup = [
   { model: BoardDrawingGame, filename: 'boarddrawinggames.json', name: 'boarddrawinggames' },
   { model: BoardDrawingSession, filename: 'boarddrawingsessions.json', name: 'boarddrawingsessions' },
   { model: BoardDrawingTry, filename: 'boarddrawingtries.json', name: 'boarddrawingtries' },
-  { model: GameSession, filename: 'gamesessions.json', name: 'gamesessions (arm/fruit fetch & general)' },
+  { model: fruitBasketSession, filename: 'fruitBasketSession.json', name: 'fruitBasketSession' },
   { model: PianoSession, filename: 'pianosessions.json', name: 'pianosessions (piano-wrist & piano-finger)' }
 ];
 

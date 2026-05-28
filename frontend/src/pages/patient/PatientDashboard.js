@@ -1982,12 +1982,12 @@ const DashboardContent = ({
           </div>
 
           {/* ── Game Selector Tabs ── */}
-          <div className="flex flex-wrap gap-2 bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-100 dark:border-gray-700 mb-6">
+          <div className="sticky top-[2px] z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md flex overflow-x-auto gap-2 p-3 rounded-2xl border border-gray-100 dark:border-gray-700 mb-6 shadow-sm no-scrollbar">
             {GAMES_LIST.map(g => (
               <button
                 key={g.type}
                 onClick={() => { setSelectedGameType(g.type); setSelectedSession(0); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedGameType === g.type
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 whitespace-nowrap ${selectedGameType === g.type
                     ? 'bg-gray-900 text-white shadow-md dark:bg-gray-100 dark:text-gray-900'
                     : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                   }`}
@@ -2029,7 +2029,7 @@ const DashboardContent = ({
 
           {/* ── Charts & Visualizations ── */}
           {recentSessions.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-6 top-[10px]">
 
               {/* Accuracy & Response Time */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -2118,7 +2118,7 @@ const DashboardContent = ({
               </div>
 
               {/* Sticky Session Selector */}
-              <div className="sticky top-[10px] z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm mb-6 flex flex-col gap-3">
+              <div className="sticky top-[66px] z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm mb-6 flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-sm font-bold text-gray-800 dark:text-white">Select Session Replay</h3>
                   <div className="flex flex-wrap gap-2">
@@ -2165,7 +2165,7 @@ const DashboardContent = ({
               </div>
 
               {/* Session Play-by-Play Chart */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+              {/* <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
                 <div className="mb-5">
                   <h3 className="text-base font-bold text-gray-800 dark:text-white">Response Time Trend</h3>
                   <p className="text-xs text-gray-400 mt-0.5">Response time per attempt</p>
@@ -2190,7 +2190,7 @@ const DashboardContent = ({
                     <p className="text-slate-500 dark:text-slate-400 font-semibold text-sm">No recent sessions available</p>
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {/* Hand Movement Trajectory */}
               {selectedGameType === "board_drawing" && (

@@ -2,6 +2,7 @@ import { Hands } from "@mediapipe/hands";
 import { Pose } from "@mediapipe/pose";
 import { Camera } from "@mediapipe/camera_utils";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
@@ -249,6 +250,7 @@ const getMinDistanceToShapeOutline = (pos, points) => {
 const BoardDrawingGame = () => {
   const { user, isDarkMode } = useAuth();
   const { globalSettings } = useSettings();
+  const navigate = useNavigate();
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -679,7 +681,7 @@ const BoardDrawingGame = () => {
         hits,
         total,
         completion,
-        success: completion >= CONFIG.MIN_COMPLETION,
+        success: completion >= 1.0,
         scoreAfter: scoreRef.current,
       }),
     );
@@ -699,6 +701,58 @@ const BoardDrawingGame = () => {
     return true;
   }, [buildBoardDrawingAttempt, nowSec, persistBoardDrawingBuffer]);
 
+  const handleEndSession = useCallback(async () => {
+    setIsSessionActive(false);
+    finalizeActiveDrawingAttempt();
+    logsRef.current.push({
+      timestamp: nowSec(),
+      event: "session_end",
+      score: scoreRef.current,
+      reps,
+    });
+    const successRateVal =
+      attemptsRef.current > 0
+        ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
+        : 0;
+
+    persistBoardDrawingBuffer();
+
+    // Finalize local storage game record
+    if (localGameIdRef.current) {
+      GameStorage.finalizeGame(localGameIdRef.current, {
+        score: scoreRef.current,
+        reps,
+        successRate: parseFloat(successRateVal),
+        currentShapePoints: shapeRef.current?.points ?? [],
+      });
+      setShowAnalyticsBtn(true);
+    }
+
+    // Show completion dialog — OK saves immediately and navigates to dashboard
+    const wantsSave = window.confirm(
+      `Session Complete! 🎉\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nPress OK to Save & Exit, or Cancel to stay on the page.`
+    );
+    if (wantsSave) {
+      try {
+        if (gameSessionBuffer.hasPending()) {
+          await gameSessionBuffer.saveAndExit();
+        }
+        const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+        const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
+        navigate(dashPath);
+      } catch (err) {
+        console.error("Failed to save session:", err);
+        const exitAnyway = window.confirm("Failed to save to server.\n\nExit anyway without saving?");
+        if (exitAnyway) {
+          gameSessionBuffer.discard();
+          const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+          const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
+          navigate(dashPath);
+        }
+      }
+    }
+  }, [finalizeActiveDrawingAttempt, nowSec, reps, persistBoardDrawingBuffer, navigate]);
+
   const sequenceIndexRef = useRef(0);
 
   // ==================== SPAWN SHAPE ====================
@@ -709,7 +763,13 @@ const BoardDrawingGame = () => {
 
     if (globalSettings?.testingMode) {
       const seq = globalSettings?.testingShapeSequence?.length > 0 ? globalSettings.testingShapeSequence : TESTING_SHAPE_SEQUENCE;
-      shapeType = seq[sequenceIndexRef.current % seq.length];
+      if (sequenceIndexRef.current >= seq.length) {
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+        if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+        handleEndSession();
+        return false;
+      }
+      shapeType = seq[sequenceIndexRef.current];
       sequenceIndexRef.current++;
     } else {
       shapeType = selectedShapeRef.current === "random" ? SHAPES[Math.floor(Math.random() * SHAPES.length)] : selectedShapeRef.current;
@@ -732,10 +792,13 @@ const BoardDrawingGame = () => {
       () => setStatusMessage((prev) => ({ ...prev, visible: false })),
       2000,
     );
-  }, [globalSettings]);
+    return true;
+  }, [globalSettings, handleEndSession]);
 
   const spawnShape = useCallback(() => {
-    pickNewShape();
+    const success = pickNewShape();
+    if (!success) return;
+    
     logsRef.current.push({
       timestamp: nowSec(),
       event: "spawn_shape",
@@ -753,14 +816,15 @@ const BoardDrawingGame = () => {
       const timerSec = globalSettings.testingShapeTimer || 120;
       shapeTimerRef.current = setTimeout(() => {
         if (isSessionActiveRef.current) {
-          showStatus("⏱️ Target shape timed out! Loading next...", 2000);
+          showStatus("⏱️ Shape time's up! Saving partial attempt and moving on...", 2500);
           if (shapeRef.current) {
+            // Save whatever was drawn so far — give partial points
+            finalizeActiveDrawingAttempt();
             logsRef.current.push({
               timestamp: nowSec(),
               event: "shape_timeout",
               shape_type: shapeRef.current.type,
             });
-            attemptsRef.current++;
           }
           currentTargetIdxRef.current = 0;
           drawnPathRef.current = [];
@@ -768,7 +832,7 @@ const BoardDrawingGame = () => {
         }
       }, timerSec * 1000);
     }
-  }, [pickNewShape, nowSec, globalSettings]);
+  }, [pickNewShape, nowSec, globalSettings, finalizeActiveDrawingAttempt]);
 
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
@@ -1080,7 +1144,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           );
         }
       } else if (isDrawing) {
-        const autoComplete = (handPoseModeRef.current === "any" && currentTargetIdxRef.current >= shape.points.length);
+        const autoComplete = (handPoseModeRef.current === "any" && currentTargetIdxRef.current >= shape.points.length + 1);
         
         if (isDrawingTriggered && !autoComplete) {
           const distToOutline = getMinDistanceToShapeOutline(pos, shape.points);
@@ -1103,7 +1167,12 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           ) {
             currentTargetIdxRef.current++;
           }
-          if (currentTargetIdxRef.current >= shape.points.length) {
+          if (currentTargetIdxRef.current === shape.points.length) {
+            if (distNorm(pos, shape.points[0]) < CONFIG.TRACE_TOLERANCE) {
+              currentTargetIdxRef.current++;
+            }
+          }
+          if (currentTargetIdxRef.current >= shape.points.length + 1) {
             if (handPoseModeRef.current === "any") {
               // Will be auto-completed immediately below
             } else {
@@ -1120,8 +1189,8 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         if (shouldEndDrawing) {
           // Open hand - end drawing (or auto-completed)
           shape.drawingHand = null;
-          const hits = currentTargetIdxRef.current;
-          const total = shape.points.length;
+          const hits = Math.min(currentTargetIdxRef.current, shape.points.length + 1);
+          const total = shape.points.length + 1;
           const completion = hits / total;
 
           const path = drawnPathRef.current;
@@ -1147,7 +1216,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             total,
             completion,
           });
-          if (completion >= CONFIG.MIN_COMPLETION) {
+          if (completion >= 1.0) {  // 100% completion required
             // Shape Success!
             const newReps = reps + 1;
             setReps(newReps);
@@ -1422,12 +1491,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       shape.points.forEach((p, i) => {
         const px = p.x * w;
         const py = p.y * h;
-        let fillColor =
-          i < currentTargetIdxRef.current
-            ? "#28a745" // green for hit
-            : i === currentTargetIdxRef.current
-              ? "#dc3545" // red for current
-              : "#007bff"; // blue for future
+        let fillColor;
+        if (currentTargetIdxRef.current === shape.points.length) {
+          fillColor = (i === 0 ? "#dc3545" : "#28a745");
+        } else if (currentTargetIdxRef.current > shape.points.length) {
+          fillColor = "#28a745";
+        } else {
+          fillColor =
+            i < currentTargetIdxRef.current
+              ? "#28a745" // green for hit
+              : i === currentTargetIdxRef.current
+                ? "#dc3545" // red for current
+                : "#007bff"; // blue for future
+        }
         ctx.beginPath();
         ctx.fillStyle = fillColor;
         ctx.arc(px, py, 8 * scale, 0, Math.PI * 2);
@@ -1709,6 +1785,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     activeAttemptStartedAtRef.current = null;
     lastCoordTimeRef.current = 0;
     sessionStartRef.current = Date.now();
+    sequenceIndexRef.current = 0;
 
     const sessionSeconds = globalSettings?.testingMode
        ? (globalSettings?.testingShapeSessionSeconds || 600)
@@ -1743,58 +1820,50 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     );
   };
 
-  const handleEndSession = async () => {
-    setIsSessionActive(false);
-    finalizeActiveDrawingAttempt();
-    logsRef.current.push({
-      timestamp: nowSec(),
-      event: "session_end",
-      score: scoreRef.current,
-      reps,
-    });
-    const successRateVal =
-      attemptsRef.current > 0
-        ? ((successesRef.current / attemptsRef.current) * 100).toFixed(1)
-        : 0;
 
-    persistBoardDrawingBuffer();
-
-    // Finalize local storage game record
-    if (localGameIdRef.current) {
-      GameStorage.finalizeGame(localGameIdRef.current, {
-        score: scoreRef.current,
-        reps,
-        successRate: parseFloat(successRateVal),
-        currentShapePoints: shapeRef.current?.points ?? [],
-      });
-      setShowAnalyticsBtn(true);
-    }
-
-    alert(
-      `Session Complete!\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nUse the 💾 Save & Exit button to save your data.`
-    );
-  };
 
   const handleQuitOrBack = async () => {
+    // Stop ALL timers immediately so no deferred callbacks fire after exit
     if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
-    if (gameSessionBuffer.hasPending()) {
-      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
-      if (save) {
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    shapeTimerRef.current = null;
+    timerIntervalRef.current = null;
+
+    const hasPending = gameSessionBuffer.hasPending();
+    const dashPath = user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
+
+    // 3-way choice: Save | Discard | Cancel
+    const choice = window.confirm(
+      hasPending
+        ? "Leave the game?\n\n• OK → Save & Exit (saves your progress)\n• Cancel → opens Discard option"
+        : "Leave the game? (No unsaved data)\n\n• OK → Exit\n• Cancel → Stay"
+    );
+
+    if (choice) {
+      // OK = Save & Exit
+      if (hasPending) {
         finalizeActiveDrawingAttempt();
         persistBoardDrawingBuffer();
-        if (gameSessionBuffer.hasPending()) {
-          await gameSessionBuffer.saveAndExit();
-        }
-        window.history.back();
-      } else {
-        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
-        if (discard) {
-          gameSessionBuffer.discard();
-          window.history.back();
+        try {
+          if (gameSessionBuffer.hasPending()) {
+            await gameSessionBuffer.saveAndExit();
+          }
+        } catch (err) {
+          console.error("Save failed:", err);
         }
       }
+      navigate(dashPath);
     } else {
-      window.history.back();
+      if (!hasPending) return; // no data, cancel = stay
+      // Second chance: discard or stay?
+      const discard = window.confirm(
+        "Discard all progress and exit?\n\n• OK → Discard & Exit\n• Cancel → Stay in game"
+      );
+      if (discard) {
+        gameSessionBuffer.discard();
+        navigate(dashPath);
+      }
+      // Cancel on discard prompt = stay in game (do nothing)
     }
   };
 
@@ -2120,10 +2189,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             <div style={themeStyles.statLabel}>Success Rate</div>
             <div style={themeStyles.statValue}>{Math.round(successRate)}%</div>
           </div>
-          <div style={themeStyles.statItem}>
+          {/* <div style={themeStyles.statItem}>
             <div style={themeStyles.statLabel}>Shapes Done</div>
             <div style={themeStyles.statValue}>{reps}</div>
-          </div>
+          </div> */}
           <div style={themeStyles.statItem}>
             <div style={themeStyles.statLabel}>Session Timer</div>
             <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>

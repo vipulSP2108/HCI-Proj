@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 /**
  * ArmReachVisualizer — Full kinematic replay for Fruit Fetch sessions.
  *
- * Coordinate points schema (per point):
- *   x, y          — normalised hand/wrist position (0–1)
+ * Each coordinate point in the log belongs to ONE hand and carries that hand's
+ * full kinematic snapshot at that moment:
+ *   x, y          — normalised wrist position (0–1)
  *   hand          — "Left" | "Right"
  *   shoulder      — { x, y }  (normalised, may be null)
  *   elbow         — { x, y }  (normalised, may be null)
@@ -12,37 +13,17 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
  *   shoulderAngle — degrees, -1 if invisible
  *   verticalAngle — degrees, -1 if invisible
  *   timestamp     — seconds since session start
+ *
+ * Strategy: step through validCoords index-by-index (exactly like BoardDrawingTrajectoryReplay).
+ * Each frame = one recorded point. The active hand skeleton updates from that point's own data.
+ * The inactive hand shows its most-recently-recorded state so it doesn't vanish.
+ * Comet trails are the last `tailLength` points PER HAND up to the current index.
  */
 
 const HAND_COLORS = {
-  Left:    { stroke: "#6366f1", fill: "#6366f1", label: "Left Hand",  tailStroke: "#6366f1" },
-  Right:   { stroke: "#10b981", fill: "#10b981", label: "Right Hand", tailStroke: "#10b981" },
-  Unknown: { stroke: "#f59e0b", fill: "#f59e0b", label: "Hand",       tailStroke: "#f59e0b" },
-};
-
-const AngleMeter = ({ label, value, max = 180, color }) => {
-  const isNA = value === -1 || value == null || value === undefined;
-  const pct = isNA ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
-  return (
-    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">{label}</span>
-        <span className={`text-lg font-black ${color}`}>
-          {isNA ? "N/A" : `${Math.round(value)}°`}
-        </span>
-      </div>
-      <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-100"
-          style={{
-            width: `${pct}%`,
-            background: isNA ? "#94a3b8" : undefined,
-            backgroundColor: isNA ? undefined : color.includes("orange") ? "#f97316" : color.includes("amber") ? "#f59e0b" : color.includes("indigo") ? "#6366f1" : "#3b82f6",
-          }}
-        />
-      </div>
-    </div>
-  );
+  Left:    { stroke: "#6366f1", fill: "#6366f1", label: "Left Hand"  },
+  Right:   { stroke: "#10b981", fill: "#10b981", label: "Right Hand" },
+  Unknown: { stroke: "#f59e0b", fill: "#f59e0b", label: "Hand"       },
 };
 
 const ArmReachVisualizer = ({ coordinates }) => {
@@ -54,46 +35,81 @@ const ArmReachVisualizer = ({ coordinates }) => {
   const [tailLength, setTailLength]       = useState(30);
   const timerRef = useRef(null);
 
-  // ── Filter and group by hand ──────────────────────────────────────────────
+  // ── Clean coordinate array (chronological order, both hands interleaved) ──
   const validCoords = useMemo(() =>
     Array.isArray(coordinates)
-      ? coordinates.filter(p => p && typeof p.x === "number" && typeof p.y === "number")
+      ? [...coordinates]
+          .filter(p => p && typeof p.x === "number" && typeof p.y === "number")
+          .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
       : [],
     [coordinates]
   );
 
+  // Per-hand index maps: leftCoords[i] = all Left points in order; same for right
   const leftCoords  = useMemo(() => validCoords.filter(p => p.hand === "Left"),  [validCoords]);
   const rightCoords = useMemo(() => validCoords.filter(p => p.hand === "Right"), [validCoords]);
   const hasLeft  = leftCoords.length > 0;
   const hasRight = rightCoords.length > 0;
   const hasBoth  = hasLeft && hasRight;
 
+  // Average ms per frame across the whole recording.
+  // We cannot use consecutive-frame deltas because Left/Right samples are interleaved
+  // with nearly identical timestamps, making consecutive deltas collapse to ~0ms.
+  // Instead, divide total session duration by (N-1) frames, clamp to [16ms, 250ms].
+  const avgIntervalMs = useMemo(() => {
+    if (validCoords.length < 2) return 80;
+    const totalSec = (validCoords[validCoords.length - 1].timestamp ?? 0) - (validCoords[0].timestamp ?? 0);
+    if (totalSec <= 0) return 80;
+    return Math.max(16, Math.min(250, (totalSec * 1000) / (validCoords.length - 1)));
+  }, [validCoords]);
+
   // Reset when data changes
   useEffect(() => { setCurrentIdx(0); setIsPlaying(false); }, [coordinates]);
 
-  // Playback ticker
+  // ── Playback: setInterval at avgIntervalMs / playbackSpeed ─────────────────
   useEffect(() => {
-    if (isPlaying) {
-      const intervalTime = Math.max(10, Math.min(200, 150 / playbackSpeed));
-      timerRef.current = setInterval(() => {
-        setCurrentIdx(prev => {
-          if (prev >= validCoords.length - 1) {
-            if (isLooping) return 0;
-            setIsPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, intervalTime);
-    } else {
+    if (!isPlaying || validCoords.length < 2) {
       if (timerRef.current) clearInterval(timerRef.current);
+      return;
     }
+    const ms = Math.max(8, avgIntervalMs / playbackSpeed);
+    timerRef.current = setInterval(() => {
+      setCurrentIdx(prev => {
+        const next = prev + 1;
+        if (next >= validCoords.length) {
+          if (isLooping) return 0;
+          setIsPlaying(false);
+          return prev;
+        }
+        return next;
+      });
+    }, ms);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isPlaying, validCoords.length, playbackSpeed, isLooping]);
+  }, [isPlaying, avgIntervalMs, playbackSpeed, isLooping, validCoords.length]);
 
+  // ── Memoised viewBox ────────────────────────────────────────────────────────
+  const viewBoxStr = useMemo(() => {
+    if (validCoords.length === 0) return "0 0 100 100";
+    const xs = [];
+    const ys = [];
+    validCoords.forEach(p => {
+      xs.push(p.x); ys.push(p.y);
+      if (p.shoulder) { xs.push(p.shoulder.x); ys.push(p.shoulder.y); }
+      if (p.elbow)    { xs.push(p.elbow.x);    ys.push(p.elbow.y);    }
+    });
+    const minX = Math.min(...xs, 0.1);
+    const maxX = Math.max(...xs, 0.9);
+    const minY = Math.min(...ys, 0.1);
+    const maxY = Math.max(...ys, 0.95);
+    const px = Math.max((maxX - minX) * 0.12, 0.08);
+    const py = Math.max((maxY - minY) * 0.12, 0.08);
+    return `${(minX - px) * 100} ${(minY - py) * 100} ${(maxX - minX + 2 * px) * 100} ${(maxY - minY + 2 * py) * 100}`;
+  }, [validCoords]);
+
+  // ── Early return AFTER all hooks ────────────────────────────────────────────
   if (validCoords.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-150 dark:border-gray-700 text-center mt-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-100 dark:border-gray-700 text-center mt-6 shadow-sm">
         <div className="mb-3 text-5xl">💪</div>
         <p className="font-bold text-gray-800 dark:text-gray-200 mb-1 text-lg">No Arm Movement Data Yet</p>
         <p className="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
@@ -103,113 +119,79 @@ const ArmReachVisualizer = ({ coordinates }) => {
     );
   }
 
+  // ── Current frame ───────────────────────────────────────────────────────────
   const safeIdx      = Math.min(currentIdx, validCoords.length - 1);
-  const currentPoint = validCoords[safeIdx] || validCoords[0];
-  const currentHand  = currentPoint.hand || "Unknown";
+  const currentPoint = validCoords[safeIdx];
+  const currentHand  = currentPoint?.hand || "Unknown";
   const handColor    = HAND_COLORS[currentHand] || HAND_COLORS.Unknown;
 
-  // ── Dynamic viewBox: include ALL recorded shoulder + elbow positions ───────
-  const allX = [];
-  const allY = [];
-  validCoords.forEach(p => {
-    allX.push(p.x);
-    allY.push(p.y);
-    if (p.shoulder) { allX.push(p.shoulder.x); allY.push(p.shoulder.y); }
-    if (p.elbow)    { allX.push(p.elbow.x);    allY.push(p.elbow.y);    }
-  });
-  let minX = Math.min(...allX, 0.1);
-  let maxX = Math.max(...allX, 0.9);
-  let minY = Math.min(...allY, 0.1);
-  let maxY = Math.max(...allY, 0.95);
-  const padX = Math.max((maxX - minX) * 0.12, 0.08);
-  const padY = Math.max((maxY - minY) * 0.12, 0.08);
-  const vMinX  = (minX - padX) * 100;
-  const vMinY  = (minY - padY) * 100;
-  const vWidth = (maxX - minX + 2 * padX) * 100;
-  const vHeight= (maxY - minY + 2 * padY) * 100;
-  const viewBoxStr = `${vMinX} ${vMinY} ${vWidth} ${vHeight}`;
-
-  // ── Comet tail for each hand's wrist path ─────────────────────────────────
-  const getTail = (coords, currentTs) => {
-    // Grab the last `tailLength` points up to currentTs from this hand's coords
-    const upTo = coords.filter(p => p.timestamp <= currentPoint.timestamp);
-    return upTo.slice(-tailLength);
-  };
-  const leftTail  = showBothHands && hasLeft  ? getTail(leftCoords,  currentPoint.timestamp) : [];
-  const rightTail = showBothHands && hasRight ? getTail(rightCoords, currentPoint.timestamp) : [];
-
-  // ── Arm to render at current frame ───────────────────────────────────────
-  // For each hand, find the most recent point at or before currentPoint.timestamp
-  const getArmAtTime = (handCoords, ts) => {
+  // For the INACTIVE hand, find its most recent snapshot up to safeIdx so it
+  // doesn't disappear — its joints should reflect its last known position.
+  const getLatestSnapshotBefore = (handCoords, upToIdx) => {
+    // validCoords is sorted; we need the last point of `hand` with index <= upToIdx
     let best = null;
-    for (const p of handCoords) {
-      if (p.timestamp <= ts) best = p;
-      else break;
+    for (let i = 0; i <= upToIdx; i++) {
+      if (validCoords[i].hand === (handCoords[0]?.hand)) best = validCoords[i];
     }
     return best;
   };
-  const leftArm  = hasLeft  ? getArmAtTime(leftCoords,  currentPoint.timestamp) : null;
-  const rightArm = hasRight ? getArmAtTime(rightCoords, currentPoint.timestamp) : null;
 
-  // Helper: draw one arm (shoulder→elbow→wrist)
-  const renderArm = (armPoint, colors, opacity = 1) => {
-    if (!armPoint) return null;
-    const wrist    = { x: armPoint.x * 100, y: armPoint.y * 100 };
-    const shoulder = armPoint.shoulder ? { x: armPoint.shoulder.x * 100, y: armPoint.shoulder.y * 100 } : null;
-    const elbow    = armPoint.elbow    ? { x: armPoint.elbow.x    * 100, y: armPoint.elbow.y    * 100 } : null;
+  // Active hand: the current point itself
+  // Inactive hand: most recent snapshot for that hand up to now
+  const leftArmPoint  = hasLeft  ? (currentHand === "Left"  ? currentPoint : getLatestSnapshotBefore(leftCoords,  safeIdx)) : null;
+  const rightArmPoint = hasRight ? (currentHand === "Right" ? currentPoint : getLatestSnapshotBefore(rightCoords, safeIdx)) : null;
 
+  // ── Comet trails — last `tailLength` points PER hand up to safeIdx ──────────
+  const getHandTrail = (hand, tailLen) => {
+    const trail = [];
+    for (let i = safeIdx; i >= 0 && trail.length < tailLen; i--) {
+      if (validCoords[i].hand === hand) trail.unshift(validCoords[i]);
+    }
+    return trail;
+  };
+  const leftTrail  = showBothHands && hasLeft  ? getHandTrail("Left",  tailLength) : [];
+  const rightTrail = showBothHands && hasRight ? getHandTrail("Right", tailLength) : [];
+
+  // ── Render one arm skeleton (shoulder→elbow→wrist) ──────────────────────────
+  const renderArm = (point, colors) => {
+    if (!point) return null;
+    const w  = { x: point.x * 100,           y: point.y * 100 };
+    const sh = point.shoulder ? { x: point.shoulder.x * 100, y: point.shoulder.y * 100 } : null;
+    const el = point.elbow    ? { x: point.elbow.x    * 100, y: point.elbow.y    * 100 } : null;
+    const isActive = point.hand === currentHand;
     return (
-      <g opacity={opacity} key={colors.label}>
-        {/* Upper arm: shoulder → elbow */}
-        {shoulder && elbow && (
-          <line
-            x1={shoulder.x} y1={shoulder.y}
-            x2={elbow.x}    y2={elbow.y}
-            stroke="#94a3b8" strokeWidth="6" strokeLinecap="round"
-          />
-        )}
-        {/* Forearm: elbow → wrist */}
-        {elbow && (
-          <line
-            x1={elbow.x} y1={elbow.y}
-            x2={wrist.x} y2={wrist.y}
-            stroke="#cbd5e1" strokeWidth="4" strokeLinecap="round"
-          />
-        )}
-        {/* Shoulder joint */}
-        {shoulder && (
-          <circle cx={shoulder.x} cy={shoulder.y} r="5" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />
-        )}
-        {/* Elbow joint */}
-        {elbow && (
-          <circle cx={elbow.x} cy={elbow.y} r="4" fill="#3b82f6" stroke="#fff" strokeWidth="1.5" />
-        )}
-        {/* Wrist/hand */}
-        <circle cx={wrist.x} cy={wrist.y} r="6" fill={colors.fill} stroke="#fff" strokeWidth="1.5" />
-        <circle cx={wrist.x} cy={wrist.y} r="11" fill={colors.fill} fillOpacity="0.25" className="animate-pulse" />
+      <g key={colors.label} opacity={isActive ? 1 : 0.55}>
+        {/* Upper arm */}
+        {sh && el && <line x1={sh.x} y1={sh.y} x2={el.x} y2={el.y} stroke="#94a3b8" strokeWidth="5" strokeLinecap="round" />}
+        {/* Forearm */}
+        {el && <line x1={el.x} y1={el.y} x2={w.x} y2={w.y} stroke="#cbd5e1" strokeWidth="3.5" strokeLinecap="round" />}
+        {/* Joints */}
+        {sh && <circle cx={sh.x} cy={sh.y} r="5" fill="#ef4444" stroke="#fff" strokeWidth="1.5" />}
+        {el && <circle cx={el.x} cy={el.y} r="4" fill="#3b82f6" stroke="#fff" strokeWidth="1.5" />}
+        {/* Wrist */}
+        <circle cx={w.x} cy={w.y} r="6" fill={colors.fill} stroke="#fff" strokeWidth="1.5" />
+        <circle cx={w.x} cy={w.y} r="11" fill={colors.fill} fillOpacity="0.22" />
       </g>
     );
   };
 
-  // ── Biomechanical values for the current point ────────────────────────────
-  const bm = currentPoint;
-  const ea = bm.elbowAngle    === -1 ? null : bm.elbowAngle;
-  const sa = bm.shoulderAngle === -1 ? null : bm.shoulderAngle;
-  const va = bm.verticalAngle === -1 ? null : bm.verticalAngle;
+  // Biomechanical readout from the current point
+  const ea = currentPoint?.elbowAngle    === -1 ? null : currentPoint?.elbowAngle;
+  const sa = currentPoint?.shoulderAngle === -1 ? null : currentPoint?.shoulderAngle;
+  const va = currentPoint?.verticalAngle === -1 ? null : currentPoint?.verticalAngle;
 
-  // Progress %
   const progress = validCoords.length > 1 ? (safeIdx / (validCoords.length - 1)) * 100 : 0;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-150 dark:border-gray-700 mt-4 shadow-sm transition-all duration-300">
-      {/* Header */}
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 mt-4 shadow-sm">
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b dark:border-gray-700 pb-4">
         <div>
           <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400">
             Arm Kinematics &amp; Replay
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
-            Full skeleton animation — shoulder, elbow, and wrist move together per recorded frame.
+            Frame-by-frame skeleton replay — each point is one recorded sample; shoulder, elbow and wrist update every frame.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -231,81 +213,73 @@ const ArmReachVisualizer = ({ coordinates }) => {
               onClick={() => setShowBothHands(v => !v)}
               className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${showBothHands ? "bg-blue-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
             >
-              {showBothHands ? "Both Hands" : "Active Hand"}
+              {showBothHands ? "Both Hands" : "Active Only"}
             </button>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ── SVG canvas ── */}
+        {/* ── SVG Canvas ────────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col justify-between">
           <div className="relative w-full aspect-video bg-slate-50 dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
-            {/* Grid background */}
+            {/* Grid */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,#1e293b_1px,transparent_1px)] bg-[size:20px_20px] opacity-40" />
 
             <svg viewBox={viewBoxStr} className="w-full h-full absolute inset-0 z-10" preserveAspectRatio="xMidYMid meet">
-              {/* ── Left hand wrist tail ── */}
-              {leftTail.length > 1 && (
+              {/* ── Comet tail: Left wrist trail ── */}
+              {leftTrail.length > 1 && (
                 <polyline
-                  points={leftTail.map(p => `${p.x * 100},${p.y * 100}`).join(" ")}
-                  fill="none"
-                  stroke={HAND_COLORS.Left.stroke}
-                  strokeOpacity="0.55"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  points={leftTrail.map(p => `${p.x * 100},${p.y * 100}`).join(" ")}
+                  fill="none" stroke={HAND_COLORS.Left.stroke}
+                  strokeOpacity="0.75" strokeWidth="3.5"
+                  strokeLinecap="round" strokeLinejoin="round"
                 />
               )}
-              {/* Left elbow comet tail */}
-              {leftTail.length > 1 && leftTail.some(p => p.elbow) && (
+              {/* ── Comet tail: Left elbow trail ── */}
+              {leftTrail.length > 1 && leftTrail.some(p => p.elbow) && (
                 <polyline
-                  points={leftTail.filter(p => p.elbow).map(p => `${p.elbow.x * 100},${p.elbow.y * 100}`).join(" ")}
-                  fill="none"
-                  stroke="#3b82f6"
-                  strokeOpacity="0.2"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
+                  points={leftTrail.filter(p => p.elbow).map(p => `${p.elbow.x * 100},${p.elbow.y * 100}`).join(" ")}
+                  fill="none" stroke="#3b82f6"
+                  strokeOpacity="0.3" strokeWidth="2" strokeDasharray="3 4"
                 />
               )}
 
-              {/* ── Right hand wrist tail ── */}
-              {rightTail.length > 1 && (
+              {/* ── Comet tail: Right wrist trail ── */}
+              {rightTrail.length > 1 && (
                 <polyline
-                  points={rightTail.map(p => `${p.x * 100},${p.y * 100}`).join(" ")}
-                  fill="none"
-                  stroke={HAND_COLORS.Right.stroke}
-                  strokeOpacity="0.55"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  points={rightTrail.map(p => `${p.x * 100},${p.y * 100}`).join(" ")}
+                  fill="none" stroke={HAND_COLORS.Right.stroke}
+                  strokeOpacity="0.75" strokeWidth="3.5"
+                  strokeLinecap="round" strokeLinejoin="round"
                 />
               )}
-              {/* Right elbow comet tail */}
-              {rightTail.length > 1 && rightTail.some(p => p.elbow) && (
+              {/* ── Comet tail: Right elbow trail ── */}
+              {rightTrail.length > 1 && rightTrail.some(p => p.elbow) && (
                 <polyline
-                  points={rightTail.filter(p => p.elbow).map(p => `${p.elbow.x * 100},${p.elbow.y * 100}`).join(" ")}
-                  fill="none"
-                  stroke="#3b82f6"
-                  strokeOpacity="0.2"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
+                  points={rightTrail.filter(p => p.elbow).map(p => `${p.elbow.x * 100},${p.elbow.y * 100}`).join(" ")}
+                  fill="none" stroke="#3b82f6"
+                  strokeOpacity="0.3" strokeWidth="2" strokeDasharray="3 4"
                 />
               )}
 
-              {/* ── Draw arms at current timestamp ── */}
-              {/* Render inactive arm dimmed */}
-              {showBothHands && hasLeft  && currentHand !== "Left"  && renderArm(leftArm,  HAND_COLORS.Left,  0.35)}
-              {showBothHands && hasRight && currentHand !== "Right" && renderArm(rightArm, HAND_COLORS.Right, 0.35)}
-              {/* Render active hand arm full opacity on top */}
-              {hasLeft  && currentHand === "Left"  && renderArm(leftArm,  HAND_COLORS.Left,  1)}
-              {hasRight && currentHand === "Right" && renderArm(rightArm, HAND_COLORS.Right, 1)}
-              {/* Fallback: if no hand label, show current point's arm */}
-              {!hasLeft && !hasRight && renderArm(currentPoint, HAND_COLORS.Unknown, 1)}
+              {/* ── Skeleton arms ── */}
+              {showBothHands ? (
+                <>
+                  {hasLeft  && renderArm(leftArmPoint,  HAND_COLORS.Left)}
+                  {hasRight && renderArm(rightArmPoint, HAND_COLORS.Right)}
+                </>
+              ) : (
+                <>
+                  {currentHand === "Left"  && renderArm(leftArmPoint,  HAND_COLORS.Left)}
+                  {currentHand === "Right" && renderArm(rightArmPoint, HAND_COLORS.Right)}
+                  {currentHand === "Unknown" && renderArm(currentPoint, HAND_COLORS.Unknown)}
+                </>
+              )}
             </svg>
 
             {/* Legend */}
-            <div className="absolute top-3 left-3 flex gap-2 text-[10px] bg-black/75 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-bold backdrop-blur-sm shadow-md z-20 flex-wrap">
+            <div className="absolute top-3 left-3 flex gap-2 text-[10px] bg-black/70 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-bold backdrop-blur-sm z-20 flex-wrap">
               <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Shoulder</span>
               <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Elbow</span>
               {hasLeft  && <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Left</span>}
@@ -313,23 +287,23 @@ const ArmReachVisualizer = ({ coordinates }) => {
             </div>
 
             {/* Frame counter */}
-            <div className="absolute top-3 right-3 text-[10px] bg-black/75 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-bold backdrop-blur-sm shadow-md z-20">
-              {safeIdx + 1} / {validCoords.length}
+            <div className="absolute top-3 right-3 text-[10px] bg-black/70 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-bold backdrop-blur-sm z-20">
+              Frame {safeIdx + 1} / {validCoords.length} · <span style={{ color: handColor.fill }}>{handColor.label}</span>
             </div>
           </div>
 
-          {/* Controls */}
+          {/* ── Controls ─────────────────────────────────────────────────── */}
           <div className="mt-4 flex flex-col gap-3">
             {/* Progress bar */}
             <div className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-orange-500 rounded-full transition-all duration-100" style={{ width: `${progress}%` }} />
+              <div className="h-full bg-orange-500 rounded-full" style={{ width: `${progress}%`, transition: "width 0.05s linear" }} />
             </div>
             <div className="flex items-center gap-3">
-              {/* Play/Pause */}
+              {/* Play / Pause */}
               <button
                 type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
-                className={`p-2.5 rounded-xl flex items-center justify-center text-white transition-all transform active:scale-95 ${isPlaying ? "bg-amber-500 hover:bg-amber-600" : "bg-orange-500 hover:bg-orange-600"}`}
+                onClick={() => setIsPlaying(p => !p)}
+                className={`p-2.5 rounded-xl flex items-center justify-center text-white transition-all active:scale-95 ${isPlaying ? "bg-amber-500 hover:bg-amber-600" : "bg-orange-500 hover:bg-orange-600"}`}
               >
                 {isPlaying
                   ? <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
@@ -340,19 +314,16 @@ const ArmReachVisualizer = ({ coordinates }) => {
               <button
                 type="button"
                 onClick={() => { setIsPlaying(false); setCurrentIdx(0); }}
-                className="p-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-xl transition-all"
+                className="p-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl transition-all"
               >
                 <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
                 </svg>
               </button>
               {/* Scrubber */}
-              <div className="flex-1 flex items-center">
+              <div className="flex-1">
                 <input
-                  type="range"
-                  min="0"
-                  max={validCoords.length - 1}
-                  value={safeIdx}
+                  type="range" min="0" max={validCoords.length - 1} value={safeIdx}
                   onChange={e => { setIsPlaying(false); setCurrentIdx(parseInt(e.target.value)); }}
                   className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                 />
@@ -361,7 +332,7 @@ const ArmReachVisualizer = ({ coordinates }) => {
               <select
                 value={playbackSpeed}
                 onChange={e => setPlaybackSpeed(parseFloat(e.target.value))}
-                className="px-2 py-1.5 text-xs font-bold bg-gray-100 dark:bg-gray-700 border dark:border-gray-600 rounded-lg outline-none cursor-pointer"
+                className="px-2 py-1.5 text-xs font-bold bg-gray-100 dark:bg-gray-700 border dark:border-gray-600 rounded-lg outline-none cursor-pointer dark:text-white"
               >
                 <option value="0.25">0.25x</option>
                 <option value="0.5">0.5x</option>
@@ -379,12 +350,11 @@ const ArmReachVisualizer = ({ coordinates }) => {
                 ↺
               </button>
             </div>
-            {/* Tail length control */}
+            {/* Trail length */}
             <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
               <span className="font-medium whitespace-nowrap">Trail length: {tailLength}</span>
               <input
-                type="range" min="5" max="80" step="5"
-                value={tailLength}
+                type="range" min="5" max="100" step="5" value={tailLength}
                 onChange={e => setTailLength(parseInt(e.target.value))}
                 className="flex-1 accent-orange-400"
               />
@@ -392,86 +362,77 @@ const ArmReachVisualizer = ({ coordinates }) => {
           </div>
         </div>
 
-        {/* ── Biomechanical panel ── */}
+        {/* ── Biomechanical panel ──────────────────────────────────────────── */}
         <div className="bg-gray-50 dark:bg-slate-900 rounded-2xl p-5 border dark:border-slate-800 flex flex-col gap-4">
           <div>
             <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Biomechanical Data</h4>
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Active: <span className="font-bold" style={{ color: handColor.stroke }}>{handColor.label}</span>
+              Active: <span className="font-bold" style={{ color: handColor.fill }}>{handColor.label}</span>
             </p>
           </div>
 
           <div className="space-y-4">
-            {/* Elbow Extension */}
+            {/* Elbow */}
             <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">Elbow Angle</span>
-                <span className="text-lg font-black text-orange-600 dark:text-orange-400">
-                  {ea !== null && ea !== undefined ? `${Math.round(ea)}°` : "N/A"}
-                </span>
+                <span className="text-lg font-black text-orange-600 dark:text-orange-400">{ea != null ? `${Math.round(ea)}°` : "N/A"}</span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-orange-500 h-full rounded-full transition-all duration-100"
-                  style={{ width: `${ea !== null && ea !== undefined ? Math.min(100, (ea / 180) * 100) : 0}%` }} />
+                <div className="bg-orange-500 h-full rounded-full transition-all duration-75" style={{ width: `${ea != null ? Math.min(100, (ea / 180) * 100) : 0}%` }} />
               </div>
             </div>
 
-            {/* Shoulder Abduction */}
+            {/* Shoulder */}
             <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">Shoulder Abduction</span>
-                <span className="text-lg font-black text-amber-600 dark:text-amber-400">
-                  {sa !== null && sa !== undefined ? `${Math.round(sa)}°` : "N/A"}
-                </span>
+                <span className="text-lg font-black text-amber-600 dark:text-amber-400">{sa != null ? `${Math.round(sa)}°` : "N/A"}</span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full transition-all duration-100"
-                  style={{ width: `${sa !== null && sa !== undefined ? Math.min(100, (sa / 180) * 100) : 0}%` }} />
+                <div className="bg-amber-500 h-full rounded-full transition-all duration-75" style={{ width: `${sa != null ? Math.min(100, (sa / 180) * 100) : 0}%` }} />
               </div>
             </div>
 
-            {/* Vertical Angle (arm elevation) */}
+            {/* Arm Elevation */}
             <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">Arm Elevation</span>
-                <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">
-                  {va !== null && va !== undefined ? `${Math.round(va)}°` : "N/A"}
-                </span>
+                <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">{va != null ? `${Math.round(va)}°` : "N/A"}</span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-indigo-500 h-full rounded-full transition-all duration-100"
-                  style={{ width: `${va !== null && va !== undefined ? Math.min(100, (va / 90) * 100) : 0}%` }} />
+                <div className="bg-indigo-500 h-full rounded-full transition-all duration-75" style={{ width: `${va != null ? Math.min(100, (va / 90) * 100) : 0}%` }} />
               </div>
               <p className="text-[10px] text-gray-400 mt-1">Upper arm vs vertical (0° = arm down)</p>
             </div>
           </div>
 
-          {/* Position readout */}
+          {/* Joint Positions */}
           <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm space-y-2">
             <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Joint Positions</h5>
-            {currentPoint.shoulder && (
+            {currentPoint?.shoulder && (
               <div className="flex justify-between text-xs">
                 <span className="text-red-500 font-bold">● Shoulder</span>
                 <span className="text-gray-600 dark:text-gray-400 font-mono">
-                  ({currentPoint.shoulder.x.toFixed(2)}, {currentPoint.shoulder.y.toFixed(2)})
+                  ({currentPoint.shoulder.x.toFixed(3)}, {currentPoint.shoulder.y.toFixed(3)})
                 </span>
               </div>
             )}
-            {currentPoint.elbow && (
+            {currentPoint?.elbow && (
               <div className="flex justify-between text-xs">
                 <span className="text-blue-500 font-bold">● Elbow</span>
                 <span className="text-gray-600 dark:text-gray-400 font-mono">
-                  ({currentPoint.elbow.x.toFixed(2)}, {currentPoint.elbow.y.toFixed(2)})
+                  ({currentPoint.elbow.x.toFixed(3)}, {currentPoint.elbow.y.toFixed(3)})
                 </span>
               </div>
             )}
             <div className="flex justify-between text-xs">
-              <span className="font-bold" style={{ color: handColor.stroke }}>● {handColor.label}</span>
+              <span className="font-bold" style={{ color: handColor.fill }}>● {handColor.label}</span>
               <span className="text-gray-600 dark:text-gray-400 font-mono">
-                ({currentPoint.x.toFixed(2)}, {currentPoint.y.toFixed(2)})
+                ({currentPoint?.x.toFixed(3)}, {currentPoint?.y.toFixed(3)})
               </span>
             </div>
-            {currentPoint.timestamp !== undefined && (
+            {currentPoint?.timestamp != null && (
               <div className="flex justify-between text-xs pt-1 border-t dark:border-slate-700">
                 <span className="text-gray-400 font-bold">⏱ Time</span>
                 <span className="text-gray-600 dark:text-gray-400 font-mono">{currentPoint.timestamp.toFixed(2)}s</span>

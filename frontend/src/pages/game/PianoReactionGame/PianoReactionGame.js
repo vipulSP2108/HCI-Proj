@@ -972,6 +972,7 @@ const PianoReactionGame = () => {
       laptopMovements: [],
       mobileMovements: []
     });
+    sequenceIndexRef.current = 0;
     showNextSection();
   };
 
@@ -1253,21 +1254,40 @@ const PianoReactionGame = () => {
   };
 
   const handleQuitOrBack = async () => {
-    if (gameSessionBuffer.hasPending()) {
-      const save = window.confirm("Would you like to SAVE your session progress before leaving?");
-      if (save) {
+    // Stop ALL timers immediately so no deferred callbacks fire after exit
+    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
+    sectionTimerRef.current = null;
+
+    const hasPending = gameSessionBuffer.hasPending();
+    const dashPath = user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
+
+    // 3-way choice: Save | Discard | Cancel
+    const choice = window.confirm(
+      hasPending
+        ? "Leave the game?\n\n• OK → Save & Exit (saves your progress)\n• Cancel → opens Discard option"
+        : "Leave the game? (No unsaved data)\n\n• OK → Exit\n• Cancel → Stay"
+    );
+
+    if (choice) {
+      // OK = Save & Exit
+      if (hasPending) {
         handleBeforeSave();
-        await gameSessionBuffer.saveAndExit();
-        navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
-      } else {
-        const discard = window.confirm("Are you sure you want to DISCARD your progress and exit? (OK to Discard, Cancel to Stay)");
-        if (discard) {
-          gameSessionBuffer.discard();
-          navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+        try {
+          await gameSessionBuffer.saveAndExit();
+        } catch (err) {
+          console.error("Save failed:", err);
         }
       }
+      navigate(dashPath);
     } else {
-      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+      if (!hasPending) return; // no data, cancel = stay
+      const discard = window.confirm(
+        "Discard all progress and exit?\n\n• OK → Discard & Exit\n• Cancel → Stay in game"
+      );
+      if (discard) {
+        gameSessionBuffer.discard();
+        navigate(dashPath);
+      }
     }
   };
 

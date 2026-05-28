@@ -970,6 +970,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     successesRef.current = 0;
     logsRef.current = [];
     sessionStartRef.current = Date.now();
+    sequenceIndexRef.current = 0;
 
     const sessionSeconds = globalSettings?.testingMode
       ? (globalSettings?.testingShapeSessionSeconds || 600)

@@ -1,313 +1,34 @@
 [
   {
     "fingerTimeouts": {
-      "thumb": -1,
-      "index": -1,
-      "middle": -1,
-      "ring": -1,
-      "pinky": -1,
-      "leftPinky": 10,
-      "leftRing": 1,
-      "leftMiddle": 1,
-      "leftIndex": 1,
-      "rightIndex": 0,
-      "rightMiddle": 2,
-      "rightRing": 2,
-      "rightPinky": 2
+      "thumb": 10,
+      "index": 10,
+      "middle": 2,
+      "ring": 2,
+      "pinky": 2,
+      "leftPinky": -1,
+      "leftRing": -1,
+      "leftMiddle": -1,
+      "leftIndex": -1,
+      "rightIndex": -1,
+      "rightMiddle": -1,
+      "rightRing": -1,
+      "rightPinky": -1
     },
-    "_id": "6a13e0e5f7784aa3918a34a9",
+    "_id": "6a18151ee339ae6161dd5ce7",
     "user": "68f360d2bce6ed3a964390c7",
     "gameType": "piano_finger",
     "gameName": "Piano - Finger Dexterity",
-    "time": "2026-05-25T05:40:53.273Z",
+    "time": "2026-05-28T10:12:46.809Z",
     "levelspan": 5,
-    "sessionScore": 85,
+    "sessionScore": 160,
     "systemMetrics": {
       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "resolution": "1280x679"
     },
     "play": [
       {
-        "responsetime": 1.6,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.8,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.8,
-        "correct": 1
-      },
-      {
-        "responsetime": -1,
-        "correct": 0
-      },
-      {
-        "responsetime": 1,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
         "responsetime": 1.1,
-        "correct": -1
-      }
-    ],
-    "mode": "laptop",
-    "laptopMovements": [
-      {
-        "fromKey": "K",
-        "toKey": "D",
-        "dx": -620,
-        "dy": 0,
-        "distance": 620,
-        "fromX": 1027.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34aa"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "A",
-        "dx": -310,
-        "dy": 0,
-        "distance": 310,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 97.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34ab"
-      },
-      {
-        "fromKey": "A",
-        "toKey": "K",
-        "dx": 930,
-        "dy": 0,
-        "distance": 930,
-        "fromX": 97.5,
-        "fromY": 329.5,
-        "toX": 1027.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34ac"
-      },
-      {
-        "fromKey": "K",
-        "toKey": "D",
-        "dx": -620,
-        "dy": 0,
-        "distance": 620,
-        "fromX": 1027.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34ad"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "J",
-        "dx": 465,
-        "dy": 0,
-        "distance": 465,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 872.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34ae"
-      },
-      {
-        "fromKey": "J",
-        "toKey": "F",
-        "dx": -310,
-        "dy": 0,
-        "distance": 310,
-        "fromX": 872.5,
-        "fromY": 329.5,
-        "toX": 562.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34af"
-      },
-      {
-        "fromKey": "F",
-        "toKey": "J",
-        "dx": 310,
-        "dy": 0,
-        "distance": 310,
-        "fromX": 562.5,
-        "fromY": 329.5,
-        "toX": 872.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34b0"
-      },
-      {
-        "fromKey": "J",
-        "toKey": "D",
-        "dx": -465,
-        "dy": 0,
-        "distance": 465,
-        "fromX": 872.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34b1"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "J",
-        "dx": 465,
-        "dy": 0,
-        "distance": 465,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 872.5,
-        "toY": 329.5,
-        "_id": "6a13e0e5f7784aa3918a34b2"
-      }
-    ],
-    "mobileMovements": [
-      {
-        "key": "K",
-        "finger": "rightRing",
-        "expectedFinger": "rightRing",
-        "responsetime": 1.6,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b3"
-      },
-      {
-        "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
-        "responsetime": 0.9,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b4"
-      },
-      {
-        "key": "A",
-        "finger": "leftPinky",
-        "expectedFinger": "leftPinky",
-        "responsetime": 0.8,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b5"
-      },
-      {
-        "key": "K",
-        "finger": "rightRing",
-        "expectedFinger": "rightRing",
-        "responsetime": 0.9,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b6"
-      },
-      {
-        "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
-        "responsetime": 0.9,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b7"
-      },
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 0.8,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34b8"
-      },
-      {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "leftIndex",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e0e5f7784aa3918a34b9"
-      },
-      {
-        "key": "F",
-        "finger": "leftIndex",
-        "expectedFinger": "leftIndex",
-        "responsetime": 1,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34ba"
-      },
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 0.9,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34bb"
-      },
-      {
-        "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
-        "responsetime": 0.9,
-        "correct": 1,
-        "_id": "6a13e0e5f7784aa3918a34bc"
-      },
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightRing",
-        "responsetime": 1.1,
-        "correct": -1,
-        "_id": "6a13e0e5f7784aa3918a34bd"
-      }
-    ],
-    "createdAt": "2026-05-25T05:40:53.295Z",
-    "updatedAt": "2026-05-25T05:40:53.295Z",
-    "__v": 0,
-    "coordinates": []
-  },
-  {
-    "fingerTimeouts": {
-      "thumb": -1,
-      "index": -1,
-      "middle": -1,
-      "ring": -1,
-      "pinky": -1,
-      "leftPinky": 10,
-      "leftRing": 1,
-      "leftMiddle": 1,
-      "leftIndex": 1,
-      "rightIndex": 0,
-      "rightMiddle": 2,
-      "rightRing": 2,
-      "rightPinky": 2
-    },
-    "_id": "6a13e142f7784aa3918a34ea",
-    "user": "68f360d2bce6ed3a964390c7",
-    "gameType": "piano_finger",
-    "gameName": "Piano - Finger Dexterity",
-    "time": "2026-05-25T05:42:26.186Z",
-    "levelspan": 5,
-    "sessionScore": 115,
-    "systemMetrics": {
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
-      "resolution": "1280x679"
-    },
-    "play": [
-      {
-        "responsetime": 1.4,
         "correct": 1
       },
       {
@@ -319,43 +40,47 @@
         "correct": 1
       },
       {
-        "responsetime": 0.5,
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.2,
         "correct": -1
       },
       {
-        "responsetime": 1.3,
+        "responsetime": 0.7,
         "correct": 1
-      },
-      {
-        "responsetime": -1,
-        "correct": 0
-      },
-      {
-        "responsetime": 1.5,
-        "correct": 1
-      },
-      {
-        "responsetime": -1,
-        "correct": 0
-      },
-      {
-        "responsetime": 1,
-        "correct": 1
-      },
-      {
-        "responsetime": -1,
-        "correct": 0
-      },
-      {
-        "responsetime": 0.9,
-        "correct": 1
-      },
-      {
-        "responsetime": -1,
-        "correct": 0
       },
       {
         "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.2,
         "correct": 1
       },
       {
@@ -363,11 +88,7 @@
         "correct": 1
       },
       {
-        "responsetime": -1,
-        "correct": 0
-      },
-      {
-        "responsetime": 1,
+        "responsetime": 0.7,
         "correct": 1
       },
       {
@@ -375,319 +96,174 @@
         "correct": 1
       },
       {
-        "responsetime": -1,
-        "correct": 0
+        "responsetime": 0.2,
+        "correct": -1
       },
       {
-        "responsetime": 0.9,
+        "responsetime": 0.7,
         "correct": 1
       }
     ],
-    "mode": "laptop",
-    "laptopMovements": [
-      {
-        "fromKey": "A",
-        "toKey": "J",
-        "dx": 775,
-        "dy": 0,
-        "distance": 775,
-        "fromX": 97.5,
-        "fromY": 329.5,
-        "toX": 872.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34eb"
-      },
-      {
-        "fromKey": "J",
-        "toKey": "A",
-        "dx": -775,
-        "dy": 0,
-        "distance": 775,
-        "fromX": 872.5,
-        "fromY": 329.5,
-        "toX": 97.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34ec"
-      },
-      {
-        "fromKey": "A",
-        "toKey": "K",
-        "dx": 930,
-        "dy": 0,
-        "distance": 930,
-        "fromX": 97.5,
-        "fromY": 329.5,
-        "toX": 1027.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34ed"
-      },
-      {
-        "fromKey": "K",
-        "toKey": "L",
-        "dx": 155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 1027.5,
-        "fromY": 329.5,
-        "toX": 1182.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34ee"
-      },
-      {
-        "fromKey": "L",
-        "toKey": "K",
-        "dx": -155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 1182.5,
-        "fromY": 329.5,
-        "toX": 1027.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34ef"
-      },
-      {
-        "fromKey": "K",
-        "toKey": "S",
-        "dx": -775,
-        "dy": 0,
-        "distance": 775,
-        "fromX": 1027.5,
-        "fromY": 329.5,
-        "toX": 252.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f0"
-      },
-      {
-        "fromKey": "S",
-        "toKey": "D",
-        "dx": 155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 252.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f1"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "F",
-        "dx": 155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 562.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f2"
-      },
-      {
-        "fromKey": "F",
-        "toKey": "D",
-        "dx": -155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 562.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f3"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "J",
-        "dx": 465,
-        "dy": 0,
-        "distance": 465,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 872.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f4"
-      },
-      {
-        "fromKey": "J",
-        "toKey": "D",
-        "dx": -465,
-        "dy": 0,
-        "distance": 465,
-        "fromX": 872.5,
-        "fromY": 329.5,
-        "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f5"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "S",
-        "dx": -155,
-        "dy": 0,
-        "distance": 155,
-        "fromX": 407.5,
-        "fromY": 329.5,
-        "toX": 252.5,
-        "toY": 329.5,
-        "_id": "6a13e142f7784aa3918a34f6"
-      }
-    ],
+    "coordinates": [],
+    "mode": "mobile",
+    "laptopMovements": [],
     "mobileMovements": [
       {
-        "key": "A",
-        "finger": "leftPinky",
-        "expectedFinger": "leftPinky",
-        "responsetime": 1.4,
+        "key": "S",
+        "finger": "index",
+        "expectedFinger": "index",
+        "responsetime": 1.1,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a34f7"
+        "_id": "6a18151ee339ae6161dd5ce8"
       },
       {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
+        "key": "A",
+        "finger": "thumb",
+        "expectedFinger": "thumb",
         "responsetime": 0.7,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a34f8"
-      },
-      {
-        "key": "A",
-        "finger": "leftPinky",
-        "expectedFinger": "leftPinky",
-        "responsetime": 0.8,
-        "correct": 1,
-        "_id": "6a13e142f7784aa3918a34f9"
-      },
-      {
-        "key": "K",
-        "finger": "rightRing",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 0.5,
-        "correct": -1,
-        "_id": "6a13e142f7784aa3918a34fa"
-      },
-      {
-        "key": "L",
-        "finger": "rightPinky",
-        "expectedFinger": "rightPinky",
-        "responsetime": 1.3,
-        "correct": 1,
-        "_id": "6a13e142f7784aa3918a34fb"
-      },
-      {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "leftPinky",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a34fc"
-      },
-      {
-        "key": "K",
-        "finger": "rightRing",
-        "expectedFinger": "rightRing",
-        "responsetime": 1.5,
-        "correct": 1,
-        "_id": "6a13e142f7784aa3918a34fd"
-      },
-      {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "leftRing",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a34fe"
-      },
-      {
-        "key": "S",
-        "finger": "leftRing",
-        "expectedFinger": "leftRing",
-        "responsetime": 1,
-        "correct": 1,
-        "_id": "6a13e142f7784aa3918a34ff"
-      },
-      {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "rightRing",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a3500"
+        "_id": "6a18151ee339ae6161dd5ce9"
       },
       {
         "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
-        "responsetime": 0.9,
+        "finger": "middle",
+        "expectedFinger": "middle",
+        "responsetime": 0.8,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a3501"
-      },
-      {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "leftIndex",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a3502"
+        "_id": "6a18151ee339ae6161dd5cea"
       },
       {
         "key": "F",
-        "finger": "leftIndex",
-        "expectedFinger": "leftIndex",
-        "responsetime": 0.7,
-        "correct": 1,
-        "_id": "6a13e142f7784aa3918a3503"
-      },
-      {
-        "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
+        "finger": "ring",
+        "expectedFinger": "ring",
         "responsetime": 0.8,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a3504"
+        "_id": "6a18151ee339ae6161dd5ceb"
       },
       {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "rightPinky",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a3505"
-      },
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 1,
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.4,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a3506"
+        "_id": "6a18151ee339ae6161dd5cec"
       },
       {
-        "key": "D",
-        "finger": "leftMiddle",
-        "expectedFinger": "leftMiddle",
-        "responsetime": 1,
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.1,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a3507"
+        "_id": "6a18151ee339ae6161dd5ced"
       },
       {
-        "key": "none",
-        "finger": "none",
-        "expectedFinger": "rightMiddle",
-        "responsetime": -1,
-        "correct": 0,
-        "_id": "6a13e142f7784aa3918a3508"
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.1,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cee"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.4,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cef"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "index",
+        "responsetime": 0.2,
+        "correct": -1,
+        "_id": "6a18151ee339ae6161dd5cf0"
       },
       {
         "key": "S",
-        "finger": "leftRing",
-        "expectedFinger": "leftRing",
-        "responsetime": 0.9,
+        "finger": "index",
+        "expectedFinger": "index",
+        "responsetime": 0.7,
         "correct": 1,
-        "_id": "6a13e142f7784aa3918a3509"
+        "_id": "6a18151ee339ae6161dd5cf1"
+      },
+      {
+        "key": "D",
+        "finger": "middle",
+        "expectedFinger": "middle",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf2"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.6,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf3"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.1,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf4"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.2,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf5"
+      },
+      {
+        "key": "D",
+        "finger": "middle",
+        "expectedFinger": "middle",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf6"
+      },
+      {
+        "key": "A",
+        "finger": "thumb",
+        "expectedFinger": "thumb",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf7"
+      },
+      {
+        "key": "A",
+        "finger": "thumb",
+        "expectedFinger": "thumb",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cf8"
+      },
+      {
+        "key": "A",
+        "finger": "thumb",
+        "expectedFinger": "middle",
+        "responsetime": 0.2,
+        "correct": -1,
+        "_id": "6a18151ee339ae6161dd5cf9"
+      },
+      {
+        "key": "F",
+        "finger": "ring",
+        "expectedFinger": "ring",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a18151ee339ae6161dd5cfa"
       }
     ],
-    "createdAt": "2026-05-25T05:42:26.200Z",
-    "updatedAt": "2026-05-25T05:42:26.200Z",
-    "__v": 0,
-    "coordinates": []
+    "createdAt": "2026-05-28T10:12:46.828Z",
+    "updatedAt": "2026-05-28T10:12:46.828Z",
+    "__v": 0
   },
   {
     "fingerTimeouts": {
@@ -705,20 +281,100 @@
       "rightRing": 5,
       "rightPinky": 5
     },
-    "_id": "6a13e32844d197e8daee162d",
+    "_id": "6a181850e339ae6161dd5e53",
     "user": "68f360d2bce6ed3a964390c7",
     "gameType": "piano_ankle",
     "gameName": "Piano - Wrist Movement",
-    "time": "2026-05-25T05:50:32.893Z",
+    "time": "2026-05-28T10:26:24.326Z",
     "levelspan": 5,
-    "sessionScore": 65,
+    "sessionScore": 595,
     "systemMetrics": {
       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "resolution": "1280x679"
     },
     "play": [
       {
-        "responsetime": 1.1,
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": -1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": -1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
         "correct": 1
       },
       {
@@ -726,7 +382,123 @@
         "correct": 1
       },
       {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
         "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
         "correct": 1
       },
       {
@@ -738,53 +510,281 @@
         "correct": 1
       },
       {
-        "responsetime": 0.2,
-        "correct": 1
-      },
-      {
-        "responsetime": 2.8,
-        "correct": 1
-      },
-      {
-        "responsetime": 0.4,
+        "responsetime": 0.3,
         "correct": -1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
       }
     ],
     "coordinates": [
       {
-        "x": 0.606,
-        "y": 0.883,
-        "timestamp": 1779688222386
+        "x": 0.513,
+        "y": 0.78,
+        "timestamp": 1779963924856
       },
       {
-        "x": 0.417,
-        "y": 0.64,
-        "timestamp": 1779688223431
+        "x": 0.576,
+        "y": 0.712,
+        "timestamp": 1779963925857
       },
       {
-        "x": 0.602,
-        "y": 0.674,
-        "timestamp": 1779688224580
-      },
-      {
-        "x": 0.461,
-        "y": 0.633,
-        "timestamp": 1779688225581
-      },
-      {
-        "x": 0.716,
+        "x": 0.229,
         "y": 0.53,
-        "timestamp": 1779688226598
+        "timestamp": 1779963927673
       },
       {
-        "x": 0.365,
-        "y": 0.431,
-        "timestamp": 1779688229651
+        "x": 0.03,
+        "y": 0.45,
+        "timestamp": 1779963929373
       },
       {
-        "x": 0.584,
-        "y": 0.54,
-        "timestamp": 1779688230914
+        "x": 0.127,
+        "y": 0.443,
+        "timestamp": 1779963931022
+      },
+      {
+        "x": 0.216,
+        "y": 0.455,
+        "timestamp": 1779963932639
+      },
+      {
+        "x": 0.865,
+        "y": 0.477,
+        "timestamp": 1779963933689
+      },
+      {
+        "x": 0.486,
+        "y": 0.426,
+        "timestamp": 1779963934689
+      },
+      {
+        "x": 0.333,
+        "y": 0.434,
+        "timestamp": 1779963935689
+      },
+      {
+        "x": 0.499,
+        "y": 0.574,
+        "timestamp": 1779963936705
+      },
+      {
+        "x": 0.254,
+        "y": 0.506,
+        "timestamp": 1779963938189
+      },
+      {
+        "x": 0.34,
+        "y": 0.499,
+        "timestamp": 1779963939189
+      },
+      {
+        "x": 0.145,
+        "y": 0.459,
+        "timestamp": 1779963940723
+      },
+      {
+        "x": 0.356,
+        "y": 0.417,
+        "timestamp": 1779963941822
+      },
+      {
+        "x": 0.17,
+        "y": 0.399,
+        "timestamp": 1779963943189
+      },
+      {
+        "x": 0.206,
+        "y": 0.361,
+        "timestamp": 1779963944655
+      },
+      {
+        "x": 0.586,
+        "y": 0.451,
+        "timestamp": 1779963945655
+      },
+      {
+        "x": 0.397,
+        "y": 0.304,
+        "timestamp": 1779963946655
+      },
+      {
+        "x": 0.205,
+        "y": 0.418,
+        "timestamp": 1779963947655
+      },
+      {
+        "x": 0.355,
+        "y": 0.42,
+        "timestamp": 1779963948656
+      },
+      {
+        "x": 0.122,
+        "y": 0.419,
+        "timestamp": 1779963950072
+      },
+      {
+        "x": 0.146,
+        "y": 0.442,
+        "timestamp": 1779963951072
+      },
+      {
+        "x": 0.331,
+        "y": 0.455,
+        "timestamp": 1779963952505
+      },
+      {
+        "x": 0.578,
+        "y": 0.447,
+        "timestamp": 1779963954155
+      },
+      {
+        "x": 0.679,
+        "y": 0.527,
+        "timestamp": 1779963955156
+      },
+      {
+        "x": 0.111,
+        "y": 0.469,
+        "timestamp": 1779963956424
+      },
+      {
+        "x": 0.147,
+        "y": 0.5,
+        "timestamp": 1779963957755
+      },
+      {
+        "x": 0.873,
+        "y": 0.707,
+        "timestamp": 1779963958889
+      },
+      {
+        "x": 0.309,
+        "y": 0.543,
+        "timestamp": 1779963959889
+      },
+      {
+        "x": 0.134,
+        "y": 0.543,
+        "timestamp": 1779963961256
+      },
+      {
+        "x": 0.184,
+        "y": 0.557,
+        "timestamp": 1779963962689
+      },
+      {
+        "x": 0.504,
+        "y": 0.551,
+        "timestamp": 1779963963690
+      },
+      {
+        "x": 0.444,
+        "y": 0.408,
+        "timestamp": 1779963964723
+      },
+      {
+        "x": 0.22,
+        "y": 0.448,
+        "timestamp": 1779963966057
+      },
+      {
+        "x": 0.122,
+        "y": 0.362,
+        "timestamp": 1779963967873
+      },
+      {
+        "x": 0.036,
+        "y": 0.359,
+        "timestamp": 1779963969538
+      },
+      {
+        "x": 0.101,
+        "y": 0.5,
+        "timestamp": 1779963971055
+      },
+      {
+        "x": 0.643,
+        "y": 0.556,
+        "timestamp": 1779963972372
+      },
+      {
+        "x": 0.503,
+        "y": 0.443,
+        "timestamp": 1779963973388
+      },
+      {
+        "x": 0.059,
+        "y": 0.443,
+        "timestamp": 1779963974656
+      },
+      {
+        "x": 0.503,
+        "y": 0.469,
+        "timestamp": 1779963975673
+      },
+      {
+        "x": 0.384,
+        "y": 0.408,
+        "timestamp": 1779963976689
+      },
+      {
+        "x": 0.849,
+        "y": 0.362,
+        "timestamp": 1779963978122
+      },
+      {
+        "x": 0.306,
+        "y": 0.368,
+        "timestamp": 1779963979122
+      },
+      {
+        "x": 0.324,
+        "y": 0.492,
+        "timestamp": 1779963980139
+      },
+      {
+        "x": 0.551,
+        "y": 0.494,
+        "timestamp": 1779963981139
+      },
+      {
+        "x": 0.523,
+        "y": 0.503,
+        "timestamp": 1779963982139
       }
     ],
     "mode": "laptop",
@@ -796,10 +796,10 @@
         "dy": 0,
         "distance": 310,
         "fromX": 795,
-        "fromY": 341.5,
+        "fromY": 395.5,
         "toX": 485,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee162e"
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e54"
       },
       {
         "fromKey": "S",
@@ -808,10 +808,82 @@
         "dy": 0,
         "distance": 310,
         "fromX": 485,
-        "fromY": 341.5,
+        "fromY": 395.5,
         "toX": 175,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee162f"
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e55"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e56"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e57"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e58"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e59"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5a"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5b"
       },
       {
         "fromKey": "A",
@@ -820,46 +892,70 @@
         "dy": 0,
         "distance": 930,
         "fromX": 175,
-        "fromY": 341.5,
+        "fromY": 395.5,
         "toX": 1105,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee1630"
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5c"
       },
       {
         "fromKey": "F",
-        "toKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5d"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5e"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e5f"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e60"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "S",
         "dx": 0,
         "dy": 0,
         "distance": 0,
-        "fromX": 1105,
-        "fromY": 341.5,
-        "toX": 1105,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee1631"
-      },
-      {
-        "fromKey": "F",
-        "toKey": "D",
-        "dx": -310,
-        "dy": 0,
-        "distance": 310,
-        "fromX": 1105,
-        "fromY": 341.5,
-        "toX": 795,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee1632"
-      },
-      {
-        "fromKey": "D",
-        "toKey": "S",
-        "dx": -310,
-        "dy": 0,
-        "distance": 310,
-        "fromX": 795,
-        "fromY": 341.5,
+        "fromX": 485,
+        "fromY": 395.5,
         "toX": 485,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee1633"
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e61"
       },
       {
         "fromKey": "S",
@@ -868,105 +964,627 @@
         "dy": 0,
         "distance": 310,
         "fromX": 485,
-        "fromY": 341.5,
+        "fromY": 395.5,
         "toX": 795,
-        "toY": 341.5,
-        "_id": "6a13e32844d197e8daee1634"
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e62"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e63"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e64"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "D",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 795,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e65"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "A",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e66"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e67"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e68"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e69"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6a"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6b"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6c"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6d"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6e"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e6f"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e70"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e71"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "D",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 795,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e72"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "A",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e73"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e74"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e75"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e76"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e77"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e78"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e79"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7a"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7b"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7c"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7d"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7e"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e7f"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "A",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e80"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "D",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 795,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e81"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "A",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e82"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e83"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e84"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e85"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e86"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "D",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 795,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e87"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "D",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 795,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e88"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e89"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8a"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8b"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8c"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8d"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "F",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8e"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e8f"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e90"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e91"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181850e339ae6161dd5e92"
       }
     ],
     "mobileMovements": [],
-    "createdAt": "2026-05-25T05:50:32.907Z",
-    "updatedAt": "2026-05-25T05:50:32.907Z",
+    "createdAt": "2026-05-28T10:26:24.353Z",
+    "updatedAt": "2026-05-28T10:26:24.353Z",
     "__v": 0
   },
   {
     "fingerTimeouts": {
-      "thumb": -1,
-      "index": -1,
-      "middle": -1,
-      "ring": -1,
-      "pinky": -1,
-      "leftPinky": 10,
-      "leftRing": 1,
-      "leftMiddle": 1,
-      "leftIndex": 1,
-      "rightIndex": 0,
-      "rightMiddle": 2,
-      "rightRing": 2,
-      "rightPinky": 2
+      "thumb": 5,
+      "index": 5,
+      "middle": 5,
+      "ring": 5,
+      "pinky": 5,
+      "leftPinky": 5,
+      "leftRing": 5,
+      "leftMiddle": 5,
+      "leftIndex": 5,
+      "rightIndex": 5,
+      "rightMiddle": 5,
+      "rightRing": 5,
+      "rightPinky": 5
     },
-    "_id": "6a13ed7f44d197e8daee1bab",
+    "_id": "6a181899e339ae6161dd5ec1",
     "user": "68f360d2bce6ed3a964390c7",
-    "gameType": "piano_finger",
-    "gameName": "Piano - Finger Dexterity",
-    "time": "2026-05-25T06:34:39.028Z",
-    "levelspan": 5,
-    "sessionScore": 10,
+    "gameType": "piano_ankle",
+    "gameName": "Piano - Wrist Movement",
+    "time": "2026-05-28T10:27:37.571Z",
+    "levelspan": 4,
+    "sessionScore": 390,
     "systemMetrics": {
       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "resolution": "1280x679"
     },
     "play": [
       {
-        "responsetime": 0.8,
-        "correct": 1
-      }
-    ],
-    "coordinates": [],
-    "mode": "laptop",
-    "laptopMovements": [],
-    "mobileMovements": [
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 0.8,
-        "correct": 1,
-        "_id": "6a13ed7f44d197e8daee1bac"
-      }
-    ],
-    "createdAt": "2026-05-25T06:34:39.044Z",
-    "updatedAt": "2026-05-25T06:34:39.044Z",
-    "__v": 0
-  },
-  {
-    "fingerTimeouts": {
-      "thumb": -1,
-      "index": -1,
-      "middle": -1,
-      "ring": -1,
-      "pinky": -1,
-      "leftPinky": 10,
-      "leftRing": 1,
-      "leftMiddle": 1,
-      "leftIndex": 1,
-      "rightIndex": 0,
-      "rightMiddle": 2,
-      "rightRing": 2,
-      "rightPinky": 2
-    },
-    "_id": "6a14219e63a8dbfaa4a19f50",
-    "user": "68f360d2bce6ed3a964390c7",
-    "gameType": "piano_finger",
-    "gameName": "Piano - Finger Dexterity",
-    "time": "2026-05-25T10:17:02.084Z",
-    "levelspan": 5,
-    "sessionScore": 20,
-    "systemMetrics": {
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
-      "resolution": "1280x679"
-    },
-    "play": [
-      {
-        "responsetime": 0.6,
-        "correct": -1
-      },
-      {
-        "responsetime": 0.2,
+        "responsetime": 1,
         "correct": 1
       },
       {
-        "responsetime": 0.1,
+        "responsetime": 0.7,
         "correct": -1
       },
       {
@@ -974,36 +1592,721 @@
         "correct": 1
       },
       {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
         "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": -1
+      },
+      {
+        "responsetime": 1.3,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.9,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.3,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.3,
         "correct": 1
       }
     ],
-    "coordinates": [],
+    "coordinates": [
+      {
+        "x": 0.682,
+        "y": 0.661,
+        "timestamp": 1779964001156
+      },
+      {
+        "x": 0.429,
+        "y": 0.549,
+        "timestamp": 1779964002172
+      },
+      {
+        "x": 0.252,
+        "y": 0.457,
+        "timestamp": 1779964003257
+      },
+      {
+        "x": 0.388,
+        "y": 0.456,
+        "timestamp": 1779964004271
+      },
+      {
+        "x": 0.893,
+        "y": 0.52,
+        "timestamp": 1779964005389
+      },
+      {
+        "x": 0.104,
+        "y": 0.335,
+        "timestamp": 1779964006788
+      },
+      {
+        "x": 0.189,
+        "y": 0.414,
+        "timestamp": 1779964007839
+      },
+      {
+        "x": 0.957,
+        "y": 0.443,
+        "timestamp": 1779964009238
+      },
+      {
+        "x": 0.55,
+        "y": 0.407,
+        "timestamp": 1779964010456
+      },
+      {
+        "x": 0.105,
+        "y": 0.419,
+        "timestamp": 1779964011456
+      },
+      {
+        "x": 0.51,
+        "y": 0.418,
+        "timestamp": 1779964012456
+      },
+      {
+        "x": 0.84,
+        "y": 0.491,
+        "timestamp": 1779964013639
+      },
+      {
+        "x": 0.05,
+        "y": 0.451,
+        "timestamp": 1779964015006
+      },
+      {
+        "x": 0.308,
+        "y": 0.485,
+        "timestamp": 1779964016006
+      },
+      {
+        "x": 0.948,
+        "y": 0.463,
+        "timestamp": 1779964017322
+      },
+      {
+        "x": 0.73,
+        "y": 0.484,
+        "timestamp": 1779964018372
+      },
+      {
+        "x": 0.349,
+        "y": 0.503,
+        "timestamp": 1779964019739
+      },
+      {
+        "x": 0.341,
+        "y": 0.458,
+        "timestamp": 1779964020755
+      },
+      {
+        "x": 0.647,
+        "y": 0.466,
+        "timestamp": 1779964022122
+      },
+      {
+        "x": 0.883,
+        "y": 0.446,
+        "timestamp": 1779964023439
+      },
+      {
+        "x": 0.083,
+        "y": 0.461,
+        "timestamp": 1779964024441
+      },
+      {
+        "x": 0.168,
+        "y": 0.42,
+        "timestamp": 1779964025888
+      },
+      {
+        "x": 0.845,
+        "y": 0.435,
+        "timestamp": 1779964027571
+      },
+      {
+        "x": 0.41,
+        "y": 0.505,
+        "timestamp": 1779964028872
+      },
+      {
+        "x": 0.086,
+        "y": 0.423,
+        "timestamp": 1779964030072
+      },
+      {
+        "x": 0.437,
+        "y": 0.45,
+        "timestamp": 1779964031456
+      },
+      {
+        "x": 0.866,
+        "y": 0.47,
+        "timestamp": 1779964032622
+      },
+      {
+        "x": 0.113,
+        "y": 0.534,
+        "timestamp": 1779964033623
+      },
+      {
+        "x": 0.054,
+        "y": 0.514,
+        "timestamp": 1779964034706
+      },
+      {
+        "x": 0.26,
+        "y": 0.427,
+        "timestamp": 1779964035941
+      },
+      {
+        "x": 0.906,
+        "y": 0.366,
+        "timestamp": 1779964037122
+      },
+      {
+        "x": 0.751,
+        "y": 0.434,
+        "timestamp": 1779964038788
+      },
+      {
+        "x": 0.148,
+        "y": 0.519,
+        "timestamp": 1779964040506
+      },
+      {
+        "x": 0.345,
+        "y": 0.566,
+        "timestamp": 1779964041922
+      },
+      {
+        "x": 0.653,
+        "y": 0.604,
+        "timestamp": 1779964043456
+      },
+      {
+        "x": 0.043,
+        "y": 0.577,
+        "timestamp": 1779964044722
+      },
+      {
+        "x": 0.34,
+        "y": 0.502,
+        "timestamp": 1779964045722
+      },
+      {
+        "x": 0.116,
+        "y": 0.5,
+        "timestamp": 1779964047056
+      },
+      {
+        "x": 0.804,
+        "y": 0.507,
+        "timestamp": 1779964048389
+      },
+      {
+        "x": 0.486,
+        "y": 0.487,
+        "timestamp": 1779964049740
+      },
+      {
+        "x": 0.081,
+        "y": 0.459,
+        "timestamp": 1779964050806
+      },
+      {
+        "x": 0.547,
+        "y": 0.512,
+        "timestamp": 1779964052622
+      },
+      {
+        "x": 0.943,
+        "y": 0.545,
+        "timestamp": 1779964054022
+      },
+      {
+        "x": 0.106,
+        "y": 0.528,
+        "timestamp": 1779964055438
+      }
+    ],
     "mode": "laptop",
     "laptopMovements": [
       {
-        "fromKey": "F",
+        "fromKey": "D",
         "toKey": "D",
-        "dx": -155,
+        "dx": 0,
         "dy": 0,
-        "distance": 155,
-        "fromX": 562.5,
-        "fromY": 329.5,
+        "distance": 0,
+        "fromX": 407.5,
+        "fromY": 395.5,
         "toX": 407.5,
-        "toY": 329.5,
-        "_id": "6a14219e63a8dbfaa4a19f51"
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec2"
       },
       {
         "fromKey": "D",
+        "toKey": "G",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 407.5,
+        "fromY": 395.5,
+        "toX": 717.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec3"
+      },
+      {
+        "fromKey": "G",
         "toKey": "K",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 717.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec4"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "A",
+        "dx": -1085,
+        "dy": 0,
+        "distance": 1085,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec5"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec6"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec7"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "G",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 717.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec8"
+      },
+      {
+        "fromKey": "G",
+        "toKey": "A",
+        "dx": -620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 717.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ec9"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 562.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5eca"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "J",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 562.5,
+        "fromY": 395.5,
+        "toX": 1027.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ecb"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1027.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ecc"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ecd"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ece"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "H",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 872.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ecf"
+      },
+      {
+        "fromKey": "H",
+        "toKey": "D",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 872.5,
+        "fromY": 395.5,
+        "toX": 407.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed0"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 407.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed1"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "H",
         "dx": 620,
         "dy": 0,
         "distance": 620,
-        "fromX": 407.5,
-        "fromY": 329.5,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 872.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed2"
+      },
+      {
+        "fromKey": "H",
+        "toKey": "K",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 872.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed3"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "A",
+        "dx": -1085,
+        "dy": 0,
+        "distance": 1085,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed4"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed5"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "J",
+        "dx": 775,
+        "dy": 0,
+        "distance": 775,
+        "fromX": 252.5,
+        "fromY": 395.5,
         "toX": 1027.5,
-        "toY": 329.5,
-        "_id": "6a14219e63a8dbfaa4a19f52"
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed6"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "F",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 1027.5,
+        "fromY": 395.5,
+        "toX": 562.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed7"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 562.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed8"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 562.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ed9"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "J",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 562.5,
+        "fromY": 395.5,
+        "toX": 1027.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5eda"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1027.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5edb"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5edc"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5edd"
       },
       {
         "fromKey": "K",
@@ -1011,11 +2314,393 @@
         "dx": -155,
         "dy": 0,
         "distance": 155,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 1027.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ede"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "S",
+        "dx": -775,
+        "dy": 0,
+        "distance": 775,
         "fromX": 1027.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5edf"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "D",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 407.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee0"
+      },
+      {
+        "fromKey": "D",
+        "toKey": "H",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 407.5,
+        "fromY": 395.5,
+        "toX": 872.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee1"
+      },
+      {
+        "fromKey": "H",
+        "toKey": "A",
+        "dx": -775,
+        "dy": 0,
+        "distance": 775,
+        "fromX": 872.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee2"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee3"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee4"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "J",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 1027.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee5"
+      },
+      {
+        "fromKey": "J",
+        "toKey": "F",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 1027.5,
+        "fromY": 395.5,
+        "toX": 562.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee6"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 562.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee7"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "G",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 717.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee8"
+      },
+      {
+        "fromKey": "G",
+        "toKey": "K",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 717.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5ee9"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "A",
+        "dx": -1085,
+        "dy": 0,
+        "distance": 1085,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181899e339ae6161dd5eea"
+      }
+    ],
+    "mobileMovements": [],
+    "createdAt": "2026-05-28T10:27:37.597Z",
+    "updatedAt": "2026-05-28T10:27:37.597Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": -1,
+      "index": -1,
+      "middle": -1,
+      "ring": -1,
+      "pinky": -1,
+      "leftPinky": 10,
+      "leftRing": 1,
+      "leftMiddle": 1,
+      "leftIndex": 1,
+      "rightIndex": 2,
+      "rightMiddle": 2,
+      "rightRing": 2,
+      "rightPinky": 2
+    },
+    "_id": "6a181a34e339ae6161dd6008",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_finger",
+    "gameName": "Piano - Finger Dexterity",
+    "time": "2026-05-28T10:34:28.837Z",
+    "levelspan": 5,
+    "sessionScore": 185,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 2.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.5,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": -1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.4,
+        "correct": 1
+      }
+    ],
+    "coordinates": [],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 407.5,
+        "fromY": 329.5,
+        "toX": 252.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6009"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "A",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 252.5,
+        "fromY": 329.5,
+        "toX": 97.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600a"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "K",
+        "dx": 930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600b"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "L",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600c"
+      },
+      {
+        "fromKey": "L",
+        "toKey": "L",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 1182.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600d"
+      },
+      {
+        "fromKey": "L",
+        "toKey": "K",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1182.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600e"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 97.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd600f"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "A",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 97.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6010"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "F",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 97.5,
+        "fromY": 329.5,
+        "toX": 562.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6011"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "J",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 562.5,
         "fromY": 329.5,
         "toX": 872.5,
         "toY": 329.5,
-        "_id": "6a14219e63a8dbfaa4a19f53"
+        "_id": "6a181a34e339ae6161dd6012"
       },
       {
         "fromKey": "J",
@@ -1027,53 +2712,623 @@
         "fromY": 329.5,
         "toX": 1182.5,
         "toY": 329.5,
-        "_id": "6a14219e63a8dbfaa4a19f54"
+        "_id": "6a181a34e339ae6161dd6013"
+      },
+      {
+        "fromKey": "L",
+        "toKey": "L",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 1182.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6014"
+      },
+      {
+        "fromKey": "L",
+        "toKey": "K",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1182.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6015"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "H",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 717.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6016"
+      },
+      {
+        "fromKey": "H",
+        "toKey": "S",
+        "dx": -465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 717.5,
+        "fromY": 329.5,
+        "toX": 252.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6017"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "S",
+        "dx": 0,
+        "dy": 0,
+        "distance": 0,
+        "fromX": 252.5,
+        "fromY": 329.5,
+        "toX": 252.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6018"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "H",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 252.5,
+        "fromY": 329.5,
+        "toX": 717.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd6019"
+      },
+      {
+        "fromKey": "H",
+        "toKey": "K",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 717.5,
+        "fromY": 329.5,
+        "toX": 1027.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd601a"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "L",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 1027.5,
+        "fromY": 329.5,
+        "toX": 1182.5,
+        "toY": 329.5,
+        "_id": "6a181a34e339ae6161dd601b"
       }
     ],
     "mobileMovements": [
       {
-        "key": "F",
-        "finger": "leftIndex",
-        "expectedFinger": "leftPinky",
-        "responsetime": 0.6,
-        "correct": -1,
-        "_id": "6a14219e63a8dbfaa4a19f55"
-      },
-      {
         "key": "D",
         "finger": "leftMiddle",
         "expectedFinger": "leftMiddle",
-        "responsetime": 0.2,
+        "responsetime": 2.6,
         "correct": 1,
-        "_id": "6a14219e63a8dbfaa4a19f56"
+        "_id": "6a181a34e339ae6161dd601c"
+      },
+      {
+        "key": "S",
+        "finger": "leftRing",
+        "expectedFinger": "leftRing",
+        "responsetime": 0.6,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd601d"
+      },
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.4,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd601e"
       },
       {
         "key": "K",
         "finger": "rightRing",
-        "expectedFinger": "leftPinky",
-        "responsetime": 0.1,
-        "correct": -1,
-        "_id": "6a14219e63a8dbfaa4a19f57"
-      },
-      {
-        "key": "J",
-        "finger": "rightMiddle",
-        "expectedFinger": "rightMiddle",
-        "responsetime": 0.7,
+        "expectedFinger": "rightRing",
+        "responsetime": 1.1,
         "correct": 1,
-        "_id": "6a14219e63a8dbfaa4a19f58"
+        "_id": "6a181a34e339ae6161dd601f"
       },
       {
         "key": "L",
         "finger": "rightPinky",
         "expectedFinger": "rightPinky",
-        "responsetime": 0.9,
+        "responsetime": 1.4,
         "correct": 1,
-        "_id": "6a14219e63a8dbfaa4a19f59"
+        "_id": "6a181a34e339ae6161dd6020"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 0.5,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6021"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 0.6,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6022"
+      },
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.4,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6023"
+      },
+      {
+        "key": "A",
+        "finger": "leftPinky",
+        "expectedFinger": "leftPinky",
+        "responsetime": 0.4,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6024"
+      },
+      {
+        "key": "F",
+        "finger": "leftIndex",
+        "expectedFinger": "leftIndex",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6025"
+      },
+      {
+        "key": "J",
+        "finger": "rightMiddle",
+        "expectedFinger": "rightMiddle",
+        "responsetime": 0.8,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6026"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 0.5,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6027"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 0.4,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6028"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd6029"
+      },
+      {
+        "key": "H",
+        "finger": "rightIndex",
+        "expectedFinger": "rightIndex",
+        "responsetime": 1.1,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd602a"
+      },
+      {
+        "key": "S",
+        "finger": "leftRing",
+        "expectedFinger": "leftMiddle",
+        "responsetime": 0.7,
+        "correct": -1,
+        "_id": "6a181a34e339ae6161dd602b"
+      },
+      {
+        "key": "S",
+        "finger": "leftRing",
+        "expectedFinger": "leftRing",
+        "responsetime": 0.7,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd602c"
+      },
+      {
+        "key": "H",
+        "finger": "rightIndex",
+        "expectedFinger": "rightIndex",
+        "responsetime": 1.1,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd602d"
+      },
+      {
+        "key": "K",
+        "finger": "rightRing",
+        "expectedFinger": "rightRing",
+        "responsetime": 1,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd602e"
+      },
+      {
+        "key": "L",
+        "finger": "rightPinky",
+        "expectedFinger": "rightPinky",
+        "responsetime": 1.4,
+        "correct": 1,
+        "_id": "6a181a34e339ae6161dd602f"
       }
     ],
-    "createdAt": "2026-05-25T10:17:02.099Z",
-    "updatedAt": "2026-05-25T10:17:02.099Z",
+    "createdAt": "2026-05-28T10:34:28.847Z",
+    "updatedAt": "2026-05-28T10:34:28.847Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": 5,
+      "index": 5,
+      "middle": 5,
+      "ring": 5,
+      "pinky": 5,
+      "leftPinky": 5,
+      "leftRing": 5,
+      "leftMiddle": 5,
+      "leftIndex": 5,
+      "rightIndex": 5,
+      "rightMiddle": 5,
+      "rightRing": 5,
+      "rightPinky": 5
+    },
+    "_id": "6a181a4ae339ae6161dd605e",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_ankle",
+    "gameName": "Piano - Wrist Movement",
+    "time": "2026-05-28T10:34:50.506Z",
+    "levelspan": 5,
+    "sessionScore": 35,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 2.3,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.5,
+        "correct": -1
+      },
+      {
+        "responsetime": 1.1,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.8,
+        "correct": 1
+      }
+    ],
+    "coordinates": [
+      {
+        "x": 0.592,
+        "y": 0.736,
+        "timestamp": 1779964483838
+      },
+      {
+        "x": 0.357,
+        "y": 0.567,
+        "timestamp": 1779964485538
+      },
+      {
+        "x": 0.846,
+        "y": 0.943,
+        "timestamp": 1779964486772
+      },
+      {
+        "x": 0.321,
+        "y": 0.679,
+        "timestamp": 1779964488088
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181a4ae339ae6161dd605f"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "F",
+        "dx": 620,
+        "dy": 0,
+        "distance": 620,
+        "fromX": 485,
+        "fromY": 395.5,
+        "toX": 1105,
+        "toY": 395.5,
+        "_id": "6a181a4ae339ae6161dd6060"
+      },
+      {
+        "fromKey": "F",
+        "toKey": "A",
+        "dx": -930,
+        "dy": 0,
+        "distance": 930,
+        "fromX": 1105,
+        "fromY": 395.5,
+        "toX": 175,
+        "toY": 395.5,
+        "_id": "6a181a4ae339ae6161dd6061"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 175,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a181a4ae339ae6161dd6062"
+      }
+    ],
+    "mobileMovements": [],
+    "createdAt": "2026-05-28T10:34:50.511Z",
+    "updatedAt": "2026-05-28T10:34:50.511Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": 5,
+      "index": 5,
+      "middle": 5,
+      "ring": 5,
+      "pinky": 5,
+      "leftPinky": 5,
+      "leftRing": 5,
+      "leftMiddle": 5,
+      "leftIndex": 5,
+      "rightIndex": 5,
+      "rightMiddle": 5,
+      "rightRing": 5,
+      "rightPinky": 5
+    },
+    "_id": "6a181d8de339ae6161dd60f1",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_ankle",
+    "gameName": "Piano - Wrist Movement",
+    "time": "2026-05-28T10:48:45.345Z",
+    "levelspan": 2,
+    "sessionScore": 60,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.7,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 1.2,
+        "correct": 1
+      }
+    ],
+    "coordinates": [
+      {
+        "x": 0.353,
+        "y": 0.793,
+        "timestamp": 1779965316610
+      },
+      {
+        "x": 0.267,
+        "y": 0.572,
+        "timestamp": 1779965317626
+      },
+      {
+        "x": 0.519,
+        "y": 0.51,
+        "timestamp": 1779965319259
+      },
+      {
+        "x": 0.913,
+        "y": 0.401,
+        "timestamp": 1779965320493
+      },
+      {
+        "x": 0.492,
+        "y": 0.524,
+        "timestamp": 1779965321710
+      },
+      {
+        "x": 0.279,
+        "y": 0.488,
+        "timestamp": 1779965322813
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 407.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181d8de339ae6161dd60f2"
+      },
+      {
+        "fromKey": "S",
+        "toKey": "G",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 252.5,
+        "fromY": 395.5,
+        "toX": 717.5,
+        "toY": 395.5,
+        "_id": "6a181d8de339ae6161dd60f3"
+      },
+      {
+        "fromKey": "G",
+        "toKey": "K",
+        "dx": 465,
+        "dy": 0,
+        "distance": 465,
+        "fromX": 717.5,
+        "fromY": 395.5,
+        "toX": 1182.5,
+        "toY": 395.5,
+        "_id": "6a181d8de339ae6161dd60f4"
+      },
+      {
+        "fromKey": "K",
+        "toKey": "A",
+        "dx": -1085,
+        "dy": 0,
+        "distance": 1085,
+        "fromX": 1182.5,
+        "fromY": 395.5,
+        "toX": 97.5,
+        "toY": 395.5,
+        "_id": "6a181d8de339ae6161dd60f5"
+      },
+      {
+        "fromKey": "A",
+        "toKey": "S",
+        "dx": 155,
+        "dy": 0,
+        "distance": 155,
+        "fromX": 97.5,
+        "fromY": 395.5,
+        "toX": 252.5,
+        "toY": 395.5,
+        "_id": "6a181d8de339ae6161dd60f6"
+      }
+    ],
+    "mobileMovements": [],
+    "createdAt": "2026-05-28T10:48:45.352Z",
+    "updatedAt": "2026-05-28T10:48:45.352Z",
+    "__v": 0
+  },
+  {
+    "fingerTimeouts": {
+      "thumb": 5,
+      "index": 5,
+      "middle": 5,
+      "ring": 5,
+      "pinky": 5,
+      "leftPinky": 5,
+      "leftRing": 5,
+      "leftMiddle": 5,
+      "leftIndex": 5,
+      "rightIndex": 5,
+      "rightMiddle": 5,
+      "rightRing": 5,
+      "rightPinky": 5
+    },
+    "_id": "6a182bd1cd1749a60fb1247c",
+    "user": "68f360d2bce6ed3a964390c7",
+    "gameType": "piano_ankle",
+    "gameName": "Piano - Wrist Movement",
+    "time": "2026-05-28T11:49:37.932Z",
+    "levelspan": 8,
+    "sessionScore": 20,
+    "systemMetrics": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "resolution": "1280x679"
+    },
+    "play": [
+      {
+        "responsetime": 0.6,
+        "correct": 1
+      },
+      {
+        "responsetime": 0.4,
+        "correct": 1
+      }
+    ],
+    "coordinates": [
+      {
+        "x": 0.577,
+        "y": 0.685,
+        "timestamp": 1779968973062
+      },
+      {
+        "x": 0.479,
+        "y": 0.626,
+        "timestamp": 1779968974068
+      },
+      {
+        "x": 0.603,
+        "y": 0.535,
+        "timestamp": 1779968975119
+      }
+    ],
+    "mode": "laptop",
+    "laptopMovements": [
+      {
+        "fromKey": "D",
+        "toKey": "S",
+        "dx": -310,
+        "dy": 0,
+        "distance": 310,
+        "fromX": 795,
+        "fromY": 395.5,
+        "toX": 485,
+        "toY": 395.5,
+        "_id": "6a182bd1cd1749a60fb1247d"
+      }
+    ],
+    "mobileMovements": [],
+    "createdAt": "2026-05-28T11:49:37.945Z",
+    "updatedAt": "2026-05-28T11:49:37.945Z",
     "__v": 0
   }
 ]
