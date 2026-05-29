@@ -428,8 +428,8 @@ exports.getDetailedAnalytics = async (req, res) => {
         ? (totalResponseTime / validResponseCount).toFixed(2)
         : 0;
 
-      const accuracy = (totalCorrect + totalIncorrect) > 0
-        ? ((totalCorrect / (totalCorrect + totalIncorrect)) * 100).toFixed(2)
+      const accuracy = (totalCorrect + totalIncorrect + totalNotDone) > 0
+        ? ((totalCorrect / (totalCorrect + totalIncorrect + totalNotDone)) * 100).toFixed(2)
         : 0;
 
       return {

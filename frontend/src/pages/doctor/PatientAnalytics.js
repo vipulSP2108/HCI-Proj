@@ -845,8 +845,8 @@ const PatientAnalytics = () => {
         ? parseFloat((totalResponseTime / validResponseCount).toFixed(2))
         : 0;
 
-      const accuracy = (totalCorrect + totalIncorrect) > 0
-        ? parseFloat(((totalCorrect / (totalCorrect + totalIncorrect)) * 100).toFixed(2))
+      const accuracy = (totalCorrect + totalIncorrect + totalNotDone) > 0
+        ? parseFloat(((totalCorrect / (totalCorrect + totalIncorrect + totalNotDone)) * 100).toFixed(2))
         : 0;
 
       return {
@@ -1361,19 +1361,43 @@ const PatientAnalytics = () => {
                     Select a session below to view granular telemetry, paths, and response metrics.
                   </p>
                 </div>
-                {selectedSessionData && (
-                  <div className="flex gap-2 text-xs">
-                    <span className="px-2.5 py-1 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 font-bold rounded-full border dark:border-green-900/50">
-                      ✓ {selectedSessionData.play?.filter(p => p.correct === 1).length || 0} correct
-                    </span>
-                    <span className="px-2.5 py-1 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold rounded-full border dark:border-red-900/50">
-                      ✗ {selectedSessionData.play?.filter(p => p.correct === -1).length || 0} wrong
-                    </span>
-                    <span className="px-2.5 py-1 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400 font-bold rounded-full border dark:border-yellow-900/50">
-                      ⭐ {selectedSessionData.sessionScore || 0} score
-                    </span>
-                  </div>
-                )}
+                {selectedSessionData && (() => {
+                  const isBoard = selectedGameType === "board_drawing";
+                  const total = isBoard
+                    ? (selectedSessionData.boardDrawingAttempts?.length || 0)
+                    : (selectedSessionData.play?.length || 0);
+                  const correct = isBoard
+                    ? (selectedSessionData.boardDrawingAttempts?.filter(a => a.success).length || 0)
+                    : (selectedSessionData.play?.filter(p => p.correct === 1).length || 0);
+                  const incorrect = isBoard
+                    ? (selectedSessionData.boardDrawingAttempts?.filter(a => !a.success).length || 0)
+                    : (selectedSessionData.play?.filter(p => p.correct === -1).length || 0);
+                  const timeouts = isBoard
+                    ? 0
+                    : (selectedSessionData.play?.filter(p => p.correct === 0).length || 0);
+
+                  return (
+                    <div className="flex gap-2 text-xs">
+                      <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold rounded-full border dark:border-blue-900/50">
+                        🎯 {total} total
+                      </span>
+                      <span className="px-2.5 py-1 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 font-bold rounded-full border dark:border-green-900/50">
+                        ✓ {correct} correct
+                      </span>
+                      <span className="px-2.5 py-1 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold rounded-full border dark:border-red-900/50">
+                        ✗ {incorrect} wrong
+                      </span>
+                      {!isBoard && timeouts > 0 && (
+                        <span className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 font-bold rounded-full border dark:border-amber-900/50">
+                          ⏳ {timeouts} timeouts
+                        </span>
+                      )}
+                      <span className="px-2.5 py-1 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400 font-bold rounded-full border dark:border-yellow-900/50">
+                        ⭐ {selectedSessionData.sessionScore || 0} score
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Session Selector Pills */}

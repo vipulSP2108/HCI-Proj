@@ -1626,7 +1626,7 @@ const DashboardContent = ({
 
   // Accuracy and Response Time data for last 7 games (using asc for chronological order)
   const accuracyData = last7ChronAsc.map((session) => {
-    const total = (session.correct || 0) + (session.incorrect || 0);
+    const total = (session.correct || 0) + (session.incorrect || 0) + (session.notDone || 0);
     const accuracy = total > 0 ? ((session.correct || 0) / total) * 100 : 0;
     const avgResponseTime =
       (session.total || total) > 0
@@ -1644,7 +1644,7 @@ const DashboardContent = ({
   const avgAcc7Sessions =
     last7ChronAsc.length > 0
       ? last7ChronAsc.reduce((sum, s) => {
-        const total = (s.correct || 0) + (s.incorrect || 0);
+        const total = (s.correct || 0) + (s.incorrect || 0) + (s.notDone || 0);
         return sum + (total > 0 ? ((s.correct || 0) / total) * 100 : 0);
       }, 0) / last7ChronAsc.length
       : 0;
@@ -1899,7 +1899,7 @@ const DashboardContent = ({
     );
     if (allWeekSessions.length === 0) return 0;
     const totalAcc = allWeekSessions.reduce((sum, s) => {
-      const tot = (s.correct || 0) + (s.incorrect || 0);
+      const tot = (s.correct || 0) + (s.incorrect || 0) + (s.notDone || 0);
       return sum + (tot > 0 ? ((s.correct || 0) / tot) * 100 : 0);
     }, 0);
     return totalAcc / allWeekSessions.length;
@@ -2156,18 +2156,56 @@ const DashboardContent = ({
                     </div>
                     <div className="flex gap-2 ml-auto">
                       {(() => {
-                        const total = (last7ChronDesc[selectedSession].correct || 0) + (last7ChronDesc[selectedSession].incorrect || 0);
-                        const acc = total > 0 ? ((last7ChronDesc[selectedSession].correct / total) * 100).toFixed(0) : 0;
+                        const sess = last7ChronDesc[selectedSession];
+                        const isBoard = selectedGameType === "board_drawing";
+
+                        if (isBoard) {
+                          const attempts = sess.boardDrawingAttempts || sess.session?.boardDrawingAttempts || [];
+                          const total = attempts.length;
+                          const avgCompletion = total > 0
+                            ? (attempts.reduce((sum, a) => sum + (a.completion || 0), 0) / total) * 100
+                            : 0;
+                          return (
+                            <>
+                              <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-full">
+                                🎯 {total} Attempts
+                              </span>
+                              <span className="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-black rounded-full">
+                                📈 {avgCompletion.toFixed(0)}% Avg Match
+                              </span>
+                              <span className="px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 text-[10px] font-black rounded-full">
+                                ⭐ {sess.sessionScore || 0} pts
+                              </span>
+                            </>
+                          );
+                        }
+
+                        const correct = sess.correct || 0;
+                        const incorrect = sess.incorrect || 0;
+                        const notDone = sess.notDone || 0;
+                        const total = correct + incorrect + notDone;
+                        const acc = total > 0 ? ((correct / total) * 100).toFixed(0) : 0;
                         return (
                           <>
                             <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-full">
                               🎯 {total} Total
                             </span>
                             <span className="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] font-black rounded-full">
-                              ✓ {acc}% Acc
+                              ✓ {correct} Correct
+                            </span>
+                            <span className="px-2 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-black rounded-full">
+                              ✗ {incorrect} Incorrect
+                            </span>
+                            {notDone > 0 && (
+                              <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] font-black rounded-full">
+                                ⏳ {notDone} Missed / Timeouts
+                              </span>
+                            )}
+                            <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-full">
+                              📈 {acc}% Acc
                             </span>
                             <span className="px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 text-[10px] font-black rounded-full">
-                              ⭐ {last7ChronDesc[selectedSession].sessionScore || 0} pts
+                              ⭐ {sess.sessionScore || 0} pts
                             </span>
                           </>
                         );

@@ -924,6 +924,8 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               const rate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
               setSuccessRate(rate);
 
+              showStatus(`🎉 Correct! Fruit in basket!`, 1200);
+
               fruitRef.current = null;
               setIsCooldown(true);
               isCooldownRef.current = true;
@@ -1029,6 +1031,8 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
               const rate = ((successesRef.current / attemptsRef.current) * 100).toFixed(0);
               setSuccessRate(rate);
+
+              showStatus(`🎉 Correct! Fruit in basket!`, 1200);
 
               fruitRef.current = null;
               setIsCooldown(true);
