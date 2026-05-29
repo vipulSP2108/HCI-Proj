@@ -299,6 +299,7 @@ const PlayingGame = ({
   };
 
   const getFingerForKey = (key) => {
+    if (!key) return "";
     const k = key.toUpperCase();
     if (platform === 'laptop') {
       if (exerciseType === 'piano_finger') {
@@ -747,6 +748,7 @@ const PianoReactionGame = () => {
   };
 
   const getFingerForKey = (key) => {
+    if (!key) return "";
     const k = key.toUpperCase();
     if (platform === 'laptop') {
       if (exerciseType === 'piano_finger') {

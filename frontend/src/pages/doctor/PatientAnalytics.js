@@ -607,14 +607,15 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
       const total = movements.length;
       const correct = movements.filter(m => m.correct === 1).length;
       const incorrect = movements.filter(m => m.correct === -1).length;
+      const timeouts = movements.filter(m => m.correct === 0).length;
       
       const correctMovements = movements.filter(m => m.correct === 1 && m.responsetime > 0);
       const avgResponse = correctMovements.length > 0
         ? correctMovements.reduce((sum, m) => sum + m.responsetime, 0) / correctMovements.length
         : 0;
         
-      const accuracy = (correct + incorrect) > 0
-        ? (correct / (correct + incorrect)) * 100
+      const accuracy = total > 0
+        ? (correct / total) * 100
         : 0;
 
       return {
@@ -624,6 +625,7 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
         total,
         correct,
         incorrect,
+        timeouts,
         avgResponse,
         accuracy,
         timeout: fingerTimeouts[finger] || 5
@@ -647,7 +649,7 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
                 </span>
               </div>
               <h4 className="font-bold text-sm text-gray-800 dark:text-white mb-1">{f.name} Finger</h4>
-              <p className="text-[11px] text-gray-400 mb-3">{f.correct} of {f.total} correct</p>
+              <p className="text-[11px] text-gray-400 mb-3">{f.correct} of {f.total} CORRECT</p>
               
               <div className="space-y-2 pt-2 border-t dark:border-gray-700">
                 <div className="flex justify-between text-xs">
@@ -658,6 +660,18 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
                   <span className="text-gray-400">Accuracy</span>
                   <span className="font-bold text-green-600 dark:text-green-400">{f.accuracy.toFixed(0)}%</span>
                 </div>
+                {f.incorrect > 0 && (
+                  <div className="flex justify-between text-xs text-red-500">
+                    <span>Incorrect</span>
+                    <span className="font-bold">{f.incorrect}</span>
+                  </div>
+                )}
+                {f.timeouts > 0 && (
+                  <div className="flex justify-between text-xs text-amber-500">
+                    <span>Timeouts</span>
+                    <span className="font-bold">{f.timeouts}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
