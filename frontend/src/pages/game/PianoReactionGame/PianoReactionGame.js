@@ -366,78 +366,78 @@ const PlayingGame = ({
     >
       {/* Header */}
       <div
-        className="shadow-lg p-3 flex items-center justify-between"
+        className="shadow-lg p-2 md:p-3 flex items-center justify-between"
         style={{ backgroundColor: PRIMARY_BLUE, color: "white" }}
       >
         <div className="flex flex-col">
-          <h1 className="text-xl font-bold">Piano Reaction Game</h1>
-          <span className="text-[10px] text-white/80 font-bold uppercase tracking-wider">
+          <h1 className="text-base md:text-xl font-bold leading-tight">Piano Reaction Game</h1>
+          <span className="text-[9px] md:text-[10px] text-white/90 font-bold uppercase tracking-wider hidden sm:block">
             {platform === 'laptop'
               ? `💻 Laptop Mode - ${exerciseType === 'piano_finger' ? 'Finger Dexterity' : 'Wrist Movement (Cursor Only)'}`
               : `📱 Mobile Mode - Wrist Movement (${mobileKeysCount} keys)`
             }
           </span>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-1 md:gap-2 items-center">
           <button
             onClick={isPaused ? onResume : onPause}
-            className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-semibold ${isPaused ? "bg-green-500 hover:bg-green-600 text-white" : "bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            className={`p-1.5 md:p-2 rounded-lg transition flex items-center gap-1 text-xs md:text-sm font-semibold ${isPaused ? "bg-green-500 hover:bg-green-600 text-white" : "bg-yellow-400 hover:bg-yellow-500 text-gray-900"
               }`}
           >
             {isPaused ? (
-              <><Play className="w-4 h-4" /> Resume</>
+              <><Play className="w-3 h-3 md:w-4 md:h-4" /><span className="hidden sm:inline">Resume</span></>
             ) : (
-              <><Pause className="w-4 h-4" /> Pause</>
+              <><Pause className="w-3 h-3 md:w-4 md:h-4" /><span className="hidden sm:inline">Pause</span></>
             )}
           </button>
           <button
             onClick={onEnd}
-            className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition text-sm font-semibold flex items-center gap-1"
+            className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition text-xs md:text-sm font-semibold flex items-center gap-1"
           >
-            <RotateCcw className="w-4 h-4" /> End Round
+            <RotateCcw className="w-3 h-3 md:w-4 md:h-4" /> <span className="hidden sm:inline">End Round</span>
           </button>
           <button
             onClick={onReset}
-            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+            className="p-1.5 md:p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
           >
-            <span className="text-xs font-bold">Reset</span>
+            <span className="text-[10px] md:text-xs font-bold">Reset</span>
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-2 p-3 bg-white border-b">
+      <div className="grid grid-cols-5 gap-1 md:gap-2 p-1.5 md:p-3 bg-white border-b">
         <div className="text-center border-r">
-          <p className="text-xs text-gray-600">Time</p>
-          <p className="text-lg font-bold text-blue-600">
+          <p className="text-[9px] md:text-xs text-gray-600 truncate">Time</p>
+          <p className="text-sm md:text-lg font-bold text-blue-600">
             {timeRemaining !== null ? `${Math.floor(timeRemaining / 60)}:${String(timeRemaining % 60).padStart(2, "0")}` : "--:--"}
           </p>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-600">Current Attempt</p>
-          <p className="text-lg font-bold text-gray-800">{attemptCount}</p>
+        <div className="text-center border-r">
+          <p className="text-[9px] md:text-xs text-gray-600 truncate">Attempt</p>
+          <p className="text-sm md:text-lg font-bold text-gray-800">{attemptCount}</p>
         </div>
-        <div className="text-center">
-          <p className="text-xs" style={{ color: "green" }}>
+        <div className="text-center border-r">
+          <p className="text-[9px] md:text-xs truncate" style={{ color: "green" }}>
             Correct
           </p>
-          <p className="text-lg font-bold" style={{ color: "green" }}>
+          <p className="text-sm md:text-lg font-bold" style={{ color: "green" }}>
             {correctCount}
           </p>
         </div>
-        <div className="text-center">
-          <p className="text-xs" style={{ color: "red" }}>
+        <div className="text-center border-r">
+          <p className="text-[9px] md:text-xs truncate" style={{ color: "red" }}>
             Incorrect
           </p>
-          <p className="text-lg font-bold" style={{ color: "red" }}>
+          <p className="text-sm md:text-lg font-bold" style={{ color: "red" }}>
             {incorrectCount}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs" style={{ color: "#CCB000" }}>
-            Not Done
+          <p className="text-[9px] md:text-xs truncate" style={{ color: "#CCB000" }}>
+            Missed
           </p>
-          <p className="text-lg font-bold" style={{ color: "#CCB000" }}>
+          <p className="text-sm md:text-lg font-bold" style={{ color: "#CCB000" }}>
             {notDoneCount}
           </p>
         </div>
@@ -544,7 +544,7 @@ const PlayingGame = ({
 
       </div>
 
-      <SaveExitButton onBeforeSave={onBeforeSave} onSaveStart={onPause} onSaveCancel={onResume} />
+      <SaveExitButton onBeforeSave={onBeforeSave} onSaveStart={onPause} onSaveCancel={onResume} isMobile={isMobile} />
 
       {!isPaused && (
         <div
