@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
+import ExitConfirmModal from "../ExitConfirmModal";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   BOARD_DRAWING_COORD_SAMPLE_MS,
@@ -344,6 +345,7 @@ const BoardDrawingGame = () => {
   // eslint-disable-next-line no-unused-vars
   const [debugInfo, setDebugInfo] = useState("");
   const [showAnalyticsBtn, setShowAnalyticsBtn] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Local storage game id ref
   const localGameIdRef = useRef(null);
@@ -356,6 +358,7 @@ const BoardDrawingGame = () => {
   const poseModuleRef = useRef(null);
   const cameraRef = useRef(null);
   const sessionStartRef = useRef(null);
+  const sessionSecondsRef = useRef(0); // tracks session duration for pause/resume
   const timerIntervalRef = useRef(null);
   const calibIntervalRef = useRef(null);
   const lastDrawTimeRef = useRef(0);
@@ -814,6 +817,7 @@ const BoardDrawingGame = () => {
     if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
     if (globalSettings?.testingMode) {
       const timerSec = globalSettings.testingShapeTimer || 120;
+      shapeTimerRef._deadline = Date.now() + timerSec * 1000; // stamp for pause/resume
       shapeTimerRef.current = setTimeout(() => {
         if (isSessionActiveRef.current) {
           showStatus("⏱️ Shape time's up! Saving partial attempt and moving on...", 2500);
@@ -1793,6 +1797,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     
     spawnShape();
     setTimeRemaining(sessionSeconds);
+    sessionSecondsRef.current = sessionSeconds; // save for pause/resume
     setSuccessRate(0);
     setIsSessionActive(true);
 
@@ -1822,50 +1827,98 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
 
 
-  const handleQuitOrBack = async () => {
-    // Stop ALL timers immediately so no deferred callbacks fire after exit
-    if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    shapeTimerRef.current = null;
-    timerIntervalRef.current = null;
+  // ── Exit modal logic ──────────────────────────────────────────────────────
+  // Store how much time was left on each timer when modal opens
+  const _exitModalTimerSave = React.useRef(null);
 
-    const hasPending = gameSessionBuffer.hasPending();
-    const dashPath = user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
-
-    // 3-way choice: Save | Discard | Cancel
-    const choice = window.confirm(
-      hasPending
-        ? "Leave the game?\n\n• OK → Save & Exit (saves your progress)\n• Cancel → opens Discard option"
-        : "Leave the game? (No unsaved data)\n\n• OK → Exit\n• Cancel → Stay"
-    );
-
-    if (choice) {
-      // OK = Save & Exit
-      if (hasPending) {
-        finalizeActiveDrawingAttempt();
-        persistBoardDrawingBuffer();
-        try {
-          if (gameSessionBuffer.hasPending()) {
-            await gameSessionBuffer.saveAndExit();
-          }
-        } catch (err) {
-          console.error("Save failed:", err);
-        }
-      }
-      navigate(dashPath);
-    } else {
-      if (!hasPending) return; // no data, cancel = stay
-      // Second chance: discard or stay?
-      const discard = window.confirm(
-        "Discard all progress and exit?\n\n• OK → Discard & Exit\n• Cancel → Stay in game"
-      );
-      if (discard) {
-        gameSessionBuffer.discard();
-        navigate(dashPath);
-      }
-      // Cancel on discard prompt = stay in game (do nothing)
+  const openExitModal = () => {
+    const now = Date.now();
+    // Freeze shape timer — remember remaining ms
+    let shapeRemaining = null;
+    if (shapeTimerRef.current) {
+      clearTimeout(shapeTimerRef.current);
+      shapeTimerRef.current = null;
+      // shapeTimerStartRef stores when the current shape timer was set
+      shapeRemaining = shapeTimerRef._deadline
+        ? Math.max(0, shapeTimerRef._deadline - now)
+        : null;
     }
+    // Freeze session countdown interval
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    _exitModalTimerSave.current = { shapeRemaining, openedAt: now };
+    setShowExitModal(true);
   };
+
+  const _resumeBoardTimers = () => {
+    const save = _exitModalTimerSave.current;
+    if (!save) return;
+    const pausedMs = Date.now() - save.openedAt;
+
+    // Restart session countdown interval — shift sessionStart forward by paused duration
+    if (isSessionActiveRef.current) {
+      sessionStartRef.current += pausedMs;
+      timerIntervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
+        const remaining = Math.max(0, sessionSecondsRef.current - elapsed);
+        setTimeRemaining(remaining);
+        if (remaining <= 0) {
+          clearInterval(timerIntervalRef.current);
+          handleEndSession();
+        }
+      }, 1000);
+    }
+
+    // Restart shape timer with adjusted remaining time
+    if (save.shapeRemaining != null && save.shapeRemaining > 0) {
+      const newRemaining = save.shapeRemaining; // already >0
+      shapeTimerRef._deadline = Date.now() + newRemaining;
+      shapeTimerRef.current = setTimeout(() => {
+        if (isSessionActiveRef.current) {
+          showStatus("⏱️ Shape time's up! Saving partial attempt and moving on...", 2500);
+          if (shapeRef.current) {
+            finalizeActiveDrawingAttempt();
+            logsRef.current.push({ timestamp: nowSec(), event: "shape_timeout", shape_type: shapeRef.current.type });
+          }
+          currentTargetIdxRef.current = 0;
+          drawnPathRef.current = [];
+          spawnShape();
+        }
+      }, newRemaining);
+    }
+    _exitModalTimerSave.current = null;
+  };
+
+  const handleExitSave = async () => {
+    setShowExitModal(false);
+    finalizeActiveDrawingAttempt();
+    persistBoardDrawingBuffer();
+    try {
+      if (gameSessionBuffer.hasPending()) await gameSessionBuffer.saveAndExit();
+    } catch (err) { console.error("Save failed:", err); }
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitDiscard = () => {
+    setShowExitModal(false);
+    gameSessionBuffer.discard();
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitCancel = () => {
+    setShowExitModal(false);
+    _resumeBoardTimers();
+  };
+
+  const openExitModalRef = React.useRef(openExitModal);
+  React.useEffect(() => { openExitModalRef.current = openExitModal; });
+
+  // Button handler — opens modal
+  const handleQuitOrBack = () => openExitModal();
+  const handleQuitOrBackRef = React.useRef(handleQuitOrBack);
+  React.useEffect(() => { handleQuitOrBackRef.current = handleQuitOrBack; });
 
   const handleReset = () => {
     if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
@@ -1905,6 +1958,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   useEffect(() => {
     setupMediaPipeRef.current();
 
+    // ── Browser back-button intercept ──────────────────────────────────────
+    window.history.pushState({ gameGuard: true }, '');
+    const handlePopState = () => {
+      window.history.pushState({ gameGuard: true }, '');
+      if (shapeTimerRef.current) clearTimeout(shapeTimerRef.current);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      shapeTimerRef.current = null;
+      timerIntervalRef.current = null;
+      openExitModalRef.current();
+    };
+    window.addEventListener('popstate', handlePopState);
+    // ────────────────────────────────────────────────────────────────────────
+
     const handleKeyDown = (e) => {
       if (e.key === "d" || e.key === "D") {
         setShowDebug((prev) => !prev);
@@ -1913,6 +1979,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       isUnmountingRef.current = true;
       document.removeEventListener("keydown", handleKeyDown);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -2268,6 +2335,13 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         finalizeActiveDrawingAttempt();
         persistBoardDrawingBuffer();
       }} />
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        hasPending={gameSessionBuffer.hasPending()}
+        onSave={handleExitSave}
+        onDiscard={handleExitDiscard}
+        onCancel={handleExitCancel}
+      />
     </div>
   );
 };

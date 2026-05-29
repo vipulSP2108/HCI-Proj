@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
+import ExitConfirmModal from "../ExitConfirmModal";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   FRUIT_BASKET_COORD_SAMPLE_MS,
@@ -79,6 +80,7 @@ const FruitBasketGame = () => {
     text: "",
     visible: false,
   });
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Game Stats
   const [score, setScore] = useState(0);
@@ -143,6 +145,24 @@ const FruitBasketGame = () => {
   const isProcessingRef = useRef(false);
   const isPausedRef = useRef(false);
   const pausedTimeRef = useRef(0); // ms elapsed at the moment of pause
+
+  // ── Live admin settings ref — always up-to-date inside callbacks ──
+  const gameConfigRef = useRef({
+    cooldownSeconds:          globalSettings?.fruitBasketCooldownSeconds          ?? 3,
+    trialTimeoutMs:           (globalSettings?.fruitBasketAttemptTimeoutSeconds   ?? 10) * 1000,
+    maxAttempts:              globalSettings?.fruitBasketMaxAttempts               ?? 3,
+    testingMode:              globalSettings?.testingMode                          ?? true,
+    testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence        ?? [],
+  });
+  useEffect(() => {
+    gameConfigRef.current = {
+      cooldownSeconds:          globalSettings?.fruitBasketCooldownSeconds          ?? 3,
+      trialTimeoutMs:           (globalSettings?.fruitBasketAttemptTimeoutSeconds   ?? 10) * 1000,
+      maxAttempts:              globalSettings?.fruitBasketMaxAttempts               ?? 3,
+      testingMode:              globalSettings?.testingMode                          ?? true,
+      testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence        ?? [],
+    };
+  }, [globalSettings]);
 
   // Game State Refs
   const handStateRef = useRef({
@@ -271,38 +291,53 @@ const FruitBasketGame = () => {
   }, []);
   // ==================== SPAWN FRUIT ====================
   const sequenceIndexRef = useRef(0);
+  // Stable ref so cooldown effect can call latest spawnFruit without being a dep
+  const spawnFruitRef = useRef(null);
+
   const spawnFruit = useCallback(() => {
     let sourceIdx, bIdx;
+    const cfg = gameConfigRef.current;
 
-    if (globalSettings?.testingMode) {
-      const seq = globalSettings?.testingFruitBasketSequence?.length > 0 ? globalSettings.testingFruitBasketSequence : TESTING_FRUIT_BASKET_SEQUENCE;
-      const seqItem = seq[sequenceIndexRef.current % seq.length];
-      sourceIdx = seqItem.sourceIdx;
-      bIdx = seqItem.basketIdx;
-      sequenceIndexRef.current++;
+    if (fruitRef.current) {
+      // Retrying the CURRENT trial/task!
+      sourceIdx = fruitRef.current.sourceIdx;
+      bIdx = basketIdxRef.current;
+      fruitRef.current.x = gridHolesRef.current[sourceIdx].x;
+      fruitRef.current.y = gridHolesRef.current[sourceIdx].y;
+      fruitRef.current.attachedTo = null;
     } else {
-      sourceIdx = Math.floor(Math.random() * gridHolesRef.current.length);
-      bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
-      while (bIdx === sourceIdx) {
+      // Starting a NEW trial/task!
+      if (cfg.testingMode) {
+        const seq = cfg.testingFruitBasketSequence?.length > 0
+          ? cfg.testingFruitBasketSequence
+          : TESTING_FRUIT_BASKET_SEQUENCE;
+        const seqItem = seq[sequenceIndexRef.current % seq.length];
+        sourceIdx = seqItem.sourceIdx;
+        bIdx = seqItem.basketIdx;
+        sequenceIndexRef.current++;
+      } else {
+        sourceIdx = Math.floor(Math.random() * gridHolesRef.current.length);
         bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
+        while (bIdx === sourceIdx) {
+          bIdx = Math.floor(Math.random() * gridHolesRef.current.length);
+        }
       }
+      basketIdxRef.current = bIdx;
+      fruitRef.current = {
+        id: `F${Date.now()}`,
+        sourceIdx,
+        x: gridHolesRef.current[sourceIdx].x,
+        y: gridHolesRef.current[sourceIdx].y,
+        attachedTo: null,
+      };
+      // Reset drop-miss count only for a brand new trial
+      dropMissCountRef.current = 0;
     }
 
     setIsCooldown(false);
     isCooldownRef.current = false;
     setCooldownTimeLeft(0);
 
-    basketIdxRef.current = bIdx;
-    fruitRef.current = {
-      id: `F${Date.now()}`,
-      sourceIdx,
-      x: gridHolesRef.current[sourceIdx].x,
-      y: gridHolesRef.current[sourceIdx].y,
-      attachedTo: null,
-    };
-
-    // Reset drop-miss state for new trial
-    dropMissCountRef.current = 0;
     dropMissCooldownRef.current = false;
 
     if (trialTimeoutIdRef.current) {
@@ -315,7 +350,7 @@ const FruitBasketGame = () => {
       if (handleTrialTimeoutRef.current) {
         handleTrialTimeoutRef.current();
       }
-    }, CONFIG.TRIAL_TIMEOUT_MS);
+    }, gameConfigRef.current.trialTimeoutMs);
 
     logsRef.current.push({
       timestamp: nowSec(),
@@ -325,11 +360,18 @@ const FruitBasketGame = () => {
       source_idx: sourceIdx,
       basket_idx: bIdx,
     });
-  }, [globalSettings]);
+  // No deps on globalSettings — all settings read live via gameConfigRef
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep ref in sync so cooldown effect always has the latest function
+  useEffect(() => { spawnFruitRef.current = spawnFruit; }, [spawnFruit]);
 
   // ==================== TRIAL TIMEOUT HANDLER ====================
   const handleTrialTimeout = useCallback(() => {
-    attemptsRef.current++;
+    // Increment the failed attempts for this trial
+    dropMissCountRef.current += 1;
+
     const handLabel = fruitRef.current ? fruitRef.current.attachedTo : null;
 
     logsRef.current.push({
@@ -343,53 +385,71 @@ const FruitBasketGame = () => {
       fruit_id: fruitRef.current ? fruitRef.current.id : "",
       source_idx: fruitRef.current ? fruitRef.current.sourceIdx : "",
       basket_idx: basketIdxRef.current,
-      trial_duration_sec: (CONFIG.TRIAL_TIMEOUT_MS / 1000).toFixed(2),
+      trial_duration_sec: (gameConfigRef.current.trialTimeoutMs / 1000).toFixed(2),
       success: false,
       arat_score: 0,
     });
 
-    // Reset timers
+    // Reset assistive timers
     handStateRef.current.Left.assistivePickTimer = 0;
     handStateRef.current.Left.assistiveDropTimer = 0;
     handStateRef.current.Right.assistivePickTimer = 0;
     handStateRef.current.Right.assistiveDropTimer = 0;
 
+    // Detach fruit if it was attached
     if (fruitRef.current) {
       fruitRef.current.attachedTo = null;
     }
 
-    fruitRef.current = null;
+    const reachedMax = dropMissCountRef.current >= gameConfigRef.current.maxAttempts;
+
+    if (reachedMax) {
+      // The trial fails completely
+      attemptsRef.current++;
+      fruitRef.current = null; // Clear the fruit so the next spawnFruit will create a new one
+      showStatus(`❌ Trial failed! Max attempts reached.`, 1500);
+    } else {
+      // Retrying the same trial after cooldown
+      showStatus(`⏳ Timeout! Retrying same task (${dropMissCountRef.current}/${gameConfigRef.current.maxAttempts})...`, 1500);
+    }
+
+    // Start cooldown
     setIsCooldown(true);
     isCooldownRef.current = true;
-    setCooldownTimeLeft(3);
+    setCooldownTimeLeft(gameConfigRef.current.cooldownSeconds);
 
     const total = attemptsRef.current;
     const succ = successesRef.current;
     const rate = total > 0 ? ((succ / total) * 100).toFixed(0) : 0;
     setSuccessRate(rate);
-  }, [spawnFruit]);
+  // No dep on spawnFruit — spawn happens via the cooldown effect using spawnFruitRef
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     handleTrialTimeoutRef.current = handleTrialTimeout;
   }, [handleTrialTimeout]);
 
-  // Cooldown countdown timer effect
+  // Cooldown countdown — uses spawnFruitRef so this effect is never recreated
+  // when spawnFruit changes, preventing double-spawn bugs
   useEffect(() => {
     if (isPaused || !isSessionActive) return;
     if (cooldownTimeLeft === 0 && isCooldownRef.current) {
-      spawnFruit();
+      spawnFruitRef.current();
       return;
     }
     if (cooldownTimeLeft <= 0) return;
 
-    showStatus(`⏱️ Next fruit in ${cooldownTimeLeft}...`, 1000);
+    showStatus(`⏳ Next fruit in ${cooldownTimeLeft}...`, 1000);
 
     const timer = setTimeout(() => {
       setCooldownTimeLeft((prev) => prev - 1);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [cooldownTimeLeft, isPaused, isSessionActive, spawnFruit]);
+  // spawnFruit intentionally excluded — accessed via ref to avoid re-runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cooldownTimeLeft, isPaused, isSessionActive]);
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
     const handState = handStateRef.current;
@@ -631,12 +691,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     if (_handsInst && _poseInst && _camInst) {
       handsModuleRef.current = _handsInst;
       poseModuleRef.current  = _poseInst;
+      cameraRef.current      = _camInst;  // ← FIX: assign so cleanup/quit can stop it
       // Re-attach the result callbacks (they may point to stale closures after remount)
       _handsInst.onResults(onHandsResults);
       _poseInst.onResults(onPoseResults);
+      // Restart camera with the current (possibly new) video element
+      try {
+        await _camInst.start();
+        console.log("✓ MediaPipe singletons reused — camera restarted");
+      } catch (e) {
+        console.warn("Camera restart failed on remount:", e);
+      }
       setIsInitialized(true);
       isInitializedRef.current = true;
-      console.log("✓ MediaPipe singletons reused after remount");
       return;
     }
 
@@ -674,9 +741,27 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         onFrame: async () => {
           if (!videoRef.current || !isInitializedRef.current) return;
           if (usingMouseFallbackRef.current) return;
-          // Sequential sends – MUST NOT run concurrently (shared WASM Module)
-          await _handsInst.send({ image: videoRef.current });
-          await _poseInst.send({ image: videoRef.current });
+          
+          const handsInst = _handsInst;
+          const poseInst = _poseInst;
+          if (!handsInst || !poseInst) return;
+
+          try {
+            await handsInst.send({ image: videoRef.current });
+          } catch (e) {
+            if (!String(e?.message || "").includes("already deleted")) {
+              console.warn("Error sending frame to hands:", e);
+            }
+          }
+
+          if (!_poseInst) return; // double check pose is still active after hands send
+          try {
+            await poseInst.send({ image: videoRef.current });
+          } catch (e) {
+            if (!String(e?.message || "").includes("already deleted")) {
+              console.warn("Error sending frame to pose:", e);
+            }
+          }
         },
         width: 640,
         height: 480,
@@ -702,7 +787,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     
     // Throttled trial timer update (once per second)
     const elapsedTrial = (Date.now() - trialStartTimeRef.current) / 1000;
-    const remainingTrial = Math.max(0, CONFIG.TRIAL_TIMEOUT_MS / 1000 - elapsedTrial);
+    const remainingTrial = Math.max(0, gameConfigRef.current.trialTimeoutMs / 1000 - elapsedTrial);
     const secCeil = Math.ceil(remainingTrial);
     if (lastTrialTimeLeftRef.current !== secCeil) {
       lastTrialTimeLeftRef.current = secCeil;
@@ -842,7 +927,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               fruitRef.current = null;
               setIsCooldown(true);
               isCooldownRef.current = true;
-              setCooldownTimeLeft(3);
+              setCooldownTimeLeft(gameConfigRef.current.cooldownSeconds);
             }
           } else {
             hand.assistiveDropTimer = 0;
@@ -861,6 +946,15 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               const trialDuration = Date.now() - trialStartTimeRef.current;
               dropMissCountRef.current += 1;
 
+              // If max attempts reached → end this trial immediately (timeout path)
+              if (dropMissCountRef.current >= gameConfigRef.current.maxAttempts) {
+                if (trialTimeoutIdRef.current) clearTimeout(trialTimeoutIdRef.current);
+                trialTimeoutIdRef.current = null;
+                showStatus(`❌ Max attempts reached! Moving on...`, 1500);
+                if (handleTrialTimeoutRef.current) handleTrialTimeoutRef.current();
+                return; // stop processing this frame
+              }
+
               // Reset the trial timeout timer and start time
               if (trialTimeoutIdRef.current) {
                 clearTimeout(trialTimeoutIdRef.current);
@@ -870,7 +964,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
                 if (handleTrialTimeoutRef.current) {
                   handleTrialTimeoutRef.current();
                 }
-              }, CONFIG.TRIAL_TIMEOUT_MS);
+              }, gameConfigRef.current.trialTimeoutMs);
 
               // Brief cooldown (800 ms) so the open hand doesn't immediately
               // re-trigger another drop_miss while the user re-closes their hand.
@@ -939,7 +1033,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               fruitRef.current = null;
               setIsCooldown(true);
               isCooldownRef.current = true;
-              setCooldownTimeLeft(3);
+              setCooldownTimeLeft(gameConfigRef.current.cooldownSeconds);
             }
           }
         }
@@ -1499,8 +1593,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       if (trialTimeoutIdRef.current) {
         clearTimeout(trialTimeoutIdRef.current);
         trialTimeoutIdRef._remainingAtPause =
-          CONFIG.TRIAL_TIMEOUT_MS -
-          (Date.now() - trialStartTimeRef.current);
+          gameConfigRef.current.trialTimeoutMs - (Date.now() - trialStartTimeRef.current);
       }
       logsRef.current.push({ timestamp: nowSec(), event: "session_pause" });
       showStatus("⏸️ Session paused", 2000);
@@ -1512,7 +1605,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       // Re-schedule trial timeout for remaining time
       const remaining = trialTimeoutIdRef._remainingAtPause;
       if (remaining != null && remaining > 0) {
-        trialStartTimeRef.current = Date.now() - (CONFIG.TRIAL_TIMEOUT_MS - remaining);
+        trialStartTimeRef.current = Date.now() - (gameConfigRef.current.trialTimeoutMs - remaining);
         trialTimeoutIdRef.current = setTimeout(() => {
           if (handleTrialTimeoutRef.current) handleTrialTimeoutRef.current();
         }, remaining);
@@ -1646,46 +1739,66 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     });
   };
 
-  const handleQuitOrBack = async () => {
-    // Stop ALL timers immediately so no deferred callbacks fire after exit
-    if (trialTimeoutIdRef.current) clearTimeout(trialTimeoutIdRef.current);
-    trialTimeoutIdRef.current = null;
-
-    const hasPending = gameSessionBuffer.hasPending();
-    const dashPath = user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
-
-    // 3-way choice: Save | Discard | Cancel
-    const choice = window.confirm(
-      hasPending
-        ? "Leave the game?\n\n• OK → Save & Exit (saves your progress)\n• Cancel → opens Discard option"
-        : "Leave the game? (No unsaved data)\n\n• OK → Exit\n• Cancel → Stay"
-    );
-
-    if (choice) {
-      // OK = Save & Exit
-      if (hasPending) {
-        prepareSessionBuffer();
-        try {
-          if (gameSessionBuffer.hasPending()) {
-            await gameSessionBuffer.saveAndExit();
-          }
-        } catch (err) {
-          console.error("Save failed:", err);
-        }
-      }
-      navigate(dashPath);
-    } else {
-      if (!hasPending) return; // no data, cancel = stay
-      const discard = window.confirm(
-        "Discard all progress and exit?\n\n• OK → Discard & Exit\n• Cancel → Stay in game"
-      );
-      if (discard) {
-        gameSessionBuffer.discard();
-        navigate(dashPath);
+  // ── Exit modal logic ──────────────────────────────────────────────────────
+  const openExitModal = () => {
+    // Pause the session timer & trial timeout so they freeze while dialog is open
+    if (isSessionActive && !isPausedRef.current) {
+      isPausedRef.current = true;
+      setIsPaused(true);
+      pausedTimeRef._pauseStartedAt = Date.now();
+      // Freeze the trial timeout and remember remaining time
+      if (trialTimeoutIdRef.current) {
+        clearTimeout(trialTimeoutIdRef.current);
+        trialTimeoutIdRef._remainingAtPause =
+          gameConfigRef.current.trialTimeoutMs - (Date.now() - trialStartTimeRef.current);
       }
     }
+    setShowExitModal(true);
   };
 
+  const _resumeAfterCancel = () => {
+    if (!isSessionActive) return;
+    const pausedDuration = Date.now() - (pausedTimeRef._pauseStartedAt || Date.now());
+    pausedTimeRef.current += pausedDuration;
+    const remaining = trialTimeoutIdRef._remainingAtPause;
+    if (remaining != null && remaining > 0) {
+      trialStartTimeRef.current = Date.now() - (gameConfigRef.current.trialTimeoutMs - remaining);
+      trialTimeoutIdRef.current = setTimeout(() => {
+        if (handleTrialTimeoutRef.current) handleTrialTimeoutRef.current();
+      }, remaining);
+    }
+    isPausedRef.current = false;
+    setIsPaused(false);
+  };
+
+  const handleExitSave = async () => {
+    setShowExitModal(false);
+    prepareSessionBuffer();
+    try {
+      if (gameSessionBuffer.hasPending()) await gameSessionBuffer.saveAndExit();
+    } catch (err) { console.error("Save failed:", err); }
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitDiscard = () => {
+    setShowExitModal(false);
+    gameSessionBuffer.discard();
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitCancel = () => {
+    setShowExitModal(false);
+    _resumeAfterCancel();
+  };
+
+  // Keep a stable ref so the mount-only popstate handler always calls the latest
+  const openExitModalRef = React.useRef(openExitModal);
+  React.useEffect(() => { openExitModalRef.current = openExitModal; });
+
+  // Legacy button handler — now just opens the modal
+  const handleQuitOrBack = () => openExitModal();
+  const handleQuitOrBackRef = React.useRef(handleQuitOrBack);
+  React.useEffect(() => { handleQuitOrBackRef.current = handleQuitOrBack; });
   const handleReset = () => {
     window.location.reload();
   };
@@ -1741,6 +1854,19 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     _setupGridRef.current();
     _setupMPRef.current();
 
+    // ── Browser back-button intercept ──────────────────────────────────────
+    // Push a sentinel state so pressing browser-back fires popstate instead
+    // of immediately navigating away — giving us a chance to show the dialog.
+    window.history.pushState({ gameGuard: true }, '');
+    const handlePopState = (e) => {
+      window.history.pushState({ gameGuard: true }, '');
+      if (trialTimeoutIdRef.current) clearTimeout(trialTimeoutIdRef.current);
+      trialTimeoutIdRef.current = null;
+      openExitModalRef.current();
+    };
+    window.addEventListener('popstate', handlePopState);
+    // ────────────────────────────────────────────────────────────────────────
+
     let loopId;
     const runLoop = () => {
       if (mainLoopRef.current) {
@@ -1758,8 +1884,10 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       cancelAnimationFrame(loopId);
       document.removeEventListener("keydown", handleKeyDown);
+      if (trialTimeoutIdRef.current) clearTimeout(trialTimeoutIdRef.current);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (calibIntervalRef.current) clearInterval(calibIntervalRef.current);
       if (cameraRef.current) {
@@ -1778,6 +1906,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           }
         } finally {
           handsModuleRef.current = null;
+          _handsInst = null;
         }
       }
       if (poseModuleRef.current) {
@@ -1789,8 +1918,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           }
         } finally {
           poseModuleRef.current = null;
+          _poseInst = null;
         }
       }
+      _camInst = null;
+      cameraRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // mount/unmount only
@@ -2143,6 +2275,13 @@ Calibration:
           coordinates: coordinateLogRef.current.map(p => ({ ...p }))
         });
       }} />
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        hasPending={gameSessionBuffer.hasPending()}
+        onSave={handleExitSave}
+        onDiscard={handleExitDiscard}
+        onCancel={handleExitCancel}
+      />
     </div>
   );
 };

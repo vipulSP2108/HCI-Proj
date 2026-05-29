@@ -4,6 +4,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { gameService } from "../../../services/gameService";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
 import SaveExitButton from "../SaveExitButton";
+import ExitConfirmModal from "../ExitConfirmModal";
 import { COORD_SAMPLE_INTERVAL_MS, TESTING_PIANO_SEQUENCE, TESTING_PIANO_MOBILE_SEQUENCE } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
 import {
@@ -630,6 +631,7 @@ const PianoReactionGame = () => {
     return saved ? parseInt(saved, 10) : 4;
   }); // Default to 4 keys for Laptop Ankle
   const [isPaused, setIsPaused] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [currentSection, setCurrentSection] = useState(null);
   const [playData, setPlayData] = useState([]);
   const [sectionStartTime, setSectionStartTime] = useState(null);
@@ -1264,48 +1266,50 @@ const PianoReactionGame = () => {
     });
   };
 
-  const handleQuitOrBack = async () => {
-    // Stop ALL timers immediately so no deferred callbacks fire after exit
-    if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
-    sectionTimerRef.current = null;
-
-    const hasPending = gameSessionBuffer.hasPending();
-    const dashPath = user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
-
-    // 3-way choice: Save | Discard | Cancel
-    const choice = window.confirm(
-      hasPending
-        ? "Leave the game?\n\n• OK → Save & Exit (saves your progress)\n• Cancel → opens Discard option"
-        : "Leave the game? (No unsaved data)\n\n• OK → Exit\n• Cancel → Stay"
-    );
-
-    if (choice) {
-      // OK = Save & Exit
-      if (hasPending) {
-        handleBeforeSave();
-        try {
-          await gameSessionBuffer.saveAndExit();
-        } catch (err) {
-          console.error("Save failed:", err);
-        }
-      }
-      navigate(dashPath);
-    } else {
-      if (!hasPending) return; // no data, cancel = stay
-      const discard = window.confirm(
-        "Discard all progress and exit?\n\n• OK → Discard & Exit\n• Cancel → Stay in game"
-      );
-      if (discard) {
-        gameSessionBuffer.discard();
-        navigate(dashPath);
-      }
-    }
+  // ── Exit modal logic ──────────────────────────────────────────────────────
+  const openExitModal = () => {
+    if (!isPaused) pauseGame();
+    setShowExitModal(true);
   };
+  const openExitModalRef = React.useRef(openExitModal);
+  React.useEffect(() => { openExitModalRef.current = openExitModal; });
+
+  const handleExitSave = async () => {
+    setShowExitModal(false);
+    handleBeforeSave();
+    try { await gameSessionBuffer.saveAndExit(); } catch (err) { console.error('Save failed:', err); }
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitDiscard = () => {
+    setShowExitModal(false);
+    gameSessionBuffer.discard();
+    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+  };
+
+  const handleExitCancel = () => {
+    setShowExitModal(false);
+    resumeGame();
+  };
+
+  const handleQuitOrBack = () => openExitModal();
 
   const pauseGame = () => {
     setIsPaused(true);
     if (sectionTimerRef.current) clearTimeout(sectionTimerRef.current);
   };
+
+  // Browser back-button intercept (mount-only)
+  React.useEffect(() => {
+    window.history.pushState({ gameGuard: true }, '');
+    const onPop = () => {
+      window.history.pushState({ gameGuard: true }, '');
+      openExitModalRef.current();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const resumeGame = () => {
     setIsPaused(false);
@@ -1864,6 +1868,13 @@ const PianoReactionGame = () => {
 
       </div>
       <SaveExitButton onBeforeSave={handleBeforeSave} onSaveStart={pauseGame} onSaveCancel={resumeGame} />
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        hasPending={gameSessionBuffer.hasPending()}
+        onSave={handleExitSave}
+        onDiscard={handleExitDiscard}
+        onCancel={handleExitCancel}
+      />
     </div>
   );
 };

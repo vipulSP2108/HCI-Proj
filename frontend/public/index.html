@@ -7,35 +7,49 @@
     <script>
       /**
        * MediaPipe CDN asset-loader race condition suppressor.
-       *
-       * When a game component unmounts while MediaPipe is still downloading
-       * its WASM/data assets from jsdelivr, the XHR progress handler fires
-       * against an already-GC'd internal tracking map → TypeError spam.
-       * This is a known upstream MediaPipe bug (tracked in mediapipe#4413).
-       * The error is fully benign — the game still works — but it floods the
-       * React dev overlay.  We intercept it at the window level before React
-       * gets a chance to show the overlay.
+       * Uses three layers to guarantee CRA's dev overlay never sees these errors:
+       *  1. window.onerror returning true  — oldest/most reliable mechanism
+       *  2. capture-phase addEventListener + stopImmediatePropagation
+       *     — prevents any later listener (including CRA overlay) from running
+       *  3. unhandledrejection handler for promise-based variants
        */
-      window.addEventListener('error', function(event) {
-        var src = (event.filename || '');
-        if (
-          src.includes('mediapipe') ||
-          src.includes('jsdelivr.net/npm/@mediapipe') ||
-          (event.message && event.message.includes('hands_solution_packed_assets'))
-        ) {
-          event.preventDefault();   // stops the React error overlay
-          event.stopPropagation();  // stops it bubbling further
-          return true;
+      (function () {
+        function isMediaPipeError(msg, src) {
+          var m = msg || '';
+          var s = src || '';
+          return (
+            s.indexOf('mediapipe') !== -1 ||
+            s.indexOf('jsdelivr.net/npm/@mediapipe') !== -1 ||
+            m.indexOf('hands_solution_packed_assets') !== -1 ||
+            m.indexOf('pose_solution_packed_assets') !== -1 ||
+            m.indexOf('@mediapipe') !== -1
+          );
         }
-      }, true /* capture phase — fires before React's handler */);
 
-      window.addEventListener('unhandledrejection', function(event) {
-        var reason = event.reason || {};
-        var msg = (reason.message || reason.toString() || '');
-        if (msg.includes('mediapipe') || msg.includes('hands_solution_packed_assets')) {
-          event.preventDefault();
-        }
-      });
+        // Layer 1: window.onerror — returning true suppresses the error
+        window.onerror = function (message, source) {
+          if (isMediaPipeError(message, source)) return true;
+        };
+
+        // Layer 2: capture-phase listener with stopImmediatePropagation
+        // This fires before CRA's overlay and prevents it from ever seeing the event
+        window.addEventListener('error', function (event) {
+          if (isMediaPipeError(event.message, event.filename)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }, true);
+
+        // Layer 3: promise rejections
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event.reason || {};
+          var msg = reason.message || String(reason);
+          if (isMediaPipeError(msg, '')) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }, true);
+      })();
     </script>
   </head>
   <body>

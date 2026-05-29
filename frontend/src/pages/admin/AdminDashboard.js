@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Settings, Save, AlertCircle, Clock, ShieldCheck, Sun, Moon } from "lucide-react";
 import axios from "axios";
 import { API_BASE_URL, TESTING_PIANO_SEQUENCE, TESTING_SHAPE_SEQUENCE, TESTING_FRUIT_BASKET_SEQUENCE } from "../../constants";
+import { useSettings } from "../../context/SettingsContext";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { fetchSettings: refreshGlobalSettings } = useSettings();
   const [settings, setSettings] = useState({
     testingMode: true,
     pianoSessionSeconds: 300,
@@ -81,6 +83,8 @@ const AdminDashboard = () => {
       await axios.put(`${API_BASE_URL}/settings`, settings, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      // Refresh the global SettingsContext so all game components get new values immediately
+      await refreshGlobalSettings();
       setMessage({ text: "Global Settings updated successfully!", type: "success" });
     } catch (err) {
       setMessage({ text: "Failed to update settings.", type: "error" });
