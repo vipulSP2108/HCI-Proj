@@ -1168,7 +1168,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     <div style={styles.container}>
       <div style={styles.topPanel}>
         <div style={styles.topLeft}>
-          <h1 style={styles.title}>✏️ Shape Tracing – Drawing Rehab</h1>
+          <h1 style={styles.title}>✏️ Shape Tracer</h1>
           <p style={styles.muted}>
             Upper limb rehabilitation game: Close hand to start tracing at first
             point, keep closed to follow points in order, open hand after last

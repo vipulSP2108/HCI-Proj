@@ -123,7 +123,7 @@ function DoctorProfileForm({ initialData, isDarkMode, onProfileUpdate }) {
             label="Full Name"
             icon={User}
             name="name"
-            placeholder="Dr. John Smith"
+            placeholder="DemoDoctor"
           />
           <InputField
             label="Medical Degree"

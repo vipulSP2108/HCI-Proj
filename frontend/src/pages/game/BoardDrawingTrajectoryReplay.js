@@ -282,7 +282,7 @@ const AttemptReplayCard = ({ attempt, index }) => {
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_220px] gap-4">
         <div>
           <div className={`grid grid-cols-1 ${showSkeleton && skeletonLayout === "split-right" ? "md:grid-cols-2" : ""} gap-4`}>
-            {/* Canvas 1: Board Drawing View */}
+            {/* Canvas 1: Shape Tracer View */}
             <div
               className="relative w-full bg-[#a8d9a8] rounded-xl overflow-hidden border border-green-200 shadow-inner"
               style={{ aspectRatio: `${canvasWidth} / ${canvasHeight}` }}
@@ -607,9 +607,9 @@ const BoardDrawingTrajectoryReplay = ({ attempts }) => {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 text-center mt-6 shadow-sm">
         <div className="mb-3 text-5xl">✏️</div>
-        <p className="font-bold text-gray-800 dark:text-gray-200 mb-1 text-lg">No Board Drawing Trajectory Yet</p>
+        <p className="font-bold text-gray-800 dark:text-gray-200 mb-1 text-lg">No Shape Tracer Trajectory Yet</p>
         <p className="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
-          New board drawing sessions will save every partial and complete trace with the board figure behind it.
+          New Shape Tracer sessions will save every partial and complete trace with the board figure behind it.
         </p>
       </div>
     );
@@ -619,7 +619,7 @@ const BoardDrawingTrajectoryReplay = ({ attempts }) => {
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 mt-6 shadow-sm">
       <div className="mb-5 border-b dark:border-gray-700 pb-4">
         <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-          Board Drawing Movement Path Trajectory & Replay
+          Shape Tracer Movement Path Trajectory & Replay
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
           Every attempt is shown separately: black target board line plus yellow/orange user trajectory.

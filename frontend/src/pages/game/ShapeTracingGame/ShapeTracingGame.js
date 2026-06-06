@@ -996,7 +996,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
      coordinateLogRef.current = [];
      lastCoordTimeRef.current = 0;
      // Init local session buffer
-     gameSessionBuffer.init('shape_tracing', 'Shape Tracing');
+     gameSessionBuffer.init('shape_tracing', 'Shape Tracer');
      showStatus(
        "🎮 Session started! Close hand near first point to begin tracing.",
        3000,

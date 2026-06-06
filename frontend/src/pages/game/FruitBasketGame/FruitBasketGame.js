@@ -1581,7 +1581,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     coordinateLogRef.current = [];
     lastLeftCoordTimeRef.current = 0;
     lastRightCoordTimeRef.current = 0;
-    gameSessionBuffer.init('fruit_basket', 'Arm – Fruit Fetch');
+    gameSessionBuffer.init('fruit_basket', 'Arm Orchard');
     showStatus("🎮 Session started! Close hand to grab fruit!", 3000);
   };
 

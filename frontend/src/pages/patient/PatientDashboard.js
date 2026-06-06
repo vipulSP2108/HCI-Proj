@@ -609,8 +609,8 @@ const CoordinateVisualizer = ({ coordinates }) => {
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
                 className={`p-2.5 rounded-xl flex items-center justify-center text-white transition-all transform active:scale-95 ${isPlaying
-                    ? "bg-amber-500 hover:bg-amber-600"
-                    : "bg-primary-500 hover:bg-primary-600"
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-primary-500 hover:bg-primary-600"
                   }`}
                 title={isPlaying ? "Pause" : "Play"}
               >
@@ -662,8 +662,8 @@ const CoordinateVisualizer = ({ coordinates }) => {
               <button
                 onClick={() => setIsLooping(!isLooping)}
                 className={`p-2 rounded-lg border transition-all ${isLooping
-                    ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
-                    : "bg-transparent text-gray-400 border-gray-200 dark:border-gray-700"
+                  ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
+                  : "bg-transparent text-gray-400 border-gray-200 dark:border-gray-700"
                   }`}
                 title="Loop"
               >
@@ -707,10 +707,10 @@ const CoordinateVisualizer = ({ coordinates }) => {
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Jitter (Tremor Index)</span>
                 </div>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${jitterScore < 8
-                    ? "text-green-600 bg-green-50 dark:bg-green-950/20"
-                    : jitterScore < 18
-                      ? "text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20"
-                      : "text-red-600 bg-red-50 dark:bg-red-950/20"
+                  ? "text-green-600 bg-green-50 dark:bg-green-950/20"
+                  : jitterScore < 18
+                    ? "text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20"
+                    : "text-red-600 bg-red-50 dark:bg-red-950/20"
                   }`}>
                   {jitterScore.toFixed(1)}
                 </span>
@@ -1052,10 +1052,10 @@ const FingerClickVisualizer = ({ session, fingerTimeouts, movements, isDarkMode 
           <div className="flex flex-col text-right">
             <span className="text-gray-400 text-[10px] uppercase tracking-wider">Speed</span>
             <span className={`text-sm ${currentMove.responsetime === -1
-                ? "text-yellow-400"
-                : (fingerTimeouts && currentMove.responsetime > (fingerTimeouts[currentMove.finger] || 99))
-                  ? "text-red-400"
-                  : "text-emerald-400"
+              ? "text-yellow-400"
+              : (fingerTimeouts && currentMove.responsetime > (fingerTimeouts[currentMove.finger] || 99))
+                ? "text-red-400"
+                : "text-emerald-400"
               }`}
             >
               {currentMove.responsetime === -1 ? 'TIMEOUT' : `${currentMove.responsetime}s`}
@@ -1480,7 +1480,7 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
 const GAMES_LIST = [
   {
     type: "type1",
-    name: "Piano Reaction",
+    name: "Piano Therapy Game",
     path: "/piano-reaction",
     desc: "Tests and improves cognitive reaction speeds by tapping highlighted piano keys in response to stimuli.",
     clinicalFocus: "Cognitive processing speed, manual dexterity, and hand-eye coordination.",
@@ -1491,7 +1491,7 @@ const GAMES_LIST = [
   },
   {
     type: "board_drawing",
-    name: "Board Drawing",
+    name: "Shape Tracer",
     path: "/board-drawing",
     desc: "Traces complex board paths to evaluate distal hand movements, precision, and tremor control.",
     clinicalFocus: "Fine motor control, hand tremor reduction, and continuous movement precision.",
@@ -1502,7 +1502,7 @@ const GAMES_LIST = [
   },
   {
     type: "fruit_basket",
-    name: "Fruit Fetch",
+    name: "Arm Orchard",
     path: "/fruit-basket",
     desc: "Grasp and move falling fruits into a basket using full arm gestures to improve range of motion.",
     clinicalFocus: "Gross motor coordination, shoulder/elbow articulation, and spatial reaching velocity.",
@@ -2001,8 +2001,8 @@ const DashboardContent = ({
                 key={g.type}
                 onClick={() => { setSelectedGameType(g.type); setSelectedSession(0); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 whitespace-nowrap ${selectedGameType === g.type
-                    ? 'bg-gray-900 text-white shadow-md dark:bg-gray-100 dark:text-gray-900'
-                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  ? 'bg-gray-900 text-white shadow-md dark:bg-gray-100 dark:text-gray-900'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                   }`}
               >
                 <span className="text-base" style={{ color: g.accent }}>{React.cloneElement(g.icon, { className: 'w-5 h-5' })}</span>
@@ -2014,13 +2014,13 @@ const DashboardContent = ({
             ))}
           </div>
 
-          {/* Sub-tab Selector for Piano Reaction Game */}
+          {/* Sub-tab Selector for Piano Therapy Game */}
           {selectedGameType === "type1" && (
             <div className="flex gap-2 p-1.5 bg-gray-100/80 dark:bg-gray-950/40 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-800/50 mb-6 max-w-md">
               <button
                 className={`flex-1 py-3 px-4 font-semibold text-sm transition-colors border-b-2 flex justify-center items-center gap-2 ${pianoSubTab === 'finger'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 onClick={() => setPianoSubTab('finger')}
               >
@@ -2029,8 +2029,8 @@ const DashboardContent = ({
               </button>
               <button
                 className={`flex-1 py-3 px-4 font-semibold text-sm transition-colors border-b-2 flex justify-center items-center gap-2 ${pianoSubTab === 'ankle'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 onClick={() => setPianoSubTab('ankle')}
               >
@@ -2140,8 +2140,8 @@ const DashboardContent = ({
                         key={i}
                         onClick={() => setSelectedSession(i)}
                         className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${selectedSession === i
-                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
-                            : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
+                          : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
                       >
                         S{i + 1} · {new Date(s.time).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -2248,7 +2248,7 @@ const DashboardContent = ({
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: selectedGame.accent }}></div>
-                    <h3 className="text-base font-bold text-gray-800 dark:text-white">Board Drawing Trajectory Replay</h3>
+                    <h3 className="text-base font-bold text-gray-800 dark:text-white">Shape Tracer Trajectory Replay</h3>
                     <span className="text-xs text-gray-400 font-medium">— Session {selectedSession + 1}</span>
                   </div>
                   <BoardDrawingTrajectoryReplay attempts={selectedBoardDrawingAttempts} />
@@ -2282,11 +2282,10 @@ const DashboardContent = ({
                   {/* Session Meta header */}
                   {selectedSessionData.session.sessionMeta && (
                     <div className="flex flex-wrap gap-3 mb-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        selectedSessionData.session.sessionMeta.mode === 'ASSISTIVE'
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedSessionData.session.sessionMeta.mode === 'ASSISTIVE'
                           ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
                           : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                      }`}>
+                        }`}>
                         Mode: {selectedSessionData.session.sessionMeta.mode || '—'}
                       </span>
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
@@ -2318,13 +2317,13 @@ const DashboardContent = ({
                             return (
                               <tr key={idx} className="border-b border-gray-100 dark:border-gray-800 last:border-0 text-sm">
                                 <td className="py-3 font-semibold">
-                                  {entry.eventName === "pick"         && <span className="px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded text-xs">Pick</span>}
+                                  {entry.eventName === "pick" && <span className="px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded text-xs">Pick</span>}
                                   {entry.eventName === "drop_success" && <span className="px-2 py-1 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400 rounded text-xs">✓ Drop</span>}
-                                  {entry.eventName === "drop_miss"    && <span className="px-2 py-1 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded text-xs">✗ Miss</span>}
-                                  {entry.eventName === "timeout"      && <span className="px-2 py-1 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded text-xs">⏱ Timeout</span>}
+                                  {entry.eventName === "drop_miss" && <span className="px-2 py-1 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded text-xs">✗ Miss</span>}
+                                  {entry.eventName === "timeout" && <span className="px-2 py-1 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded text-xs">⏱ Timeout</span>}
                                 </td>
                                 <td className="py-3 text-xs font-bold">
-                                  {entry.hand === "Left"  && <span className="text-indigo-500">◀ Left</span>}
+                                  {entry.hand === "Left" && <span className="text-indigo-500">◀ Left</span>}
                                   {entry.hand === "Right" && <span className="text-emerald-500">Right ▶</span>}
                                   {!entry.hand && <span className="text-gray-400">—</span>}
                                 </td>
@@ -2350,7 +2349,7 @@ const DashboardContent = ({
                 </div>
               )}
 
-              {/* Piano Reaction Game Modes Analytics */}
+              {/* Piano Therapy Game Modes Analytics */}
               {selectedGameType === "type1" && pianoSubTab === "finger" && (
                 <div>
                   <div className="flex items-center gap-2 mb-3 mt-6">
@@ -2458,7 +2457,7 @@ const DashboardContent = ({
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-400 leading-snug">Excellent clinical progress.</p>
               </div> */}
 
-              
+
             </div>
 
             {/* Choose Your Game */}
@@ -2530,91 +2529,7 @@ const DashboardContent = ({
 
           {/* ── Right Sidebar ── */}
           <div className="space-y-4">
-            {/* Performance Overview */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">
-    Performance
-  </h3>
-  
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {/* Level Card */}
-    <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-900/20 flex flex-col justify-between">
-      <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">Level</p>
-      <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">{stats?.level || 1}</p>
-    </div>
-    
-    {/* Score Card */}
-    <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-xl p-4 border border-emerald-100 dark:border-emerald-900/20 flex flex-col justify-between">
-      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Score</p>
-      <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100 tracking-tight">{stats?.totalScore || 0}</p>
-    </div>
-    
-    {/* Total Sessions Card */}
-    <div className="bg-slate-50/70 dark:bg-slate-900/30 rounded-xl p-4 border border-slate-100 dark:border-slate-700 col-span-1 sm:col-span-2 flex items-center justify-between">
-      <div>
-        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Total Sessions</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500">Across all clinical games</p>
-      </div>
-      <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{totalSessionsAllGames}</p>
-    </div>
-  </div>
-
-  {/* This Week Section (Nested inside the parent card) */}
-  <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/20 rounded-xl p-5 border border-slate-150 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">This Week</p>
-      <div className="flex items-baseline gap-2">
-        <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
-          {weekAccuracyAllGames.toFixed(0)}%
-        </p>
-        {/*  */}
-      </div>
-      <p className="text-xs font-medium text-slate-400 dark:text-slate-500">Overall Accuracy</p>
-    </div>
-    
-    {/* Sparkline Container aligned beautifully right/bottom */}
-    {isMounted && (
-      <div className="h-12 flex-1 max-w-xs bg-white dark:bg-slate-800/80 rounded-lg p-1.5 border border-slate-100 dark:border-slate-700/40 shadow-inner">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={weekSparklineData} margin={{ top: 2, bottom: 2, left: 2, right: 2 }}>
-            <Line type="monotone" dataKey="acc" stroke="#10B981" strokeWidth={2.5} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    )}
-  </div>
-</div>
-
-            {/* Your Doctor */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Care Team</h3>
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src="https://via.placeholder.com/40"
-                  className="w-12 h-12 rounded-full ring-2 ring-blue-100 dark:ring-blue-900"
-                  alt="Doctor"
-                />
-                <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{userData?.doctor?.[0]?.doctorName || "Your Doctor"}</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{userData?.doctor?.[0]?.doctorDegree || "Physician"}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navigate("/chat")}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors"
-                >
-                  <MessageSquare size={16} /> Message
-                </button>
-                <a
-                  href={`tel:${userData?.doctor?.[0]?.doctorphone}`}
-                  className="flex items-center justify-center p-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-600"
-                >
-                  <PhoneCall size={18} />
-                </a>
-              </div>
-            </div>
-
+            
             {/* Next Reminder */}
             {/* <div className="premium-card p-5">
               <h3 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Next Reminder</h3>
@@ -2648,6 +2563,91 @@ const DashboardContent = ({
                 </div>
               )}
             </div> */}
+
+            {/* Your Doctor */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Care Team</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <img
+                  src="https://via.placeholder.com/40"
+                  className="w-12 h-12 rounded-full ring-2 ring-blue-100 dark:ring-blue-900"
+                  alt="Doctor"
+                />
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">{userData?.doctor?.[0]?.doctorName || "Your Doctor"}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{userData?.doctor?.[0]?.doctorDegree || "Physician"}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate("/chat")}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors"
+                >
+                  <MessageSquare size={16} /> Message
+                </button>
+                <a
+                  href={`tel:${userData?.doctor?.[0]?.doctorphone}`}
+                  className="flex items-center justify-center p-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-600"
+                >
+                  <PhoneCall size={18} />
+                </a>
+              </div>
+            </div>
+
+            {/* Performance Overview */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">
+                Performance
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Level Card */}
+                <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-900/20 flex flex-col justify-between">
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">Level</p>
+                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">{stats?.level || 1}</p>
+                </div>
+
+                {/* Score Card */}
+                <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-xl p-4 border border-emerald-100 dark:border-emerald-900/20 flex flex-col justify-between">
+                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Score</p>
+                  <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100 tracking-tight">{stats?.totalScore || 0}</p>
+                </div>
+
+                {/* Total Sessions Card */}
+                <div className="bg-slate-50/70 dark:bg-slate-900/30 rounded-xl p-4 border border-slate-100 dark:border-slate-700 col-span-1 sm:col-span-2 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Total Sessions</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Across all clinical games</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{totalSessionsAllGames}</p>
+                </div>
+              </div>
+
+              {/* This Week Section (Nested inside the parent card) */}
+              <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/20 rounded-xl p-5 border border-slate-150 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">This Week</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                      {weekAccuracyAllGames.toFixed(0)}%
+                    </p>
+                    {/*  */}
+                  </div>
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500">Overall Accuracy</p>
+                </div>
+
+                {/* Sparkline Container aligned beautifully right/bottom */}
+                {isMounted && (
+                  <div className="h-12 flex-1 max-w-xs bg-white dark:bg-slate-800/80 rounded-lg p-1.5 border border-slate-100 dark:border-slate-700/40 shadow-inner">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={weekSparklineData} margin={{ top: 2, bottom: 2, left: 2, right: 2 }}>
+                        <Line type="monotone" dataKey="acc" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -3043,7 +3043,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
       type: "Routine",
       status: "Completed",
       result: "Healthy",
-      doctor: "Dr. Sarah Wilson",
+      doctor: "DemoDoctor",
     },
     {
       id: 2,
@@ -3052,7 +3052,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
       type: "Imaging",
       status: "Completed",
       result: "Normal",
-      doctor: "Dr. Michael Chen",
+      doctor: "DemoDoctor",
     },
     {
       id: 3,
@@ -3061,7 +3061,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
       type: "Laboratory",
       status: "Completed",
       result: "Standard Range",
-      doctor: "Dr. Sarah Wilson",
+      doctor: "DemoDoctor",
     },
     {
       id: 4,
@@ -3070,7 +3070,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
       type: "Consultation",
       status: "Completed",
       result: "Follow-up in 3 months",
-      doctor: "Dr. Robert Brown",
+      doctor: "DemoDoctor",
     },
   ];
 
@@ -3260,7 +3260,7 @@ const CalendarContent = ({ isDarkMode, reminders, userData }) => {
         date: "2026-03-25",
         type: "Appointment",
         time: "10:00 AM",
-        doctor: userData?.doctor?.[0]?.doctorName || "Dr. Sarah Wilson",
+        doctor: userData?.doctor?.[0]?.doctorName || "DemoDoctor",
       },
       {
         id: "app-2",

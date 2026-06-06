@@ -1818,7 +1818,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
     logsRef.current.push({ timestamp: 0, event: "session_start" });
     // Init local session buffer
-    gameSessionBuffer.init('board_drawing', 'Board Drawing');
+    gameSessionBuffer.init('board_drawing', 'Shape Tracer');
     showStatus(
       "🎮 Session started! Close hand near first point to begin tracing.",
       3000,

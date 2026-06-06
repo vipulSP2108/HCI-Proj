@@ -703,7 +703,7 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
 const GAMES_LIST = [
   {
     type: "type1",
-    name: "Piano Reaction",
+    name: "Piano Therapy Game",
     path: "/piano-reaction",
     desc: "Tests and improves cognitive reaction speeds by tapping highlighted piano keys in response to stimuli.",
     clinicalFocus: "Cognitive processing speed, manual dexterity, and hand-eye coordination.",
@@ -714,7 +714,7 @@ const GAMES_LIST = [
   },
   {
     type: "board_drawing",
-    name: "Board Drawing",
+    name: "Shape Tracer",
     path: "/board-drawing",
     desc: "Traces complex board paths to evaluate distal hand movements, precision, and tremor control.",
     clinicalFocus: "Fine motor control, hand tremor reduction, and continuous movement precision.",
@@ -725,7 +725,7 @@ const GAMES_LIST = [
   },
   {
     type: "fruit_basket",
-    name: "Fruit Fetch",
+    name: "Arm Orchard",
     path: "/fruit-basket",
     desc: "Grasp and move falling fruits into a basket using full arm gestures to improve range of motion.",
     clinicalFocus: "Gross motor coordination, shoulder/elbow articulation, and spatial reaching velocity.",
@@ -1086,7 +1086,7 @@ const PatientAnalytics = () => {
           })}
         </div>
 
-        {/* Sub-tab Selector for Piano Reaction Game */}
+        {/* Sub-tab Selector for Piano Therapy Game */}
         {selectedGameType === "type1" && (
           <div className="flex gap-2 p-1.5 bg-gray-100/80 dark:bg-gray-950/40 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-800/50 mb-6 max-w-md">
             <button
@@ -1421,7 +1421,7 @@ const PatientAnalytics = () => {
                 <div className="space-y-6">
                   {selectedGameType === "board_drawing" && (
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Board Drawing Trajectory Replay</h3>
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Shape Tracer Trajectory Replay</h3>
                       <BoardDrawingTrajectoryReplay attempts={selectedBoardDrawingAttempts} />
                       <DrawingPerformancePanel userId={patientId} />
                     </div>

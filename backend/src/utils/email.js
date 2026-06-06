@@ -24,7 +24,7 @@ const sendOTPEmail = async (email, otp) => {
   try {
     const transporter = createTransporter();
     const mailOptions = {
-      from: `"Healthcare Game App" <${process.env.EMAIL_USER}>`,
+      from: `"Limb Play" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Password Reset OTP',
       html: `

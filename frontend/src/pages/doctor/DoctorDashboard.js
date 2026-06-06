@@ -98,7 +98,7 @@ const Sidebar = ({
             <h1 className="text-base font-semibold text-[#2B91D4] truncate">
               {profileLoading
                 ? "Loading..."
-                : doctorProfile.name || "Dr. Doctor Demo"}
+                : doctorProfile.name || "DemoDoctor"}
             </h1>
             <p className="text-xs text-gray-500 truncate">
               {profileLoading ? "..." : doctorProfile.degree || "Doctor"}

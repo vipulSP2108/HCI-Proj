@@ -193,7 +193,7 @@ const AdminDashboard = () => {
             <div className={`p-5 border rounded-xl mb-6 ${isDarkMode ? "bg-purple-900/20 border-purple-900/50" : "bg-purple-50/50 border-purple-100"}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Board Drawing Assistive Mode</h3>
+                  <h3 className="text-lg font-semibold">Shape Tracer Assistive Mode</h3>
                   <p className={`text-sm max-w-lg mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                     Allow users to draw shapes with any hand posture (open palm, fist, etc) rather than requiring a closed fist. On by default.
                   </p>
@@ -357,7 +357,7 @@ const AdminDashboard = () => {
 
                         {/* Shape Sequence */}
                         <div className="flex flex-col gap-1">
-                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Shape Tracing / Board Drawing (Comma Separated Names)</label>
+                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Shape Tracer / Board Drawing (Comma Separated Names)</label>
                           <textarea
                             rows={2}
                             defaultValue={settings.testingShapeSequence?.join(', ')}
@@ -366,9 +366,9 @@ const AdminDashboard = () => {
                           />
                         </div>
 
-                        {/* Fruit Basket Sequence */}
+                        {/* Arm Orchard Sequence */}
                         <div className="flex flex-col gap-1">
-                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Fruit Basket Sequence (Valid JSON Array)</label>
+                          <label className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Arm Orchard Sequence (Valid JSON Array)</label>
                           <textarea
                             rows={4}
                             defaultValue={JSON.stringify(settings.testingFruitBasketSequence, null, 2)}
@@ -392,9 +392,9 @@ const AdminDashboard = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { label: "Piano Reaction", name: "pianoSessionSeconds" },
-                  { label: "Board Drawing", name: "boardDrawingSessionSeconds" },
-                  { label: "Fruit Fetch", name: "fruitBasketSessionSeconds" },
+                  { label: "Piano Therapy Game", name: "pianoSessionSeconds" },
+                  { label: "Shape Tracer", name: "boardDrawingSessionSeconds" },
+                  { label: "Arm Orchard", name: "fruitBasketSessionSeconds" },
                 ].map((game) => (
                   <div key={game.name} className="flex flex-col gap-2">
                     <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{game.label}</label>
@@ -416,7 +416,7 @@ const AdminDashboard = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Settings className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                <h3 className="text-lg font-semibold">Fruit Fetch Game Settings</h3>
+                <h3 className="text-lg font-semibold">Arm Orchard Game Settings</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex flex-col gap-2">
@@ -472,8 +472,8 @@ const AdminDashboard = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { label: "Fruit Fetch Sampling (ms)", name: "fruitBasketCoordSampleMs" },
-                  { label: "Board Drawing Sampling (ms)", name: "boardDrawingCoordSampleMs" },
+                  { label: "Arm Orchard Sampling (ms)", name: "fruitBasketCoordSampleMs" },
+                  { label: "Shape Tracer Sampling (ms)", name: "boardDrawingCoordSampleMs" },
                 ].map((field) => (
                   <div key={field.name} className="flex flex-col gap-2">
                     <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{field.label}</label>

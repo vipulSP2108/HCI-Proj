@@ -111,14 +111,14 @@
     "doctor": [
       {
         "doctorDegree": "MBBS, MD",
-        "doctorName": "Dr. Parth Rathod",
+        "doctorName": "DemoDoctor",
         "doctorphone": "8806549952",
         "doctoremail": "vipul.patil@iitgn.ac.in",
         "_id": "68f360d2bce6ed3a964390c8"
       },
       {
         "doctorDegree": "MBBS, MD",
-        "doctorName": "Dr. Sunil Patil",
+        "doctorName": "DemoDoctor",
         "doctorphone": "8806549952",
         "doctoremail": "vipul.patil@iitgn.ac.in",
         "_id": "68f360d2bce6ed3a964390c7"

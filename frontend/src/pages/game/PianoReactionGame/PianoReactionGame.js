@@ -1429,7 +1429,7 @@ const PianoReactionGame = () => {
           style={{ background: `linear-gradient(135deg, ${PRIMARY_BLUE}, ${LIGHT_BLUE})` }}
         >
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Piano Reaction Game</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">Piano Therapy Game</h1>
             <p className="text-white/90 mt-1 font-medium">Coordinate, reaction, and fine-motor control rehabilitation.</p>
             <div className="flex gap-4 mt-3 text-xs font-semibold text-white/80 uppercase tracking-wider">
               <span>Platform: {platform === 'laptop' ? '💻 Laptop' : '📱 Mobile'}</span>
