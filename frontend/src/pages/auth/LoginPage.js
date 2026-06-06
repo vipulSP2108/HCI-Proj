@@ -107,7 +107,7 @@ const LoginPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={() =>
-                handleDemoLogin("patient@gmail.com", "a@gmail.com")
+                handleDemoLogin("demo.patient@gmail.com", "demo.patient@123")
               }
               disabled={loading}
               className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
@@ -118,7 +118,7 @@ const LoginPage = () => {
 
             <button
               onClick={() =>
-                handleDemoLogin("doctordemo@gmail.com", "Doctor@123")
+                handleDemoLogin("demo.doctor@gmail.com", "demo.doctor@123")
               }
               disabled={loading}
               className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
@@ -129,7 +129,7 @@ const LoginPage = () => {
 
               <button
                 type="button"
-                onClick={() => handleDemoLogin("caretaker@gmail.com", "aa@gmail.com")}
+                onClick={() => handleDemoLogin("demo.caretaker@gmail.com", "demo.caretaker@123")}
                 className="w-full flex items-center justify-center gap-3 py-2 px-4 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200"
               >
                 <User className="w-4 h-4" />
