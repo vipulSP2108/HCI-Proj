@@ -6,7 +6,7 @@
       "slotMinutes": 30
     },
     "_id": "691bcf7a40b32e79703a3d20",
-    "email": "vipul.patil@iitgn.ac.in",
+    "email": "demo@example.com",
     "password": "$2a$10$ekhHznAeN5W7E7PysVn/B.tYimR85GZrPtQVHBzzEvPleUPCd06uy",
     "phone": "12345432345432",
     "type": "doctor",
@@ -104,7 +104,7 @@
     "_id": "68f360d2bce6ed3a964390c7",
     "email": "patient@gmail.com",
     "password": "$2a$10$SdZgnTiyuJel31i5f.azXu27EXvPUyi7LYBiJvguGa9LJ5ae4ctiq",
-    "phone": "8806549952",
+    "phone": "1234567890",
     "type": "patient",
     "createdBy": "68f34119751cfbfe79b3430c",
     "currentlevelspan": 5,
@@ -112,15 +112,15 @@
       {
         "doctorDegree": "MBBS, MD",
         "doctorName": "DemoDoctor",
-        "doctorphone": "8806549952",
-        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "doctorphone": "1234567890",
+        "doctoremail": "demo@example.com",
         "_id": "68f360d2bce6ed3a964390c8"
       },
       {
         "doctorDegree": "MBBS, MD",
         "doctorName": "DemoDoctor",
-        "doctorphone": "8806549952",
-        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "doctorphone": "1234567890",
+        "doctoremail": "demo@example.com",
         "_id": "68f360d2bce6ed3a964390c7"
       }
     ],
@@ -3167,8 +3167,8 @@
     "createdAt": "2025-10-18T09:41:38.807Z",
     "updatedAt": "2026-06-03T19:23:08.062Z",
     "__v": 24,
-    "degree": "Vipuls",
-    "name": "Vipuls"
+    "degree": "DemoDegree",
+    "name": "DemoName"
   },
   {
     "availability": {
@@ -3179,7 +3179,7 @@
     "_id": "68f34119751cfbfe79b3430c",
     "email": "doctor@gmail.com",
     "password": "$2a$10$pQfLayridhwt7oDYT8qbs.iLNhV0rrUfit2Y6xgZWxgV0IrUpRyBW",
-    "phone": "8806549952",
+    "phone": "1234567890",
     "type": "doctor",
     "createdBy": null,
     "currentlevelspan": 5,
@@ -3210,7 +3210,7 @@
     "updatedAt": "2026-05-29T17:40:54.219Z",
     "__v": 11,
     "degree": "MS",
-    "name": "Vishwas Jakat"
+    "name": "DemoDoctor"
   },
   {
     "availability": {
@@ -3258,9 +3258,9 @@
     "doctor": [
       {
         "doctorDegree": "MS",
-        "doctorName": "Vishwas Jakat",
-        "doctorphone": "8806549952",
-        "doctoremail": "vipul.patil@iitgn.ac.in",
+        "doctorName": "DemoDoctor",
+        "doctorphone": "1234567890",
+        "doctoremail": "demo@example.com",
         "_id": "691b504e7713d9b48b29fc24"
       }
     ],
@@ -3320,8 +3320,8 @@
     "doctor": [
       {
         "doctorDegree": "MS",
-        "doctorName": "Vishwas Jakat",
-        "doctorphone": "8806549952",
+        "doctorName": "DemoDoctor",
+        "doctorphone": "1234567890",
         "doctoremail": "doctor@gmail.com",
         "_id": "6a1980f382672e4131cc8213"
       }
@@ -3354,8 +3354,8 @@
     "doctor": [
       {
         "doctorDegree": "MS",
-        "doctorName": "Vishwas Jakat",
-        "doctorphone": "8806549952",
+        "doctorName": "DemoDoctor",
+        "doctorphone": "1234567890",
         "doctoremail": "doctor@gmail.com",
         "_id": "6a19ce9e82672e4131cc82b1"
       }
@@ -3388,8 +3388,8 @@
     "doctor": [
       {
         "doctorDegree": "MS",
-        "doctorName": "Vishwas Jakat",
-        "doctorphone": "8806549952",
+        "doctorName": "DemoDoctor",
+        "doctorphone": "1234567890",
         "doctoremail": "doctor@gmail.com",
         "_id": "6a19cec082672e4131cc82c1"
       }
@@ -3422,8 +3422,8 @@
     "doctor": [
       {
         "doctorDegree": "MS",
-        "doctorName": "Vishwas Jakat",
-        "doctorphone": "8806549952",
+        "doctorName": "DemoDoctor",
+        "doctorphone": "1234567890",
         "doctoremail": "doctor@gmail.com",
         "_id": "6a19cfa682672e4131cc8634"
       }
