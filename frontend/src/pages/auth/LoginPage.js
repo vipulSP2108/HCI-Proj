@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/authService";
-import { LogIn, Mail, Lock, User, Stethoscope, Shield, Sun, Moon } from "lucide-react";
+import { LogIn, Mail, Lock, User, Stethoscope, Shield, Sun, Moon, Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login, user, isDarkMode, toggleDarkMode } = useAuth();
 
@@ -117,7 +118,7 @@ const LoginPage = () => {
 
             <button
               onClick={() =>
-                handleDemoLogin("doctor@gmail.com", "vipul%colab25")
+                handleDemoLogin("doctordemo@gmail.com", "Doctor@123")
               }
               disabled={loading}
               className="flex items-center px-2 justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md text-sm font-medium transition disabled:opacity-50"
@@ -156,17 +157,21 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`} />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none"
+                className={`w-full pl-10 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none transition-colors ${
+                  isDarkMode 
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" 
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                }`}
                 placeholder="you@example.com"
                 required
               />
@@ -175,20 +180,31 @@ const LoginPage = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none"
+                className={`w-full pl-10 pr-10 py-2 border rounded-md focus:ring-1 focus:ring-[#2F71EB] focus:border-[#2F71EB] text-sm outline-none transition-colors ${
+                  isDarkMode 
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" 
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                }`}
                 placeholder="••••••••"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 hover:text-gray-500 transition-colors ${isDarkMode ? "text-gray-400" : "text-gray-400"}`}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 

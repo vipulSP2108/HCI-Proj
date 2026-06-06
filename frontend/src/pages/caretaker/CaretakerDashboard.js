@@ -70,7 +70,7 @@ const Sidebar = ({
         </div>
         {!isCollapsed && (
           <span className="text-lg font-black dark:text-white tracking-widest uppercase text-black dark:text-white">
-            Young Tempo
+            Limb Play
           </span>
         )}
       </div>

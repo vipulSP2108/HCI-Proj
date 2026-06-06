@@ -1,3 +1,7 @@
+teaser/
+ref/
+paper/
+newRef/
 node_modules/
 .env
 .env.local

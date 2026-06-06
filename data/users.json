@@ -1,5 +1,95 @@
 [
   {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691bcf7a40b32e79703a3d20",
+    "email": "vipul.patil@iitgn.ac.in",
+    "password": "$2a$10$ekhHznAeN5W7E7PysVn/B.tYimR85GZrPtQVHBzzEvPleUPCd06uy",
+    "phone": "12345432345432",
+    "type": "doctor",
+    "createdBy": null,
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-18T01:44:26.761Z",
+    "updatedAt": "2025-11-18T01:44:26.761Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691f10e8e51d09964ee8eecd",
+    "email": "xyz@gmail.com",
+    "password": "$2a$10$SspiWhtTAgSdiZWbPpmTsugrf2WGaQpfhFOIInXdpq3EFFjJvm4Zi",
+    "phone": "9999999999",
+    "type": "doctor",
+    "createdBy": null,
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [
+      "691f1343b02a070825875566"
+    ],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-20T13:00:24.904Z",
+    "updatedAt": "2025-11-20T13:10:27.783Z",
+    "__v": 1
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "691f1343b02a070825875566",
+    "email": "xyz1@gmail.com",
+    "password": "$2a$10$RhtzO6NuTrDDZiTakW0SB.hECXxYdvutNGSEasfzfW.ZRoeYHdCL2",
+    "phone": "9989977890",
+    "type": "patient",
+    "createdBy": "691f10e8e51d09964ee8eecd",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "",
+        "doctorphone": "9999999999",
+        "doctoremail": "xyz@gmail.com",
+        "_id": "691f1343b02a070825875567"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 1,
+    "totalScore": 10,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-20T13:10:27.443Z",
+    "updatedAt": "2026-05-22T07:39:52.982Z",
+    "__v": 0
+  },
+  {
     "patientDetails": {
       "weight": 54,
       "height": 144,
@@ -36,8 +126,8 @@
     ],
     "assignedCaretakers": [],
     "assignedPatients": [],
-    "level": 70,
-    "totalScore": 6970,
+    "level": 318,
+    "totalScore": 31761,
     "resetOTP": null,
     "resetOTPExpiry": null,
     "isActive": true,
@@ -3075,26 +3165,39 @@
       }
     ],
     "createdAt": "2025-10-18T09:41:38.807Z",
-    "updatedAt": "2026-05-28T14:19:02.066Z",
+    "updatedAt": "2026-06-03T19:23:08.062Z",
     "__v": 24,
     "degree": "Vipuls",
     "name": "Vipuls"
   },
   {
     "availability": {
-      "startTime": "09:00",
       "endTime": "17:00",
-      "slotMinutes": 30
+      "slotMinutes": 30,
+      "startTime": "09:00"
     },
-    "_id": "691bcf7a40b32e79703a3d20",
-    "email": "vipul.patil@iitgn.ac.in",
-    "password": "$2a$10$ekhHznAeN5W7E7PysVn/B.tYimR85GZrPtQVHBzzEvPleUPCd06uy",
-    "phone": "12345432345432",
+    "_id": "68f34119751cfbfe79b3430c",
+    "email": "doctor@gmail.com",
+    "password": "$2a$10$pQfLayridhwt7oDYT8qbs.iLNhV0rrUfit2Y6xgZWxgV0IrUpRyBW",
+    "phone": "8806549952",
     "type": "doctor",
     "createdBy": null,
     "currentlevelspan": 5,
-    "assignedCaretakers": [],
-    "assignedPatients": [],
+    "assignedCaretakers": [
+      "69060b3d4fba7895c9b9b661"
+    ],
+    "assignedPatients": [
+      "68f3415d751cfbfe79b34329",
+      "68f346ceea1c4de9da668184",
+      "68f35f90e2a5576a7850aa75",
+      "68f36048e2a5576a7850aae2",
+      "68f360d2bce6ed3a964390c7",
+      "691b504e7713d9b48b29fc23",
+      "6a1980f382672e4131cc8212",
+      "6a19ce9e82672e4131cc82b0",
+      "6a19cec082672e4131cc82c0",
+      "6a19cfa682672e4131cc8633"
+    ],
     "level": 1,
     "totalScore": 0,
     "resetOTP": null,
@@ -3103,9 +3206,41 @@
     "doctor": [],
     "caretaker": [],
     "game": [],
-    "createdAt": "2025-11-18T01:44:26.761Z",
-    "updatedAt": "2025-11-18T01:44:26.761Z",
-    "__v": 0
+    "createdAt": "2025-10-18T07:26:17.051Z",
+    "updatedAt": "2026-05-29T17:40:54.219Z",
+    "__v": 11,
+    "degree": "MS",
+    "name": "Vishwas Jakat"
+  },
+  {
+    "availability": {
+      "endTime": "17:00",
+      "slotMinutes": 30,
+      "startTime": "09:00"
+    },
+    "_id": "69060b3d4fba7895c9b9b661",
+    "email": "caretaker@gmail.com",
+    "password": "$2a$10$njPtn6wDCvfI5P.kXIdHYOIb97/rPQvk2.6tC0wcADIMKqhiPzLH.",
+    "phone": "aa@gmail.com",
+    "type": "caretaker",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "assignedCaretakers": [],
+    "assignedPatients": [
+      "68f360d2bce6ed3a964390c7",
+      "691b504e7713d9b48b29fc23"
+    ],
+    "level": 1,
+    "totalScore": 0,
+    "resetOTP": "650282",
+    "resetOTPExpiry": "2025-11-17T20:15:31.971Z",
+    "isActive": true,
+    "doctor": [],
+    "caretaker": [],
+    "game": [],
+    "createdAt": "2025-11-01T13:29:33.765Z",
+    "updatedAt": "2026-03-24T05:00:19.365Z",
+    "__v": 2
   },
   {
     "availability": {
@@ -3144,137 +3279,6 @@
   },
   {
     "availability": {
-      "endTime": "17:00",
-      "slotMinutes": 30,
-      "startTime": "09:00"
-    },
-    "_id": "69060b3d4fba7895c9b9b661",
-    "email": "caretaker@gmail.com",
-    "password": "$2a$10$njPtn6wDCvfI5P.kXIdHYOIb97/rPQvk2.6tC0wcADIMKqhiPzLH.",
-    "phone": "aa@gmail.com",
-    "type": "caretaker",
-    "createdBy": "68f34119751cfbfe79b3430c",
-    "currentlevelspan": 5,
-    "assignedCaretakers": [],
-    "assignedPatients": [
-      "68f360d2bce6ed3a964390c7",
-      "691b504e7713d9b48b29fc23"
-    ],
-    "level": 1,
-    "totalScore": 0,
-    "resetOTP": "650282",
-    "resetOTPExpiry": "2025-11-17T20:15:31.971Z",
-    "isActive": true,
-    "doctor": [],
-    "caretaker": [],
-    "game": [],
-    "createdAt": "2025-11-01T13:29:33.765Z",
-    "updatedAt": "2026-03-24T05:00:19.365Z",
-    "__v": 2
-  },
-  {
-    "availability": {
-      "endTime": "17:00",
-      "slotMinutes": 30,
-      "startTime": "09:00"
-    },
-    "_id": "68f34119751cfbfe79b3430c",
-    "email": "doctor@gmail.com",
-    "password": "$2a$10$pQfLayridhwt7oDYT8qbs.iLNhV0rrUfit2Y6xgZWxgV0IrUpRyBW",
-    "phone": "8806549952",
-    "type": "doctor",
-    "createdBy": null,
-    "currentlevelspan": 5,
-    "assignedCaretakers": [
-      "69060b3d4fba7895c9b9b661"
-    ],
-    "assignedPatients": [
-      "68f3415d751cfbfe79b34329",
-      "68f346ceea1c4de9da668184",
-      "68f35f90e2a5576a7850aa75",
-      "68f36048e2a5576a7850aae2",
-      "68f360d2bce6ed3a964390c7",
-      "691b504e7713d9b48b29fc23"
-    ],
-    "level": 1,
-    "totalScore": 0,
-    "resetOTP": null,
-    "resetOTPExpiry": null,
-    "isActive": true,
-    "doctor": [],
-    "caretaker": [],
-    "game": [],
-    "createdAt": "2025-10-18T07:26:17.051Z",
-    "updatedAt": "2025-11-17T16:41:50.618Z",
-    "__v": 7,
-    "degree": "MS",
-    "name": "Vishwas Jakat"
-  },
-  {
-    "availability": {
-      "startTime": "09:00",
-      "endTime": "17:00",
-      "slotMinutes": 30
-    },
-    "_id": "691f1343b02a070825875566",
-    "email": "xyz1@gmail.com",
-    "password": "$2a$10$RhtzO6NuTrDDZiTakW0SB.hECXxYdvutNGSEasfzfW.ZRoeYHdCL2",
-    "phone": "9989977890",
-    "type": "patient",
-    "createdBy": "691f10e8e51d09964ee8eecd",
-    "currentlevelspan": 5,
-    "doctor": [
-      {
-        "doctorDegree": "",
-        "doctorphone": "9999999999",
-        "doctoremail": "xyz@gmail.com",
-        "_id": "691f1343b02a070825875567"
-      }
-    ],
-    "assignedCaretakers": [],
-    "assignedPatients": [],
-    "level": 1,
-    "totalScore": 10,
-    "resetOTP": null,
-    "resetOTPExpiry": null,
-    "isActive": true,
-    "caretaker": [],
-    "game": [],
-    "createdAt": "2025-11-20T13:10:27.443Z",
-    "updatedAt": "2026-05-22T07:39:52.982Z",
-    "__v": 0
-  },
-  {
-    "availability": {
-      "startTime": "09:00",
-      "endTime": "17:00",
-      "slotMinutes": 30
-    },
-    "_id": "691f10e8e51d09964ee8eecd",
-    "email": "xyz@gmail.com",
-    "password": "$2a$10$SspiWhtTAgSdiZWbPpmTsugrf2WGaQpfhFOIInXdpq3EFFjJvm4Zi",
-    "phone": "9999999999",
-    "type": "doctor",
-    "createdBy": null,
-    "currentlevelspan": 5,
-    "assignedCaretakers": [],
-    "assignedPatients": [
-      "691f1343b02a070825875566"
-    ],
-    "level": 1,
-    "totalScore": 0,
-    "resetOTP": null,
-    "resetOTPExpiry": null,
-    "isActive": true,
-    "doctor": [],
-    "caretaker": [],
-    "game": [],
-    "createdAt": "2025-11-20T13:00:24.904Z",
-    "updatedAt": "2025-11-20T13:10:27.783Z",
-    "__v": 1
-  },
-  {
-    "availability": {
       "startTime": "09:00",
       "endTime": "17:00",
       "slotMinutes": 30
@@ -3298,6 +3302,142 @@
     "caretaker": [],
     "createdAt": "2026-05-27T17:08:00.988Z",
     "updatedAt": "2026-05-27T17:08:00.988Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "6a1980f382672e4131cc8212",
+    "email": "aarsh@gmail.com",
+    "password": "$2a$10$DzEGeORmCv.wIftgYUWAL.vIsZTo6AyAvaPovGWvPeEh6LqknP3KO",
+    "phone": "8042831489",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "MS",
+        "doctorName": "Vishwas Jakat",
+        "doctorphone": "8806549952",
+        "doctoremail": "doctor@gmail.com",
+        "_id": "6a1980f382672e4131cc8213"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 96,
+    "totalScore": 9517,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "createdAt": "2026-05-29T12:05:07.167Z",
+    "updatedAt": "2026-06-03T18:20:31.492Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "6a19ce9e82672e4131cc82b0",
+    "email": "piano@gmail.com",
+    "password": "$2a$10$e8tb5xbZmjOcK33.TbINIuHIehlY5NcSeLBKurxOJaQ/ebzwtS3J6",
+    "phone": "piano@gmail.com",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "MS",
+        "doctorName": "Vishwas Jakat",
+        "doctorphone": "8806549952",
+        "doctoremail": "doctor@gmail.com",
+        "_id": "6a19ce9e82672e4131cc82b1"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 154,
+    "totalScore": 15339,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "createdAt": "2026-05-29T17:36:30.426Z",
+    "updatedAt": "2026-06-03T17:54:39.172Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "6a19cec082672e4131cc82c0",
+    "email": "boarddrawinggames@gmail.com",
+    "password": "$2a$10$Mky8SlSl.u29xXwJUvy/yuB2sYBwH6U0mnX9N.nfDda0RiOeIBuMq",
+    "phone": "boarddrawinggames@gmail.com",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "MS",
+        "doctorName": "Vishwas Jakat",
+        "doctorphone": "8806549952",
+        "doctoremail": "doctor@gmail.com",
+        "_id": "6a19cec082672e4131cc82c1"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 92,
+    "totalScore": 9143,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "createdAt": "2026-05-29T17:37:04.526Z",
+    "updatedAt": "2026-05-30T07:42:06.970Z",
+    "__v": 0
+  },
+  {
+    "availability": {
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "slotMinutes": 30
+    },
+    "_id": "6a19cfa682672e4131cc8633",
+    "email": "fruitbasketsessions@gmail.com",
+    "password": "$2a$10$Tp17kCBG3uwcsy85uVOizeTziPlGOtY/0a6kmLnXnr.wvbf5Gt1vu",
+    "phone": "fruitbasketsessions",
+    "type": "patient",
+    "createdBy": "68f34119751cfbfe79b3430c",
+    "currentlevelspan": 5,
+    "doctor": [
+      {
+        "doctorDegree": "MS",
+        "doctorName": "Vishwas Jakat",
+        "doctorphone": "8806549952",
+        "doctoremail": "doctor@gmail.com",
+        "_id": "6a19cfa682672e4131cc8634"
+      }
+    ],
+    "assignedCaretakers": [],
+    "assignedPatients": [],
+    "level": 21,
+    "totalScore": 2056,
+    "resetOTP": null,
+    "resetOTPExpiry": null,
+    "isActive": true,
+    "caretaker": [],
+    "createdAt": "2026-05-29T17:40:54.072Z",
+    "updatedAt": "2026-05-29T18:33:38.530Z",
     "__v": 0
   }
 ]

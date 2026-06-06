@@ -1996,7 +1996,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   return (
     <div style={themeStyles.container}>
       <aside style={themeStyles.panel}>
-        <h1 style={themeStyles.title}>🍏 Fruit Basket</h1>
+        <h1 style={themeStyles.title}>🍏 Arm Orchard</h1>
         <p style={themeStyles.muted}>
           Grasp, transport, and release fruits into the basket to improve
           coordination.

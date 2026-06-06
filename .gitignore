@@ -1,0 +1,10 @@
+teaser/
+ref/
+paper/
+newRef/
+node_modules/
+.env
+.env.local
+build/
+.DS_Store
+*.log

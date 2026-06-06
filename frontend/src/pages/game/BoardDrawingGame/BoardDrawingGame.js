@@ -2093,7 +2093,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   return (
     <div style={themeStyles.container}>
       <aside style={themeStyles.panel}>
-        <h1 style={themeStyles.title}>Trace & Master</h1>
+        <h1 style={themeStyles.title}>Shape Tracer</h1>
         <p style={themeStyles.muted}>
           A surgical-grade motor rehabilitation module. Follow the patterns with
           high precision.

@@ -81,7 +81,7 @@ const Sidebar = ({
         className={`p-6 flex items-center space-x-2 transition-opacity ${isCollapsed ? "justify-center" : ""}`}
       >
         <div className="bg-[#2B91D4] h-8 w-8 rounded-lg flex-shrink-0"></div>
-        {!isCollapsed && <span className="text-xl font-bold">Young Tempo</span>}
+        {!isCollapsed && <span className="text-xl font-bold">Limb Play</span>}
       </div>
 
       {/* Profile */}
@@ -98,7 +98,7 @@ const Sidebar = ({
             <h1 className="text-base font-semibold text-[#2B91D4] truncate">
               {profileLoading
                 ? "Loading..."
-                : doctorProfile.name || "Dr. Stranger"}
+                : doctorProfile.name || "Dr. Doctor Demo"}
             </h1>
             <p className="text-xs text-gray-500 truncate">
               {profileLoading ? "..." : doctorProfile.degree || "Doctor"}

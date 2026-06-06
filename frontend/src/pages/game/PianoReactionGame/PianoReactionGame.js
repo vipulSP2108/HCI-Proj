@@ -29,7 +29,7 @@ const OnboardingScreen = ({ onNext, currentLevelSpan, isDarkMode }) => {
   const utteranceRef = useRef(null);
 
   const instructionText = `
-    Welcome! This is how to play the Piano Reaction Game. 
+    Welcome! This is how to play the Piano Therapy Game. 
     Step 1: WATCH. A piano key section will turn black. Your goal is to identify the active key.
     Step 2: TAP QUICKLY. Quickly tap the corresponding black section or press the matching key on your keyboard. Tapping the wrong key gives an Incorrect response.
     Step 3: BE FAST. You have ${currentLevelSpan} seconds to respond. Being too slow results in a Not Done status. 
@@ -370,7 +370,7 @@ const PlayingGame = ({
         style={{ backgroundColor: PRIMARY_BLUE, color: "white" }}
       >
         <div className="flex flex-col">
-          <h1 className="text-base md:text-xl font-bold leading-tight">Piano Reaction Game</h1>
+          <h1 className="text-base md:text-xl font-bold leading-tight">Piano Therapy Game</h1>
           <span className="text-[9px] md:text-[10px] text-white/90 font-bold uppercase tracking-wider hidden sm:block">
             {platform === 'laptop'
               ? `💻 Laptop Mode - ${exerciseType === 'piano_finger' ? 'Finger Dexterity' : 'Wrist Movement (Cursor Only)'}`

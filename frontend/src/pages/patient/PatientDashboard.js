@@ -188,7 +188,7 @@ export default function PatientDashboard({ userId }) {
               <div className="bg-[#2B91D4] h-8 w-8 rounded-lg shadow-sm"></div>
               {!isCollapsed && (
                 <span className="text-xl font-bold dark:text-white capitalize">
-                  Young Tempo
+                  Limb Play
                 </span>
               )}
             </div>
