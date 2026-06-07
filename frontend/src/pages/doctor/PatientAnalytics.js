@@ -320,6 +320,342 @@ const CoordinateVisualizer = ({ coordinates }) => {
   );
 };
 
+const FINGER_COLORS = {
+  leftPinky: "#EC4899",   // Pink
+  leftRing: "#F59E0B",    // Amber
+  leftMiddle: "#EAB308",  // Yellow
+  leftIndex: "#10B981",   // Emerald
+  rightIndex: "#14B8A6",  // Teal
+  rightMiddle: "#3B82F6", // Blue
+  rightRing: "#6366F1",   // Indigo
+  rightPinky: "#A855F7",  // Purple
+  // Generic fallbacks
+  thumb: "#F97316",       // Orange
+  index: "#34D399",
+  middle: "#60A5FA",
+  ring: "#818CF8",
+  pinky: "#C084FC",
+  default: "#6B7280"      // Gray
+};
+
+// Logical left-to-right keyboard sorting weights
+const FINGER_SORT_ORDER = {
+  // Left Hand
+  Q: 10, A: 11, Z: 12,
+  W: 20, S: 21, X: 22,
+  E: 30, D: 31, C: 32,
+  R: 40, F: 41, V: 42, T: 43, G: 44, B: 45,
+  // Right Hand
+  Y: 50, H: 51, N: 52, U: 53, J: 54, M: 55,
+  I: 60, K: 61, ",": 62,
+  O: 70, L: 71, ".": 72,
+  P: 80, ";": 81, "/": 82,
+  // Space
+  " ": 90
+};
+
+const FingerClickVisualizer = ({ session, fingerTimeouts, movements, isDarkMode }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const timerRef = useRef(null);
+
+  // Determine exactly which fingers were involved in this session
+  const activeFingersSet = useMemo(() => {
+    const fingers = new Set();
+    if (movements) {
+      movements.forEach(m => {
+        if (m.finger) fingers.add(m.finger);
+        if (m.expectedFinger) fingers.add(m.expectedFinger);
+      });
+    }
+    return fingers;
+  }, [movements]);
+
+  // 1. Map keys from fingerTimeouts
+  // 2. Sort keys left-to-right
+  // 3. Map keys to a single horizontal row
+  const activeKeyCoords = useMemo(() => {
+    const keyDataMap = {};
+
+    if (fingerTimeouts) {
+      const mode = session?.mode || 'laptop';
+      const map = {
+        leftPinky: 'A', leftRing: 'S', leftMiddle: 'D', leftIndex: 'F',
+        rightIndex: 'H', rightMiddle: 'J', rightRing: 'K', rightPinky: 'L'
+      };
+      if (mode === 'mobile') {
+        const keys = Object.keys(fingerTimeouts);
+        if (keys.includes('thumb')) {
+          map.thumb = 'A'; map.index = 'S'; map.middle = 'D'; map.ring = 'F'; map.pinky = 'G';
+        } else {
+          map.pinky = 'A'; map.ring = 'S'; map.middle = 'D'; map.index = 'F';
+        }
+      }
+
+      Object.keys(fingerTimeouts).forEach(finger => {
+        const k = map[finger];
+        if (k && fingerTimeouts[finger] !== -1) {
+          keyDataMap[k] = { key: k, expectedFinger: finger, isDisabled: fingerTimeouts[finger] === 0 };
+        }
+      });
+    }
+
+    if (movements && Object.keys(keyDataMap).length === 0) {
+      movements.forEach(m => {
+        if (m.key) {
+          const k = m.key.toUpperCase();
+          if (!keyDataMap[k]) {
+            keyDataMap[k] = { key: k, expectedFinger: m.expectedFinger, isDisabled: false };
+          }
+        }
+      });
+    }
+
+    const getSortWeight = (k) => FINGER_SORT_ORDER[k] || 100;
+
+    // Sort keys logically based on keyboard position
+    const sortedKeys = Object.values(keyDataMap).sort((a, b) => getSortWeight(a.key) - getSortWeight(b.key));
+
+    const coords = {};
+    sortedKeys.forEach((item, index) => {
+      coords[item.key] = {
+        expectedFinger: item.expectedFinger,
+        isDisabled: item.isDisabled
+      };
+    });
+
+    return coords;
+  }, [movements, fingerTimeouts, session?.mode]);
+
+  useEffect(() => {
+    setActiveStep(0);
+    setIsPlaying(false);
+  }, [movements]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      const intervalTime = Math.max(200, 1000 / playbackSpeed);
+      timerRef.current = setInterval(() => {
+        setActiveStep((prev) => {
+          if (prev >= movements.length - 1) {
+            setIsPlaying(false);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, intervalTime);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isPlaying, movements, playbackSpeed]);
+
+  if (!movements || movements.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        No playing data recorded for this session.
+      </div>
+    );
+  }
+
+  const currentMove = movements[activeStep];
+  const previousMove = activeStep > 0 ? movements[activeStep - 1] : null;
+
+  // Helper formats: "leftIndex" -> "L Index"
+  const formatFingerShort = (str) => {
+    if (!str) return "";
+    const lower = str.toLowerCase();
+    if (lower.includes("left")) return "L " + str.replace(/left/i, "").charAt(0).toUpperCase() + str.replace(/left/i, "").slice(1);
+    if (lower.includes("right")) return "R " + str.replace(/right/i, "").charAt(0).toUpperCase() + str.replace(/right/i, "").slice(1);
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const formatFingerFull = (str) => {
+    if (!str) return "N/A";
+    const spaced = str.replace(/([A-Z])/g, " $1");
+    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+  };
+
+  // Use all timeouts defined in the session
+  const filteredTimeouts = fingerTimeouts
+    ? Object.entries(fingerTimeouts).filter(([_, timeout]) => timeout !== -1)
+    : [];
+
+  return (
+    <div className="space-y-4">
+
+      {/* Session Finger Timeouts / Matrix Panel - NOW FILTERED */}
+      {filteredTimeouts.length > 0 && (
+        <div className="bg-gray-100 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
+            Active Fingers & Time Limits
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {filteredTimeouts.map(([finger, timeout]) => {
+              const dotColor = FINGER_COLORS[finger] || FINGER_COLORS.default;
+              return (
+                <div
+                  key={finger}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300 shadow-sm ${timeout === 0 ? 'opacity-50 grayscale' : ''}`}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shadow-sm"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                  <span className={`font-medium ${timeout === 0 ? 'line-through' : ''}`}>{formatFingerFull(finger)}</span>
+                  <span className="text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md ml-1 font-mono">
+                    {timeout === 0 ? 'DISABLED' : `${timeout}s`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* SVG Canvas */}
+      <div className="relative w-full py-16 px-2 sm:px-6 bg-gray-900 rounded-2xl border border-gray-800 shadow-inner overflow-hidden flex flex-nowrap gap-2 sm:gap-4 items-center justify-center">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:5%_10%] opacity-20 pointer-events-none"></div>
+
+        {Object.entries(activeKeyCoords)
+          .sort((a, b) => FINGER_SORT_ORDER[a[0]] - FINGER_SORT_ORDER[b[0]])
+          .map(([letter, pos]) => {
+            const isCurrent = currentMove?.key?.toUpperCase() === letter;
+            const isPrevious = previousMove?.key?.toUpperCase() === letter && !isCurrent;
+            const wasPlayed = activeFingersSet.has(pos.expectedFinger);
+
+            let bgClass = "bg-gray-800";
+            let borderClass = "border-gray-700";
+            let textClass = "text-gray-400";
+            let opacityClass = "opacity-100";
+            let customStyle = {};
+
+            if (pos.isDisabled) {
+              opacityClass = "opacity-30";
+              bgClass = "bg-gray-950";
+              borderClass = "border-gray-900";
+            } else if (!wasPlayed) {
+              opacityClass = "opacity-60"; // Faint because it was never played
+            }
+
+            if (isCurrent) {
+              bgClass = "";
+              customStyle.backgroundColor = FINGER_COLORS[currentMove?.finger] || FINGER_COLORS.default;
+              borderClass = currentMove.correct ? "border-emerald-500 border-4 scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "border-red-500 border-4 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]";
+              textClass = "text-white font-bold";
+              opacityClass = "opacity-100 z-10";
+            } else if (isPrevious) {
+              borderClass = previousMove.correct ? "border-emerald-800 border-2" : "border-red-800 border-2";
+              textClass = "text-gray-300";
+            }
+
+            return (
+              <div
+                key={letter}
+                className={`relative flex-1 flex flex-col items-center justify-center h-24 sm:h-32 max-w-[120px] rounded-xl border-2 transition-all duration-300 ${bgClass} ${borderClass} ${textClass} ${opacityClass}`}
+                style={customStyle}
+              >
+                <span className="text-2xl sm:text-4xl font-black">{letter}</span>
+                <span className="text-[10px] sm:text-xs mt-2 uppercase tracking-wider opacity-80">{formatFingerShort(pos.expectedFinger)}</span>
+                {pos.isDisabled && (
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 px-2 py-1 rounded text-[10px] text-white whitespace-nowrap transform -rotate-12 border border-white/20">DISABLED</div>
+                )}
+              </div>
+            );
+          })}
+      </div>
+
+      {/* Live Metrics overlay */}
+      {currentMove && (
+        <div className="w-full flex justify-between items-center bg-gray-900/80 backdrop-blur-sm border border-gray-800 p-4 rounded-xl text-white text-xs font-mono shadow-md">
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider">Step</span>
+            <span className="text-sm">{activeStep + 1} / {movements.length}</span>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider">Pressed Key</span>
+            <span className={`font-bold text-xl ${currentMove.correct ? "text-emerald-400" : "text-red-400"}`}>
+              {currentMove.key === 'none' ? '—' : currentMove.key}
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider">Action</span>
+            <span className="flex items-center gap-1 text-sm">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: currentMove.finger === 'none' ? '#ef4444' : (FINGER_COLORS[currentMove.finger] || FINGER_COLORS.default) }}
+              />
+              {currentMove.finger === 'none' ? 'Timeout (Missed)' : formatFingerFull(currentMove.finger)}
+            </span>
+            {currentMove.finger !== currentMove.expectedFinger && (
+              <span className="text-[10px] text-red-400 mt-1">
+                Expected: {formatFingerFull(currentMove.expectedFinger)}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col text-right">
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider">Speed</span>
+            <span className={`text-sm ${currentMove.responsetime === -1
+              ? "text-yellow-400"
+              : (fingerTimeouts && currentMove.responsetime > (fingerTimeouts[currentMove.finger] || 99))
+                ? "text-red-400"
+                : "text-emerald-400"
+              }`}
+            >
+              {currentMove.responsetime === -1 ? 'TIMEOUT' : `${currentMove.responsetime}s`}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Control Buttons */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsPlaying(!isPlaying)}
+          className={`px-4 py-2 text-white font-bold text-xs rounded-xl transition-all active:scale-95 ${isPlaying ? "bg-amber-500 hover:bg-amber-600" : "bg-blue-500 hover:bg-blue-600"
+            }`}
+        >
+          {isPlaying ? "Pause" : "Play Action"}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setIsPlaying(false); setActiveStep(0); }}
+          className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl transition-all active:scale-95 border dark:border-gray-600"
+        >
+          Reset
+        </button>
+
+        <input
+          type="range"
+          min="0"
+          max={movements.length - 1}
+          value={activeStep}
+          onChange={(e) => { setIsPlaying(false); setActiveStep(parseInt(e.target.value)); }}
+          className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+        />
+
+        <select
+          value={playbackSpeed}
+          onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+          className="px-2 py-1.5 text-xs font-bold bg-gray-100 dark:bg-gray-800 border dark:border-gray-600 rounded-lg outline-none cursor-pointer dark:text-white"
+        >
+          <option value="0.5">0.5x</option>
+          <option value="1">1.0x</option>
+          <option value="2">2.0x</option>
+        </select>
+      </div>
+    </div>
+  );
+};
+
+
 const LaptopMovementVisualizer = ({ movements, isDarkMode }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -537,8 +873,86 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
     const totalDistance = laptopMovements.reduce((sum, m) => sum + (m.distance || 0), 0);
     const avgDistance = laptopMovements.length > 0 ? totalDistance / laptopMovements.length : 0;
 
+    const laptopFingerKeys = ['leftPinky', 'leftRing', 'leftMiddle', 'leftIndex', 'rightIndex', 'rightMiddle', 'rightRing', 'rightPinky'];
+    const laptopFingerImages = { leftPinky: pinkyImage, leftRing: ringImage, leftMiddle: middleImage, leftIndex: indexImage, rightIndex: indexImage, rightMiddle: middleImage, rightRing: ringImage, rightPinky: pinkyImage };
+    const laptopFingerNames = { leftPinky: "L Pinky", leftRing: "L Ring", leftMiddle: "L Middle", leftIndex: "L Index", rightIndex: "R Index", rightMiddle: "R Middle", rightRing: "R Ring", rightPinky: "R Pinky" };
+
+    const laptopFingerStats = laptopFingerKeys.map(finger => {
+      const movements = mobileMovements.filter(m => m.expectedFinger === finger);
+      const total = movements.length;
+      const correct = movements.filter(m => m.correct === 1).length;
+      const incorrect = movements.filter(m => m.correct === -1).length;
+      const timeouts = movements.filter(m => m.correct === 0).length;
+      
+      const correctMovements = movements.filter(m => m.correct === 1 && m.responsetime > 0);
+      const avgResponse = correctMovements.length > 0
+        ? correctMovements.reduce((sum, m) => sum + m.responsetime, 0) / correctMovements.length
+        : 0;
+        
+      const accuracy = total > 0
+        ? (correct / total) * 100
+        : 0;
+
+      return {
+        finger,
+        name: laptopFingerNames[finger],
+        image: laptopFingerImages[finger],
+        total,
+        correct,
+        incorrect,
+        timeouts,
+        avgResponse,
+        accuracy,
+        timeout: fingerTimeouts[finger] || 5
+      };
+    }).filter(f => f.total > 0);
+
     return (
       <div className="space-y-6 mt-4">
+        {laptopFingerStats.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {laptopFingerStats.map(f => (
+              <div key={f.finger} className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 w-20 h-20 opacity-10 grayscale hover:grayscale-0 transition-all duration-300 pointer-events-none">
+                   <img src={f.image} alt={f.name} className="w-full h-full object-contain" />
+                </div>
+                <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="w-10 h-10 p-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg flex items-center justify-center">
+                    <img src={f.image} alt={f.name} className="w-full h-full object-contain" />
+                  </div>
+                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-semibold">
+                    Limit: {f.timeout}s
+                  </span>
+                </div>
+                <h4 className="font-bold text-sm text-gray-800 dark:text-white mb-1">{f.name} Finger</h4>
+                <p className="text-[11px] text-gray-400 mb-3">{f.correct} of {f.total} CORRECT</p>
+                
+                <div className="space-y-2 pt-2 border-t dark:border-gray-700">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Response</span>
+                    <span className="font-bold text-primary-600 dark:text-primary-400">{f.avgResponse.toFixed(2)}s</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Accuracy</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">{f.accuracy.toFixed(0)}%</span>
+                  </div>
+                  {f.incorrect > 0 && (
+                    <div className="flex justify-between text-xs text-red-500">
+                      <span>Incorrect</span>
+                      <span className="font-bold">{f.incorrect}</span>
+                    </div>
+                  )}
+                  {f.timeouts > 0 && (
+                    <div className="flex justify-between text-xs text-amber-500">
+                      <span>Timeouts</span>
+                      <span className="font-bold">{f.timeouts}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Total Pixel Distance Moved</p>
@@ -555,12 +969,41 @@ const PianoReactionGameAnalytics = ({ session, isDarkMode }) => {
             <p className="text-xs text-gray-400 mt-1">Average pixel travel per key response</p>
           </div>
         </div>
-
+{/* 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-150 dark:border-gray-700 shadow-sm">
           <h3 className="text-base font-bold text-gray-800 dark:text-white mb-1">Wrist/Arm Movement Vector Trajectory</h3>
           <p className="text-xs text-gray-400 mb-4">Sequential coordinate path mapping response targets in absolute pixel coordinates.</p>
           <LaptopMovementVisualizer movements={laptopMovements} isDarkMode={isDarkMode} />
-        </div>
+        </div> */}
+
+        {laptopFingerStats.length > 0 && (
+          <div className="gap-6 mt-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-150 dark:border-gray-700 shadow-sm mb-4">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-1">Finger Dexterity Profile</h3>
+              <p className="text-xs text-gray-400 mb-4">Response times and accuracy compared across active fingers.</p>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={laptopFingerStats} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#1F2937" : "#F3F4F6"} />
+                    <XAxis dataKey="name" tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 11 }} />
+                    <YAxis yAxisId="left" orientation="left" unit="s" tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 11 }} />
+                    <YAxis yAxisId="right" orientation="right" unit="%" tick={{ fill: isDarkMode ? "#9CA3AF" : "#6B7280", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: isDarkMode ? "#111827" : "#FFFFFF", borderColor: isDarkMode ? "#374151" : "#E5E7EB", borderRadius: "8px" }} />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="avgResponse" fill="#3B82F6" name="Avg Response (s)" radius={[4, 4, 0, 0]} />
+                    <Bar yAxisId="right" dataKey="accuracy" fill="#10B981" name="Accuracy (%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-150 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-1">Finger Playboard Simulation</h3>
+              <p className="text-xs text-gray-400 mb-4">Visual reconstruction of finger transitions and accuracy.</p>
+              <FingerClickVisualizer session={session} fingerTimeouts={session?.fingerTimeouts} movements={mobileMovements} isDarkMode={isDarkMode} />
+            </div>
+          </div>
+        )}
       </div>
     );
   } else {
