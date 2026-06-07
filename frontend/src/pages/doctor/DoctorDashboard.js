@@ -144,13 +144,13 @@ const Sidebar = ({
           onClick={() => setActiveView("messages")}
           collapsed={isCollapsed}
         />
-        <SidebarItem
+        {/* <SidebarItem
           icon={<Pill size={18} />}
           label="Medicines"
           active={activeView === "medicines"}
           onClick={() => setActiveView("medicines")}
           collapsed={isCollapsed}
-        />
+        /> */}
         {/* <SidebarItem
           icon={<UserCog size={18} />}
           label="Edit Profile"

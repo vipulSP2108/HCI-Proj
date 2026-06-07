@@ -2153,7 +2153,7 @@ Calibration:
             />
             <span>Assistive Mode (Dwell pick/drop)</span>
           </label>
-          <label style={styles.checkboxLabel}>
+          {/* <label style={styles.checkboxLabel}>
             <input
               type="checkbox"
               checked={usingMouseFallback}
@@ -2166,7 +2166,7 @@ Calibration:
               style={styles.checkbox}
             />
             <span>Mouse Fallback (Test without Webcam)</span>
-          </label>
+          </label> */}
         </div>
         
         <div style={themeStyles.stats}>

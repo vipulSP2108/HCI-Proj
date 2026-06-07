@@ -271,41 +271,7 @@ const CoordinateVisualizer = ({ coordinates }) => {
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-5 border dark:border-gray-800 flex flex-col justify-between">
-          <div>
-            <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
-              Kinematic Metrics
-            </h4>
-            
-            <div className="space-y-3.5">
-              <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Path Distance</span>
-                <span className="text-xs font-bold dark:text-white">{totalDistance.toFixed(2)} units</span>
-              </div>
-              
-              <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Avg Velocity</span>
-                <span className="text-xs font-bold dark:text-white">{(avgSpeed * 10).toFixed(1)} units/s</span>
-              </div>
-
-              <div className="flex justify-between items-center border-b dark:border-gray-800 pb-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Peak Velocity</span>
-                <span className="text-xs font-bold dark:text-white">{(maxSpeed * 10).toFixed(1)} units/s</span>
-              </div>
-
-              <div className="flex justify-between items-center pb-1">
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Jitter (Tremor Index)</span>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  jitterScore < 8 
-                    ? "text-green-600 bg-green-50 dark:bg-green-950/20" 
-                    : jitterScore < 18 
-                      ? "text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20" 
-                      : "text-red-600 bg-red-50 dark:bg-red-950/20"
-                }`}>
-                  {jitterScore.toFixed(1)}
-                </span>
-              </div>
-            </div>
-          </div>
+          
 
           <div className="mt-4 bg-white dark:bg-gray-800 p-3 rounded-xl border dark:border-gray-700">
             <h5 className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">

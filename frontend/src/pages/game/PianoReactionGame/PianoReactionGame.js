@@ -1540,7 +1540,7 @@ const PianoReactionGame = () => {
                         : 'border-gray-200 text-gray-400 dark:border-gray-800 hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-200'
                       }`}
                   >
-                    📱 Mobile Tablet / Phone
+                    📱 Mobile Phone
                   </button>
                 </div>
               </div>
