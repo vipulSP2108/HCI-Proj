@@ -3569,7 +3569,7 @@ const SettingsContent = ({ isDarkMode }) => {
                   Full Name
                 </label>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl dark:text-white font-bold border border-transparent dark:border-gray-700/50">
-                  Alex Johnson
+                  Demo Name
                 </div>
               </div>
               <div className="space-y-2">
@@ -3577,7 +3577,7 @@ const SettingsContent = ({ isDarkMode }) => {
                   Email Address
                 </label>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl dark:text-white font-bold border border-transparent dark:border-gray-700/50">
-                  alex.johnson@example.com
+                  demo.name@example.com
                 </div>
               </div>
             </div>
