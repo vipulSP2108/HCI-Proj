@@ -5,8 +5,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
+import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
+import FullScreenLoader from "../../../components/common/FullScreenLoader";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   BOARD_DRAWING_COORD_SAMPLE_MS,
@@ -249,9 +251,13 @@ const getMinDistanceToShapeOutline = (pos, points) => {
 
 // ==================== MAIN COMPONENT ====================
 const BoardDrawingGame = () => {
-  const { user, isDarkMode } = useAuth();
-  const { globalSettings } = useSettings();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Settings
+  const { globalSettings, isDarkMode } = useSettings();
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
+  
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -736,23 +742,31 @@ const BoardDrawingGame = () => {
       `Session Complete! 🎉\n\nScore: ${scoreRef.current}\nShapes Completed: ${reps}\nSuccess Rate: ${successRateVal}%\n\nPress OK to Save & Exit, or Cancel to stay on the page.`
     );
     if (wantsSave) {
-      try {
-        if (gameSessionBuffer.hasPending()) {
-          await gameSessionBuffer.saveAndExit();
-        }
-        const { user } = JSON.parse(localStorage.getItem("user") || "{}");
-        const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
-        navigate(dashPath);
-      } catch (err) {
-        console.error("Failed to save session:", err);
-        const exitAnyway = window.confirm("Failed to save to server.\n\nExit anyway without saving?");
-        if (exitAnyway) {
-          gameSessionBuffer.discard();
-          const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+      setIsSavingLocal(true);
+      const doSave = async () => {
+        try {
+          if (gameSessionBuffer.hasPending()) {
+            await gameSessionBuffer.saveAndExit();
+          }
           const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
           navigate(dashPath);
+        } catch (err) {
+          console.error("Failed to save session:", err);
+          const saveOffline = window.confirm(
+            'Network is slow or offline.\n\nWould you like to save this session to your offline buffer (OK) or delete the session (Cancel)?'
+          );
+          if (saveOffline) {
+            const payload = gameSessionBuffer.getPayload();
+            if (payload) offlineBuffer.addSession(payload);
+          }
+          gameSessionBuffer.discard();
+          const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
+          navigate(dashPath);
+        } finally {
+          setIsSavingLocal(false);
         }
-      }
+      };
+      doSave();
     }
   }, [finalizeActiveDrawingAttempt, nowSec, reps, persistBoardDrawingBuffer, navigate]);
 
@@ -1895,10 +1909,24 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     setShowExitModal(false);
     finalizeActiveDrawingAttempt();
     persistBoardDrawingBuffer();
+    setIsSavingLocal(true);
     try {
       if (gameSessionBuffer.hasPending()) await gameSessionBuffer.saveAndExit();
-    } catch (err) { console.error("Save failed:", err); }
-    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    } catch (err) { 
+      console.error("Save failed:", err); 
+      const saveOffline = window.confirm(
+        'Network is slow or offline.\n\nWould you like to save this session to your offline buffer (OK) or delete the session (Cancel)?'
+      );
+      if (saveOffline) {
+        const payload = gameSessionBuffer.getPayload();
+        if (payload) offlineBuffer.addSession(payload);
+      }
+      gameSessionBuffer.discard();
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    } finally {
+      setIsSavingLocal(false);
+    }
   };
 
   const handleExitDiscard = () => {
@@ -2092,6 +2120,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
   return (
     <div style={themeStyles.container}>
+      <FullScreenLoader isSaving={isSavingLocal} />
       <aside style={themeStyles.panel}>
         <h1 style={themeStyles.title}>Shape Tracer</h1>
         <p style={themeStyles.muted}>

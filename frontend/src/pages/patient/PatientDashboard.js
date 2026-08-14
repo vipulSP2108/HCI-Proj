@@ -56,9 +56,16 @@ import {
   Zap,
   BarChart3,
   Square,
-  CheckSquare
+  CheckSquare,
+  WifiOff,
+  UploadCloud,
+  Trash2,
+  Wifi,
+  Save,
+  Loader2
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import offlineBuffer from "../../services/offlineBuffer";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { gameService } from "../../services/gameService";
@@ -88,25 +95,19 @@ export default function PatientDashboard({ userId }) {
   // Reminders and logic
   const [reminders] = useState([]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await userService.getUserFullDetails(userId);
-        if (data.success) setUserData(data.user);
-        else console.error("Failed to load user info");
-      } catch {
-        console.error("Error fetching data");
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const fetchUserData = useCallback(async () => {
+    try {
+      const data = await userService.getUserFullDetails(userId);
+      if (data.success) setUserData(data.user);
+      else console.error("Failed to load user info");
+    } catch {
+      console.error("Error fetching data");
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await gameService.getBasicStats();
       setStats(response.stats);
@@ -115,7 +116,25 @@ export default function PatientDashboard({ userId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUserData();
+    loadStats();
+
+    const handleDataRefresh = () => {
+      fetchUserData();
+      loadStats();
+    };
+
+    window.addEventListener('online', handleDataRefresh);
+    window.addEventListener('refresh_user_data', handleDataRefresh);
+    
+    return () => {
+      window.removeEventListener('online', handleDataRefresh);
+      window.removeEventListener('refresh_user_data', handleDataRefresh);
+    };
+  }, [fetchUserData, loadStats]);
 
   const handleDoctorSelect = (doctor) => {
     setUserData((prev) => ({
@@ -677,7 +696,7 @@ const CoordinateVisualizer = ({ coordinates }) => {
 
         {/* Clinical Statistics Panel */}
         <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-5 border dark:border-gray-800 flex flex-col justify-between">
-          
+
 
           {/* Real-time details card */}
           <div className="mt-4 bg-white dark:bg-gray-800 p-3 rounded-xl border dark:border-gray-700">
@@ -2244,8 +2263,8 @@ const DashboardContent = ({
                   {selectedSessionData.session.sessionMeta && (
                     <div className="flex flex-wrap gap-3 mb-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedSessionData.session.sessionMeta.mode === 'ASSISTIVE'
-                          ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                          : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                        ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                        : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
                         }`}>
                         Mode: {selectedSessionData.session.sessionMeta.mode || '—'}
                       </span>
@@ -2490,7 +2509,7 @@ const DashboardContent = ({
 
           {/* ── Right Sidebar ── */}
           <div className="space-y-4">
-            
+
             {/* Next Reminder */}
             {/* <div className="premium-card p-5">
               <h3 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Next Reminder</h3>
@@ -3505,6 +3524,22 @@ const CalendarContent = ({ isDarkMode, reminders, userData }) => {
 
 // Updated SettingsContent with a premium dark mode layout
 const SettingsContent = ({ isDarkMode }) => {
+  const [offlineSessions, setOfflineSessions] = useState([]);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [isSyncingId, setIsSyncingId] = useState(null);
+
+  useEffect(() => {
+    setOfflineSessions(offlineBuffer.getSessions());
+    const savedAutoSync = localStorage.getItem('hci_auto_sync_buffer');
+    if (savedAutoSync !== null) {
+      setAutoSyncEnabled(savedAutoSync === 'true');
+    }
+
+    const interval = setInterval(() => {
+      setOfflineSessions(offlineBuffer.getSessions());
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-12 fade-in pb-20">
       <div className="space-y-4">
@@ -3590,6 +3625,139 @@ const SettingsContent = ({ isDarkMode }) => {
                   <div className="w-6 h-6 bg-white rounded-full shadow-md" />
                 </div>
               </div>
+            </div>
+          </section>
+
+          <div className="h-px bg-gray-100 dark:bg-gray-800" />
+
+          {/* Offline Game Sessions Buffer */}
+          <section className="space-y-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
+                <WifiOff className="text-indigo-500" />
+                Offline Game Sessions Buffer
+              </h2>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Auto Sync
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVal = !autoSyncEnabled;
+                    setAutoSyncEnabled(newVal);
+                    localStorage.setItem('hci_auto_sync_buffer', newVal.toString());
+                  }}
+                  className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${
+                    autoSyncEnabled ? "bg-green-500" : "bg-gray-300 dark:bg-gray-700"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ${
+                      autoSyncEnabled ? "translate-x-7" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+              These sessions were saved locally because you were offline or had a slow connection. 
+              They will be securely pushed to the server when your connection is stable. <br/><span className="text-gray-400 dark:text-gray-500 text-xs">Pushed sessions are kept here for 24 hours for your reference before being automatically cleared.</span>
+            </p>
+
+            <div className="space-y-4">
+              {offlineSessions.length === 0 ? (
+                <div className="flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-800 rounded-[2rem] border border-transparent dark:border-gray-700/50">
+                  <div className="text-center space-y-2">
+                    <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                      <Wifi size={24} />
+                    </div>
+                    <p className="text-sm font-bold dark:text-white mt-2">No offline sessions.</p>
+                    <p className="text-xs text-gray-400 font-medium">Your connection is stable and all data is synced.</p>
+                  </div>
+                </div>
+              ) : (
+                offlineSessions.map((session) => (
+                  <div 
+                    key={session.id} 
+                    className={`flex items-center justify-between p-6 rounded-[2rem] border transition-all ${
+                      session.isPushed 
+                        ? "bg-gray-50 dark:bg-gray-800 border-transparent dark:border-gray-700/30 opacity-60" 
+                        : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-4 rounded-2xl ${session.isPushed ? "bg-gray-100 dark:bg-gray-800" : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500"}`}>
+                        {session.isPushed ? <CheckSquare className="w-6 h-6 text-green-500" /> : <Save className="w-6 h-6" />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-bold dark:text-white">{session.gameName}</h4>
+                          {session.isPushed && (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-[10px] font-bold uppercase tracking-wider">
+                              Pushed (Kept for 24h)
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium flex gap-3 mt-1">
+                          <span>{new Date(session.timestamp).toLocaleDateString()} at {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>•</span>
+                          <span>{session.sizeKB} KB</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      {!session.isPushed && (
+                        <button
+                          type="button"
+                          disabled={isSyncingId === session.id}
+                          onClick={async () => {
+                            setIsSyncingId(session.id);
+                            try {
+                              if (session.gameType === 'board_drawing') {
+                                await gameService.saveBoardDrawingSession(session.payload);
+                              } else {
+                                await gameService.saveGameSession(session.payload);
+                              }
+                              offlineBuffer.markAsPushed(session.id);
+                              setOfflineSessions(offlineBuffer.getSessions());
+                              window.dispatchEvent(new Event('refresh_user_data'));
+                            } catch (err) {
+                              console.error('Manual push failed', err);
+                              alert("Failed to push session. The network might still be offline.");
+                            } finally {
+                              setIsSyncingId(null);
+                            }
+                          }}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm disabled:opacity-50"
+                        >
+                          {isSyncingId === session.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <UploadCloud className="w-4 h-4" />
+                          )}
+                          {isSyncingId === session.id ? "Pushing..." : "Push"}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this offline session? Data will be lost.")) {
+                            offlineBuffer.deleteSession(session.id);
+                            setOfflineSessions(offlineBuffer.getSessions());
+                          }
+                        }}
+                        className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                        title="Delete Session"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 

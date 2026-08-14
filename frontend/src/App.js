@@ -34,12 +34,15 @@ import PatientSetting from "./pages/patient/PatientSetting";
 import GameAnalytics from "./pages/game/BoardDrawingGame/GameAnalytics";
 import AccessibilityWidget from "./components/common/AccessibilityWidget";
 
+import NetworkSyncManager from "./components/common/NetworkSyncManager";
+
 import { SettingsProvider } from "./context/SettingsContext";
 
 function App() {
   return (
     <AuthProvider>
       <SettingsProvider>
+        <NetworkSyncManager />
         <Router>
           <AccessibilityWidget />
           <Routes>

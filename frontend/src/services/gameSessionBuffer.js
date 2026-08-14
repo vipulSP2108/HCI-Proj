@@ -130,16 +130,12 @@ const gameSessionBuffer = {
   },
 
   /**
-   * Flush the buffered session to the backend via gameService,
-   * then clear localStorage. Returns the API response.
+   * Generates the payload to be saved.
    */
-  async saveAndExit() {
+  getPayload() {
     const session = this.get();
-    if (!session) {
-      throw new Error('No buffered session to save');
-    }
-
-    const payload = {
+    if (!session) return null;
+    return {
       gameType: session.gameType,
       gameName: session.gameName,
       sessionScore: session.sessionScore || 0,
@@ -155,6 +151,19 @@ const gameSessionBuffer = {
       laptopMovements: session.laptopMovements,
       mobileMovements: session.mobileMovements
     };
+  },
+
+  /**
+   * Flush the buffered session to the backend via gameService,
+   * then clear localStorage. Returns the API response.
+   */
+  async saveAndExit() {
+    const session = this.get();
+    if (!session) {
+      throw new Error('No buffered session to save');
+    }
+
+    const payload = this.getPayload();
 
     const response = session.gameType === 'board_drawing'
       ? await gameService.saveBoardDrawingSession(payload)

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import gameSessionBuffer from '../../services/gameSessionBuffer';
+import offlineBuffer from '../../services/offlineBuffer';
 import { useNavigate } from 'react-router-dom';
+import FullScreenLoader from '../../components/common/FullScreenLoader';
 
 /**
  * Sticky "Save & Exit" floating button for all games.
@@ -9,6 +11,12 @@ import { useNavigate } from 'react-router-dom';
 const SaveExitButton = ({ onBeforeSave, onSaveStart, onSaveCancel, disabled, isMobile }) => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
+
+  const navigateToDashboard = () => {
+    const { user } = JSON.parse(localStorage.getItem("user") || "{}");
+    const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
+    navigate(dashPath);
+  };
 
   const handleSaveAndExit = async () => {
     if (isSaving) return;
@@ -39,19 +47,24 @@ const SaveExitButton = ({ onBeforeSave, onSaveStart, onSaveCancel, disabled, isM
         console.log('Session saved successfully:', response);
       }
 
-      const { user } = JSON.parse(localStorage.getItem("user") || "{}");
-      const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
-      navigate(dashPath);
+      navigateToDashboard();
     } catch (error) {
       console.error('Failed to save session:', error);
-      const exitAnyway = window.confirm(
-        'Failed to save session to server.\n\nDo you want to exit without saving?'
+      
+      const saveOffline = window.confirm(
+        'Network is slow or offline.\n\nWould you like to save this session to your offline buffer (OK) or delete the session (Cancel)?'
       );
-      if (exitAnyway) {
+      
+      if (saveOffline) {
+        const payload = gameSessionBuffer.getPayload();
+        if (payload) {
+          offlineBuffer.addSession(payload);
+        }
         gameSessionBuffer.discard();
-        const { user } = JSON.parse(localStorage.getItem("user") || "{}");
-        const dashPath = user?.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
-        navigate(dashPath);
+        navigateToDashboard();
+      } else {
+        gameSessionBuffer.discard();
+        navigateToDashboard();
       }
     } finally {
       setIsSaving(false);
@@ -59,7 +72,10 @@ const SaveExitButton = ({ onBeforeSave, onSaveStart, onSaveCancel, disabled, isM
   };
 
   return (
-    <button
+    <>
+      <FullScreenLoader isSaving={isSaving} />
+      
+      <button
       onClick={handleSaveAndExit}
       disabled={disabled || isSaving}
       style={{
@@ -114,6 +130,7 @@ const SaveExitButton = ({ onBeforeSave, onSaveStart, onSaveCancel, disabled, isM
       )}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </button>
+    </>
   );
 };
 

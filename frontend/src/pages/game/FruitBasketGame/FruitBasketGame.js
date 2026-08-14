@@ -5,8 +5,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
+import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
+import FullScreenLoader from "../../../components/common/FullScreenLoader";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   FRUIT_BASKET_COORD_SAMPLE_MS,
@@ -80,6 +82,7 @@ const FruitBasketGame = () => {
     text: "",
     visible: false,
   });
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
   // Game Stats
@@ -1778,10 +1781,24 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   const handleExitSave = async () => {
     setShowExitModal(false);
     prepareSessionBuffer();
+    setIsSavingLocal(true);
     try {
       if (gameSessionBuffer.hasPending()) await gameSessionBuffer.saveAndExit();
-    } catch (err) { console.error("Save failed:", err); }
-    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    } catch (err) { 
+      console.error("Save failed:", err);
+      const saveOffline = window.confirm(
+        'Network is slow or offline.\n\nWould you like to save this session to your offline buffer (OK) or delete the session (Cancel)?'
+      );
+      if (saveOffline) {
+        const payload = gameSessionBuffer.getPayload();
+        if (payload) offlineBuffer.addSession(payload);
+      }
+      gameSessionBuffer.discard();
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    } finally {
+      setIsSavingLocal(false);
+    }
   };
 
   const handleExitDiscard = () => {
@@ -1995,6 +2012,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
   return (
     <div style={themeStyles.container}>
+      <FullScreenLoader isSaving={isSavingLocal} />
       <aside style={themeStyles.panel}>
         <h1 style={themeStyles.title}>🍏 Arm Orchard</h1>
         <p style={themeStyles.muted}>

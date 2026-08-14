@@ -11,8 +11,15 @@ import {
   Save,
   Loader2,
   ArrowLeft,
+  WifiOff,
+  UploadCloud,
+  Trash2,
+  Wifi,
+  Settings
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import offlineBuffer from "../../services/offlineBuffer";
+import { gameService } from "../../services/gameService";
 
 function PatientSetting() {
   const navigate = useNavigate();
@@ -31,6 +38,9 @@ function PatientSetting() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [offlineSessions, setOfflineSessions] = useState([]);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [isSyncingId, setIsSyncingId] = useState(null);
 
   useEffect(() => {
     fetchProfileDetails();
@@ -219,7 +229,127 @@ function PatientSetting() {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        {/* Offline Game Sessions Buffer */}
+        <div className="premium-card p-8 mt-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <WifiOff className="w-5 h-5 text-indigo-500" />
+              Offline Game Sessions Buffer
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                Auto Sync
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const newVal = !autoSyncEnabled;
+                  setAutoSyncEnabled(newVal);
+                  localStorage.setItem('hci_auto_sync_buffer', newVal.toString());
+                }}
+                className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${
+                  autoSyncEnabled ? "bg-green-500" : "bg-gray-300"
+                }`}
+              >
+                <div
+                  className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ${
+                    autoSyncEnabled ? "translate-x-7" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+            These sessions were saved locally because you were offline or had a slow connection. 
+            They will be securely pushed to the server when your connection is stable.
+          </p>
+
+          <div className="space-y-4">
+            {offlineSessions.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <Wifi className="w-8 h-8 mx-auto mb-3 opacity-50" />
+                <p className="text-sm font-medium">No offline sessions.</p>
+                <p className="text-xs">Your connection is stable and all data is synced.</p>
+              </div>
+            ) : (
+              offlineSessions.map((session) => (
+                <div 
+                  key={session.id} 
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    session.isPushed 
+                      ? "bg-gray-50 border-gray-100 opacity-60" 
+                      : "bg-white border-gray-200 shadow-sm hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${session.isPushed ? "bg-gray-200" : "bg-indigo-50"}`}>
+                      {session.isPushed ? <Settings className="w-5 h-5 text-gray-500" /> : <Save className="w-5 h-5 text-indigo-500" />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">{session.gameName}</h4>
+                      <div className="text-xs text-gray-500 flex gap-3 mt-1">
+                        <span>{new Date(session.timestamp).toLocaleDateString()} at {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>•</span>
+                        <span>{session.sizeKB} KB</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {!session.isPushed && (
+                      <button
+                        type="button"
+                        disabled={isSyncingId === session.id}
+                        onClick={async () => {
+                          setIsSyncingId(session.id);
+                          try {
+                            if (session.gameType === 'board_drawing') {
+                              await gameService.saveBoardDrawingSession(session.payload);
+                            } else {
+                              await gameService.saveGameSession(session.payload);
+                            }
+                            offlineBuffer.markAsPushed(session.id);
+                            setOfflineSessions(offlineBuffer.getSessions());
+                            window.dispatchEvent(new Event('refresh_user_data'));
+                          } catch (err) {
+                            console.error('Manual push failed', err);
+                            alert("Failed to push session. The network might still be offline.");
+                          } finally {
+                            setIsSyncingId(null);
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm disabled:opacity-50"
+                      >
+                        {isSyncingId === session.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-3.5 h-3.5" />
+                        )}
+                        {isSyncingId === session.id ? "Pushing..." : "Push"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this offline session? Data will be lost.")) {
+                          offlineBuffer.deleteSession(session.id);
+                          setOfflineSessions(offlineBuffer.getSessions());
+                        }
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Session"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-8">
           <button
             type="submit"
             disabled={saving}

@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { gameService } from "../../../services/gameService";
 import gameSessionBuffer from "../../../services/gameSessionBuffer";
+import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
+import FullScreenLoader from "../../../components/common/FullScreenLoader";
 import { COORD_SAMPLE_INTERVAL_MS, TESTING_PIANO_SEQUENCE, TESTING_PIANO_MOBILE_SEQUENCE } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
 import {
@@ -642,6 +644,7 @@ const PianoReactionGame = () => {
   const [attemptCount, setAttemptCount] = useState(0);
   const [feedbackSection, setFeedbackSection] = useState(null);
   const [feedbackType, setFeedbackType] = useState(null);
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
 
   const keysAll = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
   const noteNamesAll = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
@@ -1279,8 +1282,31 @@ const PianoReactionGame = () => {
   const handleExitSave = async () => {
     setShowExitModal(false);
     handleBeforeSave();
-    try { await gameSessionBuffer.saveAndExit(); } catch (err) { console.error('Save failed:', err); }
-    navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    setIsSavingLocal(true);
+
+    const navigateToDashboard = () => {
+      navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    };
+
+    try { 
+      await gameSessionBuffer.saveAndExit(); 
+      navigateToDashboard();
+    } catch (err) { 
+      console.error('Save failed:', err); 
+      const saveOffline = window.confirm(
+        'Network is slow or offline.\n\nWould you like to save this session to your offline buffer (OK) or delete the session (Cancel)?'
+      );
+      if (saveOffline) {
+        const payload = gameSessionBuffer.getPayload();
+        if (payload) offlineBuffer.addSession(payload);
+        gameSessionBuffer.discard();
+      } else {
+        gameSessionBuffer.discard();
+      }
+      navigateToDashboard();
+    } finally {
+      setIsSavingLocal(false);
+    }
   };
 
   const handleExitDiscard = () => {
@@ -1420,7 +1446,8 @@ const PianoReactionGame = () => {
   }
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 transition-colors duration-300 ${isDarkMode ? "bg-black text-white" : "bg-gray-50 text-gray-900"}`}>
+    <div className={`min-h-screen ${isDarkMode ? "bg-black" : "bg-white"} text-gray-900 transition-colors duration-300 font-sans`}>
+      <FullScreenLoader isSaving={isSavingLocal} />
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header Banner */}
