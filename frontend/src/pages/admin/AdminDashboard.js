@@ -379,86 +379,66 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Session Timers inside Testing Mode */}
+                  <div className={`mt-6 pt-4 border-t ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                      <h4 className="text-sm font-semibold">Game Session Timers (Seconds)</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { label: "Piano Therapy Game", name: "pianoSessionSeconds" },
+                        { label: "Shape Tracer", name: "shapeTracingSessionSeconds" },
+                        { label: "Board Drawing", name: "boardDrawingSessionSeconds" },
+                        { label: "Arm Orchard", name: "fruitBasketSessionSeconds" },
+                      ].map((game) => (
+                        <div key={game.name} className="flex flex-col gap-1">
+                          <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{game.label}</label>
+                          <input
+                            type="number"
+                            name={game.name}
+                            value={settings[game.name]}
+                            onChange={handleChange}
+                            className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                            min="10"
+                            max="3600"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Arm Orchard Game Settings inside Testing Mode */}
+                  <div className={`mt-6 pt-4 border-t ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Settings className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                      <h4 className="text-sm font-semibold">Arm Orchard Game Settings</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Cooldown Time (seconds)</label>
+                        <input type="number" name="fruitBasketCooldownSeconds" value={settings.fruitBasketCooldownSeconds} onChange={handleChange}
+                          className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} min="1" max="10" />
+                        <p className="text-[10px] text-gray-500 mt-0.5">Time between fruit spawns</p>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Max Attempts per Trial</label>
+                        <input type="number" name="fruitBasketMaxAttempts" value={settings.fruitBasketMaxAttempts} onChange={handleChange}
+                          className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} min="1" max="10" />
+                        <p className="text-[10px] text-gray-500 mt-0.5">Attempts allowed before trial fails</p>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className={`text-xs font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Attempt Timeout (seconds)</label>
+                        <input type="number" name="fruitBasketAttemptTimeoutSeconds" value={settings.fruitBasketAttemptTimeoutSeconds} onChange={handleChange}
+                          className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} min="2" max="60" />
+                        <p className="text-[10px] text-gray-500 mt-0.5">Timer for each attempt/failure</p>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               )}
-            </div>
-
-            {/* Session Timers */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                <h3 className="text-lg font-semibold">Game Session Timers (Seconds)</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { label: "Piano Therapy Game", name: "pianoSessionSeconds" },
-                  { label: "Shape Tracer", name: "boardDrawingSessionSeconds" },
-                  { label: "Arm Orchard", name: "fruitBasketSessionSeconds" },
-                ].map((game) => (
-                  <div key={game.name} className="flex flex-col gap-2">
-                    <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{game.label}</label>
-                    <input
-                      type="number"
-                      name={game.name}
-                      value={settings[game.name]}
-                      onChange={handleChange}
-                      className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
-                      min="10"
-                      max="3600"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Fruit Fetch Configuration */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Settings className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                <h3 className="text-lg font-semibold">Arm Orchard Game Settings</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Cooldown Time (seconds)</label>
-                  <input
-                    type="number"
-                    name="fruitBasketCooldownSeconds"
-                    value={settings.fruitBasketCooldownSeconds}
-                    onChange={handleChange}
-                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
-                    min="1"
-                    max="10"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-0.5">Time between fruit spawns</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Max Attempts per Trial</label>
-                  <input
-                    type="number"
-                    name="fruitBasketMaxAttempts"
-                    value={settings.fruitBasketMaxAttempts}
-                    onChange={handleChange}
-                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
-                    min="1"
-                    max="10"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-0.5">Attempts allowed before trial fails</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Attempt Timeout (seconds)</label>
-                  <input
-                    type="number"
-                    name="fruitBasketAttemptTimeoutSeconds"
-                    value={settings.fruitBasketAttemptTimeoutSeconds}
-                    onChange={handleChange}
-                    className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
-                    min="2"
-                    max="60"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-0.5">Timer for each attempt/failure</p>
-                </div>
-              </div>
             </div>
 
             {/* Trajectory Sampling Intervals */}

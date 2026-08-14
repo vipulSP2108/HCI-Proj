@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { gameService } from "../../../services/gameService";
@@ -9,6 +9,7 @@ import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
 import { COORD_SAMPLE_INTERVAL_MS, TESTING_PIANO_SEQUENCE, TESTING_PIANO_MOBILE_SEQUENCE } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
+import { patientConfigService } from "../../../services/patientConfigService";
 import {
   Play,
   Pause,
@@ -591,6 +592,25 @@ const PianoReactionGame = () => {
     return (hasTouch && isMobileSize) ? "mobile" : "laptop";
   });
 
+  const [patientConfig, setPatientConfig] = useState(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      const pId = user.id || user._id;
+      console.log(`[PianoReactionGame] Fetching config for Patient ID: ${pId}`);
+      patientConfigService.getConfig(pId).then(res => {
+        console.log(`[PianoReactionGame] Received Config:`, res.config);
+        setPatientConfig(res.config);
+        setConfigLoaded(true);
+      }).catch(err => {
+        console.error(err);
+        setConfigLoaded(true);
+      });
+    } else {
+      setConfigLoaded(true);
+    }
+  }, [user]);
+
   const [exerciseType, setExerciseType] = useState(() => {
     return localStorage.getItem("piano_exercise_type") || "piano_ankle";
   });
@@ -645,6 +665,29 @@ const PianoReactionGame = () => {
   const [feedbackSection, setFeedbackSection] = useState(null);
   const [feedbackType, setFeedbackType] = useState(null);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
+
+  const isTesting = globalSettings?.testingMode ?? false;
+
+  const effDisabledKeys = useMemo(() => {
+    if (isTesting) return globalSettings?.testingPianoDisabledKeys || [];
+    const doctorStr = patientConfig?.games?.piano?.disabledKeys?.value;
+    if (typeof doctorStr === 'string' && doctorStr.trim() !== '') {
+      return doctorStr.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
+    }
+    return disabledKeys;
+  }, [patientConfig, isTesting, globalSettings, disabledKeys]);
+
+  const effWristKeysCount = isTesting
+    ? globalSettings?.testingPianoWristKeysCount
+    : patientConfig?.games?.piano?.wristKeysCount?.value;
+
+  const effKeyTimer = isTesting
+    ? globalSettings?.testingPianoKeyTimer
+    : patientConfig?.games?.piano?.responseTimer?.value;
+
+  const effWristKeyTimer = isTesting
+    ? globalSettings?.testingPianoWristTimer
+    : patientConfig?.games?.piano?.wristKeyTimer?.value;
 
   const keysAll = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
   const noteNamesAll = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
@@ -800,8 +843,8 @@ const PianoReactionGame = () => {
         }
         return keyboardLayout === 'left' ? ['A', 'S', 'D', 'F'] : ['H', 'J', 'K', 'L'];
       } else {
-        if (globalSettings?.testingMode && globalSettings?.testingPianoWristKeysCount !== undefined) {
-          return keysAll.slice(0, globalSettings.testingPianoWristKeysCount);
+        if (effWristKeysCount !== undefined) {
+          return keysAll.slice(0, effWristKeysCount);
         }
         return keysAll.slice(0, currentNumSections);
       }
@@ -818,8 +861,8 @@ const PianoReactionGame = () => {
         }
         return keyboardLayout === 'left' ? ['A', 'S', 'D', 'F'] : ['H', 'J', 'K', 'L'];
       } else {
-        if (globalSettings?.testingMode && globalSettings?.testingPianoWristKeysCount !== undefined) {
-          return noteNamesAll.slice(0, globalSettings.testingPianoWristKeysCount);
+        if (effWristKeysCount !== undefined) {
+          return noteNamesAll.slice(0, effWristKeysCount);
         }
         return noteNamesAll.slice(0, currentNumSections);
       }
@@ -937,7 +980,10 @@ const PianoReactionGame = () => {
     lastPlayedKeyRef.current = null;
 
     // Overall Timer
-    const sessionSeconds = globalSettings?.pianoSessionSeconds || 300;
+    const isTesting = globalSettings?.testingMode ?? false;
+    const sessionSeconds = isTesting
+      ? (globalSettings?.pianoSessionSeconds || 300)
+      : (patientConfig?.games?.piano?.sessionLength?.value || 300);
     setTimeRemaining(sessionSeconds);
     sessionStartTimeRef.current = Date.now();
     if (overallTimerRef.current) clearInterval(overallTimerRef.current);
@@ -964,8 +1010,7 @@ const PianoReactionGame = () => {
       activeKeys.forEach(k => {
         const f = getFingerForKey(k);
         if (f) {
-          const effDisabledKeys = globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys;
-          const effTimeout = globalSettings?.testingMode ? (globalSettings?.testingPianoKeyTimer || 5) : (fingerTimeouts[f] || 5);
+          const effTimeout = effKeyTimer ?? (fingerTimeouts[f] || 5);
           activeFingerTimeouts[f] = effDisabledKeys.includes(k) ? 0 : effTimeout;
         }
       });
@@ -995,7 +1040,7 @@ const PianoReactionGame = () => {
 
   const showNextSection = (prevSection = null) => {
     const current = prevSection !== null ? prevSection : currentSection;
-    const effectiveDisabledKeys = globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys;
+    const effectiveDisabledKeys = effDisabledKeys;
     let validSections = activeKeys.map((key, idx) => ({ key, idx })).filter(item => !effectiveDisabledKeys.includes(item.key));
 
     // Exclude the last played key to ensure p=0 for it (avoid consecutive same keys)
@@ -1049,17 +1094,12 @@ const PianoReactionGame = () => {
     let timeoutSec = (activeFinger && fingerTimeouts[activeFinger])
       ? fingerTimeouts[activeFinger]
       : currentLevelSpan;
-
-    if (globalSettings?.testingMode) {
-      if (platform === 'mobile' || exerciseType === 'piano_finger') {
-        if (globalSettings?.testingPianoKeyTimer) {
-          timeoutSec = globalSettings.testingPianoKeyTimer;
-        }
-      } else {
-        if (globalSettings?.testingPianoWristTimer) {
-          timeoutSec = globalSettings.testingPianoWristTimer;
-        }
-      }
+      
+    // Use effective timers
+    if (platform === 'mobile' || exerciseType === 'piano_finger') {
+      if (effKeyTimer !== undefined) timeoutSec = effKeyTimer;
+    } else {
+      if (effWristKeyTimer !== undefined) timeoutSec = effWristKeyTimer;
     }
 
     sectionTimerRef.current = setTimeout(() => {
@@ -1398,6 +1438,17 @@ const PianoReactionGame = () => {
     ? Math.round((correctCount / (correctCount + incorrectCount)) * 100)
     : 0;
 
+  if (!configLoaded) {
+    return (
+      <div className={`min-h-screen ${isDarkMode ? "bg-black text-white" : "bg-white text-gray-900"} flex items-center justify-center`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading Game Configuration...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isOnboarding) {
     return (
       <OnboardingScreen
@@ -1440,10 +1491,20 @@ const PianoReactionGame = () => {
         keyboardLayout={keyboardLayout}
         mobileKeysCount={mobileKeysCount}
         fingerTimeouts={fingerTimeouts}
-        disabledKeys={globalSettings?.testingMode ? (globalSettings?.testingPianoDisabledKeys || []) : disabledKeys}
+        disabledKeys={effDisabledKeys}
       />
     );
   }
+
+  const doctorOverrideTimer = patientConfig?.games?.piano?.responseTimer?.value;
+  let adminTestingOverride = null;
+  if (platform === 'mobile' || exerciseType === 'piano_finger') {
+    adminTestingOverride = effKeyTimer;
+  } else {
+    adminTestingOverride = effWristKeyTimer;
+  }
+  const isOverridden = adminTestingOverride !== undefined;
+  const overrideTimerValue = adminTestingOverride;
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-black" : "bg-white"} text-gray-900 transition-colors duration-300 font-sans`}>
@@ -1685,8 +1746,33 @@ const PianoReactionGame = () => {
                   }
                 </label>
 
-                {/* Grid for finger speeds */}
-                {(platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) ? (
+                {isOverridden ? (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 md:p-6 rounded-2xl border border-blue-100 dark:border-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-1">
+                      {doctorOverrideTimer ? "Doctor Configuration Active" : "Testing Mode Active"}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-4">
+                      Reaction timers are locked to <span className="font-bold">{overrideTimerValue} seconds</span>. Local speed adjustments are disabled.
+                    </p>
+                    {/* Still allow key counts in wrist mode if not overridden by testing mode */}
+                    {!(platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) && (
+                      <div className="pt-4 border-t border-blue-200 dark:border-blue-800/50">
+                        <div className="flex justify-between text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                          <span>Number of Piano Keys:</span>
+                          <span className="text-blue-500 font-extrabold">{currentNumSections} keys</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="2"
+                          max="9"
+                          value={currentNumSections}
+                          onChange={(e) => setCurrentNumSections(parseInt(e.target.value))}
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (platform === 'mobile' || (platform === 'laptop' && exerciseType === 'piano_finger')) ? (
                   <div className="space-y-4 bg-gray-50 dark:bg-gray-950 p-4 md:p-6 rounded-2xl border dark:border-gray-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">
                       Adjust timeout (seconds) per finger independently. Left keys represent fingers sequentially.

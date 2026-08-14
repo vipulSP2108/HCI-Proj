@@ -19,7 +19,11 @@ import {
   Send,
   Sun,
   Moon,
+  CheckCircle2,
+  Clock,
+  X
 } from "lucide-react";
+import PatientConfigPanel from "../../components/dashboard/PatientConfigPanel";
 import ChatPage from "../common/ChatPage";
 
 // --- Components (Consonant with Doctor/Patient) ---
@@ -191,7 +195,7 @@ const TopBar = ({ activeView, isDarkMode, toggleDarkMode, handleLogout }) => (
   </div>
 );
 
-const MainDashboardView = ({ patients, chats, navigate, isDarkMode }) => (
+const MainDashboardView = ({ patients, chats, navigate, isDarkMode, onOpenSettings }) => (
   <div className="space-y-12">
     <div>
       <h1 className="text-6xl font-black dark:text-white tracking-tighter mb-2">
@@ -253,15 +257,23 @@ const MainDashboardView = ({ patients, chats, navigate, isDarkMode }) => (
               <p className="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-4">
                 {p.patientDetails?.diagnosis || "Clinical Tracking"}
               </p>
-              <button
-                onClick={async () => {
-                  await chatService.ensureChat([p._id], "caretaker-patient");
-                  navigate("/chat");
-                }}
-                className="w-full py-3 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-all border border-gray-100 dark:border-gray-700"
-              >
-                <MessageSquare size={14} /> Open Message
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    await chatService.ensureChat([p._id], "caretaker-patient");
+                    navigate("/chat");
+                  }}
+                  className="flex-1 py-3 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-all border border-gray-100 dark:border-gray-700"
+                >
+                  <MessageSquare size={14} /> Message
+                </button>
+                <button
+                  onClick={() => onOpenSettings(p._id)}
+                  className="px-4 py-3 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-all border border-gray-100 dark:border-gray-700"
+                >
+                  <Settings size={14} />
+                </button>
+              </div>
             </div>
           ))}
           {patients.length === 0 && (
@@ -293,6 +305,7 @@ const CaretakerDashboard = () => {
 
   const [activeView, setActiveView] = useState("dashboard");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [configModalPatientId, setConfigModalPatientId] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -392,6 +405,7 @@ const CaretakerDashboard = () => {
               chats={chats}
               navigate={navigate}
               isDarkMode={isDarkMode}
+              onOpenSettings={(pid) => setConfigModalPatientId(pid)}
             />
           )}
 
@@ -609,6 +623,28 @@ const CaretakerDashboard = () => {
           )}
         </main>
       </div>
+
+      {/* Config Modal */}
+      {configModalPatientId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                Patient Config Parameters
+              </h2>
+              <button 
+                onClick={() => setConfigModalPatientId(null)}
+                className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <PatientConfigPanel patientId={configModalPatientId} userRole="caretaker" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

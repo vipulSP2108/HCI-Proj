@@ -8,7 +8,7 @@ export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider = ({ children }) => {
   const [globalSettings, setGlobalSettings] = useState({
-    testingMode: true,
+    testingMode: false,
     pianoSessionSeconds: 300,
     boardDrawingSessionSeconds: 300,
     fruitBasketSessionSeconds: 300,

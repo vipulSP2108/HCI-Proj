@@ -28,6 +28,7 @@ import {
   TESTING_SHAPE_SEQUENCE,
 } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
+import { patientConfigService } from "../../../services/patientConfigService";
 import * as GameStorage from "./gameStorage";
 // ==================== CONFIGURATION ====================
 const CONFIG = {
@@ -256,7 +257,27 @@ const BoardDrawingGame = () => {
 
   // Settings
   const { globalSettings, isDarkMode } = useSettings();
+  const [patientConfig, setPatientConfig] = useState(null);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
+  
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      const pId = user.id || user._id;
+      console.log(`[BoardDrawingGame] Fetching config for Patient ID: ${pId}`);
+      patientConfigService.getConfig(pId).then(res => {
+        console.log(`[BoardDrawingGame] Received Config:`, res.config);
+        setPatientConfig(res.config);
+        setConfigLoaded(true);
+      }).catch(err => {
+        console.error(err);
+        setConfigLoaded(true);
+      });
+    } else {
+      setConfigLoaded(true);
+    }
+  }, [user?.id || user?._id]);
   
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
@@ -281,31 +302,34 @@ const BoardDrawingGame = () => {
     return localStorage.getItem("board_drawing_selected_shape") || "random";
   });
   const selectedShapeRef = useRef("random");
+  const allowedShapesRef = useRef(["random", "circle", "square", "spiral", "star"]);
 
   useEffect(() => {
     selectedShapeRef.current = selectedShape;
     localStorage.setItem("board_drawing_selected_shape", selectedShape);
   }, [selectedShape]);
 
-  const [handPoseMode, setHandPoseModeState] = useState(() => {
-    const saved = localStorage.getItem("board_drawing_hand_pose_mode");
-    if (saved) return saved;
-    return globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict";
-  });
-  const handPoseModeRef = useRef(globalSettings?.boardDrawingAssistiveMode !== false ? "any" : "strict");
+  const [handPoseMode, setHandPoseModeState] = useState("strict");
+  const handPoseModeRef = useRef("strict");
   
   useEffect(() => {
-    if (globalSettings?.boardDrawingAssistiveMode !== undefined && !localStorage.getItem("board_drawing_hand_pose_mode")) {
-      const mode = globalSettings.boardDrawingAssistiveMode ? "any" : "strict";
-      setHandPoseModeState(mode);
-      handPoseModeRef.current = mode;
-    }
-  }, [globalSettings?.boardDrawingAssistiveMode]);
+    const isTesting = globalSettings?.testingMode ?? false;
+    
+    // Priority: Admin Testing Mode > Doctor Config > Default (strict)
+    const adminAssistive = globalSettings?.boardDrawingAssistiveMode; // Usually true or false
+    const adminMode = adminAssistive ? "any" : "strict";
+    
+    const doctorAssistive = patientConfig?.games?.boardDrawing?.assistiveMode?.value; // 1 or 0
+    const doctorMode = doctorAssistive === 1 ? "any" : "strict";
 
-  useEffect(() => {
-    handPoseModeRef.current = handPoseMode;
-    localStorage.setItem("board_drawing_hand_pose_mode", handPoseMode);
-  }, [handPoseMode]);
+    const effectiveMode = isTesting 
+      ? adminMode 
+      : (doctorAssistive !== undefined ? doctorMode : adminMode);
+
+    setHandPoseModeState(effectiveMode);
+    handPoseModeRef.current = effectiveMode;
+  }, [globalSettings, patientConfig]);
+
 
   const toggleHandPoseMode = () => {
     const newMode = handPoseMode === "strict" ? "any" : "strict";
@@ -332,6 +356,42 @@ const BoardDrawingGame = () => {
     warningZoneRadiusRef.current = warningZoneRadius;
     localStorage.setItem("board_drawing_warning_zone_radius", warningZoneRadius.toString());
   }, [warningZoneRadius]);
+
+  const doctorBoardConfig = patientConfig?.games?.boardDrawing || patientConfig?.games?.shapeTracer;
+  const patientFreedomStr = doctorBoardConfig?.patientFreedom?.value || "";
+  const patientFreedom = patientFreedomStr.split(',').filter(Boolean);
+  const hasGreenFreedom = patientFreedom.includes('greenZone');
+  const hasYellowFreedom = patientFreedom.includes('yellowZone');
+  const hasAssistiveFreedom = patientFreedom.includes('assistiveMode');
+
+  const allowedShapesStr = doctorBoardConfig?.allowedShapes?.value || "random,circle,square,spiral,star";
+  const allowedShapes = allowedShapesStr.split(',').filter(Boolean);
+  allowedShapesRef.current = allowedShapes;
+
+  // Sync doctor config zones if present
+  useEffect(() => {
+    const isTesting = globalSettings?.testingMode ?? false;
+
+    if (doctorBoardConfig) {
+      const doctorGreen = doctorBoardConfig.greenZone?.value;
+      const doctorYellow = doctorBoardConfig.yellowZone?.value;
+      
+      // Only set initial values if not testing, AND only if they don't have freedom (or set it once?)
+      // Actually, if they have freedom, we should still initialize it to the doctor's value when config loads, but let them change it.
+      if (doctorGreen !== undefined && (!isTesting)) {
+        setSafeZoneRadius(doctorGreen / 100);
+      }
+      if (doctorYellow !== undefined && (!isTesting)) {
+        setWarningZoneRadius(doctorYellow / 100);
+      }
+      
+      // Fix initial 5:00 flicker
+      const sessionSecs = isTesting
+        ? (globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS)
+        : (doctorBoardConfig?.sessionLength?.value || CONFIG.SESSION_SECONDS);
+      setTimeRemaining(sessionSecs);
+    }
+  }, [patientConfig, globalSettings?.testingMode, globalSettings?.boardDrawingSessionSeconds]);
 
   const isSessionActiveRef = useRef(false);
   const shapeTimerRef = useRef(null);
@@ -789,7 +849,16 @@ const BoardDrawingGame = () => {
       shapeType = seq[sequenceIndexRef.current];
       sequenceIndexRef.current++;
     } else {
-      shapeType = selectedShapeRef.current === "random" ? SHAPES[Math.floor(Math.random() * SHAPES.length)] : selectedShapeRef.current;
+      if (selectedShapeRef.current === "random") {
+        const available = allowedShapesRef.current.filter(s => s !== "random");
+        if (available.length === 0) {
+          shapeType = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+        } else {
+          shapeType = available[Math.floor(Math.random() * available.length)];
+        }
+      } else {
+        shapeType = selectedShapeRef.current;
+      }
     }
 
     const points = generateShapePoints(shapeType);
@@ -1805,9 +1874,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     sessionStartRef.current = Date.now();
     sequenceIndexRef.current = 0;
 
-    const sessionSeconds = globalSettings?.testingMode
-       ? (globalSettings?.testingShapeSessionSeconds || 600)
-       : (globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS);
+    const isTesting = globalSettings?.testingMode ?? false;
+    const doctorBoardConfig = patientConfig?.games?.boardDrawing || patientConfig?.games?.shapeTracer;
+    const sessionSeconds = isTesting
+      ? (globalSettings?.boardDrawingSessionSeconds || CONFIG.SESSION_SECONDS)
+      : (doctorBoardConfig?.sessionLength?.value || CONFIG.SESSION_SECONDS);
     
     spawnShape();
     setTimeRemaining(sessionSeconds);
@@ -1984,6 +2055,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   safeCloseModuleRef.current = safeCloseModule;
 
   useEffect(() => {
+    if (!configLoaded) return;
     setupMediaPipeRef.current();
 
     // ── Browser back-button intercept ──────────────────────────────────────
@@ -2026,7 +2098,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       isInitializedRef.current = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount/unmount only
+  }, [configLoaded]); // Run when configLoaded becomes true
 
   // Separate effect to (re)start the animation loop when mainLoop ref changes
   const mainLoopRef = React.useRef(mainLoop);
@@ -2050,7 +2122,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   }, []); // mount/unmount only — mainLoopRef always has latest via ref
 
   // ==================== RENDER ====================
-  // ==================== RENDER ====================
+  const isTesting = globalSettings?.testingMode ?? false;
   const themeStyles = {
     container: {
       ...styles.container,
@@ -2117,6 +2189,17 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       color: isDarkMode ? "#fff" : "#333",
     },
   };
+
+  if (!configLoaded) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-black text-white" : "bg-[#F4F7FE] text-gray-900"}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading Game Configuration...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={themeStyles.container}>
@@ -2189,12 +2272,23 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           <button onClick={handleStartSession} style={styles.controlButton}>
             {isSessionActive ? "⏸ Pause" : "▶️ Start Therapy"}
           </button>
-          <button 
-            onClick={toggleHandPoseMode} 
-            style={{...styles.controlButton, background: handPoseMode === "strict" ? "#ff922b" : "#51cf66", marginTop: '10px'}}
+          <div
+            onClick={() => {
+              if (isTesting || hasAssistiveFreedom) toggleHandPoseMode();
+            }}
+            style={{
+              ...styles.controlButton, 
+              background: handPoseMode === "strict" ? "#ff922b" : "#51cf66", 
+              marginTop: '10px', 
+              opacity: (isTesting || hasAssistiveFreedom) ? 1 : 0.8, 
+              cursor: (isTesting || hasAssistiveFreedom) ? 'pointer' : 'not-allowed', 
+              textAlign: 'center'
+            }}
           >
-            {handPoseMode === "strict" ? "✊ Posture: Strict (Pinch to Draw)" : "✋ Posture: Any (Always Draw)"}
-          </button>
+            {handPoseMode === "strict" 
+              ? `✊ Posture: Strict ${(isTesting || hasAssistiveFreedom) ? "(Click to Change)" : "(Locked)"}`
+              : `✋ Posture: Any ${(isTesting || hasAssistiveFreedom) ? "(Click to Change)" : "(Locked)"}`}
+          </div>
           
           <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
             <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
@@ -2217,7 +2311,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
               }}
             >
               <option value="random">Randomize (Change Each Round)</option>
-              {SHAPES.map(s => (
+              {SHAPES.filter(s => allowedShapes.includes(s) || allowedShapes.includes('random')).map(s => (
                 <option key={s} value={s}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </option>
@@ -2229,50 +2323,54 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
               🔧 Tracing Zone Adjustments
             </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
-                🟢 Safe Zone: {(safeZoneRadius * 100).toFixed(1)}%
-              </span>
-              <input
-                type="range"
-                min="0.01"
-                max="0.06"
-                step="0.005"
-                value={safeZoneRadius}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setSafeZoneRadius(val);
-                  safeZoneRadiusRef.current = val;
-                  if (val > warningZoneRadius) {
-                    setWarningZoneRadius(val + 0.01);
-                    warningZoneRadiusRef.current = val + 0.01;
-                  }
-                }}
-                style={{ flex: 1, accentColor: '#51cf66', cursor: 'pointer' }}
-              />
-            </div>
+          {/* Tracing Zone Adjustments */}
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
+                  🟢 Safe Zone: {(safeZoneRadius * 100).toFixed(1)}%
+                </span>
+                <input
+                  type="range"
+                  min="0.01"
+                  max="0.06"
+                  step="0.005"
+                  value={safeZoneRadius}
+                  disabled={!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setSafeZoneRadius(val);
+                    safeZoneRadiusRef.current = val;
+                    if (val > warningZoneRadius) {
+                      setWarningZoneRadius(val + 0.01);
+                      warningZoneRadiusRef.current = val + 0.01;
+                    }
+                  }}
+                  style={{ flex: 1, accentColor: '#51cf66', cursor: (!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined) ? 'not-allowed' : 'pointer', opacity: (!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined) ? 0.5 : 1 }}
+                />
+              </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
-                🟡 Warning: {(warningZoneRadius * 100).toFixed(1)}%
-              </span>
-              <input
-                type="range"
-                min="0.02"
-                max="0.12"
-                step="0.005"
-                value={warningZoneRadius}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  if (val >= safeZoneRadius) {
-                    setWarningZoneRadius(val);
-                    warningZoneRadiusRef.current = val;
-                  }
-                }}
-                style={{ flex: 1, accentColor: '#fcc419', cursor: 'pointer' }}
-              />
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
+                  🟡 Warning: {(warningZoneRadius * 100).toFixed(1)}%
+                </span>
+                <input
+                  type="range"
+                  min="0.02"
+                  max="0.12"
+                  step="0.005"
+                  value={warningZoneRadius}
+                  disabled={!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (val >= safeZoneRadius) {
+                      setWarningZoneRadius(val);
+                      warningZoneRadiusRef.current = val;
+                    }
+                  }}
+                  style={{ flex: 1, accentColor: '#fcc419', cursor: (!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined) ? 'not-allowed' : 'pointer', opacity: (!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined) ? 0.5 : 1 }}
+                />
+              </div>
+            </>
           </div>
         </div>
 

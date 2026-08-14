@@ -21,6 +21,8 @@ import {
   SHAPE_TRACING_DRAW_FPS,
   TESTING_SHAPE_SEQUENCE,
 } from "../../../constants";
+import { patientConfigService } from "../../../services/patientConfigService";
+
 // ==================== CONFIGURATION ====================
 const CONFIG = {
   SESSION_SECONDS: DEFAULT_SESSION_SECONDS,
@@ -146,6 +148,13 @@ const ShapeTracingGame = () => {
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
+  
+  const [patientConfig, setPatientConfig] = useState(null);
+  useEffect(() => {
+    if (user?._id) {
+      patientConfigService.getConfig(user.id || user._id).then(res => setPatientConfig(res.config)).catch(console.error);
+    }
+  }, [user]);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -579,10 +588,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
             lastCoordTimeRef.current = Date.now();
           }
           // Advance targets if close
+          // Get tolerance from patient config (warning zone) or fallback to config
+          const tolerance = patientConfig?.games?.shapeTracer?.yellowZone?.value 
+            ? patientConfig.games.shapeTracer.yellowZone.value / 100 
+            : CONFIG.TRACE_TOLERANCE;
+          
           while (
             currentTargetIdxRef.current < shape.points.length &&
-            distNorm(pos, shape.points[currentTargetIdxRef.current]) <
-            CONFIG.TRACE_TOLERANCE
+            distNorm(pos, shape.points[currentTargetIdxRef.current]) < tolerance
           ) {
             currentTargetIdxRef.current++;
           }
@@ -660,7 +673,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         }
       }
     });
-  }, [spawnShape]);
+  }, [spawnShape, patientConfig]);
 
   // ==================== DRAWING ====================
   const drawOverlay = useCallback(() => {
@@ -823,6 +836,36 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     // Draw game elements (shape, points, path)
     if (shapeRef.current) {
       const shape = shapeRef.current;
+      // Fetch zones from config (stored as percentages, e.g. 2.5 for 2.5%)
+      const greenZonePct = patientConfig?.games?.shapeTracer?.greenZone?.value ?? 2.5;
+      const yellowZonePct = patientConfig?.games?.shapeTracer?.yellowZone?.value ?? 5.0;
+
+      // Draw Yellow Zone (Outer Tolerance)
+      ctx.strokeStyle = "rgba(255, 215, 0, 0.2)";
+      ctx.lineWidth = (yellowZonePct / 100) * w * 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(shape.points[0].x * w, shape.points[0].y * h);
+      for (let i = 1; i < shape.points.length; i++) {
+        ctx.lineTo(shape.points[i].x * w, shape.points[i].y * h);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // Draw Green Zone (Inner Perfect)
+      ctx.strokeStyle = "rgba(40, 167, 69, 0.3)";
+      ctx.lineWidth = (greenZonePct / 100) * w * 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(shape.points[0].x * w, shape.points[0].y * h);
+      for (let i = 1; i < shape.points.length; i++) {
+        ctx.lineTo(shape.points[i].x * w, shape.points[i].y * h);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
       // Draw shape outline
       ctx.strokeStyle = "#333";
       ctx.lineWidth = 3 * scale;
@@ -871,7 +914,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         ctx.stroke();
       }
     }
-  }, []);
+  }, [patientConfig?.games?.shapeTracer?.greenZone?.value, patientConfig?.games?.shapeTracer?.yellowZone?.value]);
 
   const syncCanvasSizes = useCallback(() => {
     if (overlayRef.current && videoRef.current) {
@@ -972,9 +1015,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     sessionStartRef.current = Date.now();
     sequenceIndexRef.current = 0;
 
-    const sessionSeconds = globalSettings?.testingMode
-      ? (globalSettings?.testingShapeSessionSeconds || 600)
-      : CONFIG.SESSION_SECONDS;
+    // Priority: Doctor config > Admin (testing or normal) > Default
+    const sessionSeconds = patientConfig?.games?.shapeTracer?.sessionLength?.value
+      ?? (globalSettings?.testingMode
+        ? (globalSettings?.testingShapeSessionSeconds ?? CONFIG.SESSION_SECONDS)
+        : (globalSettings?.shapeTracingSessionSeconds ?? CONFIG.SESSION_SECONDS));
 
     spawnShape();
     setTimeRemaining(sessionSeconds);

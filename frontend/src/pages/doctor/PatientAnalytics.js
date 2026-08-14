@@ -5,13 +5,14 @@ import { gameService } from "../../services/gameService";
 import BoardDrawingTrajectoryReplay from "../game/BoardDrawingTrajectoryReplay";
 import DrawingPerformancePanel from "../../components/dashboard/DrawingPerformancePanel";
 import ArmReachVisualizer from "../game/ArmReachVisualizer";
+import PatientConfigPanel from "../../components/dashboard/PatientConfigPanel";
 import {
   ArrowLeft,
   TrendingUp,
   Target,
   Clock,
   Zap,
-  Settings
+  Settings, X
 } from "lucide-react";
 import {
   LineChart,
@@ -1152,6 +1153,7 @@ const PatientAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLevelSpanModal, setShowLevelSpanModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [newLevelSpan, setNewLevelSpan] = useState(5);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -1442,13 +1444,22 @@ const PatientAnalytics = () => {
               <ArrowLeft className="w-5 h-5" />
               Back to Dashboard
             </button>
-            <button
-              onClick={() => setShowLevelSpanModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-semibold hover:from-primary-600 hover:to-secondary-600 transition shadow-lg"
-            >
-              <Settings className="w-5 h-5" />
-              Update Level Span
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowLevelSpanModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-semibold hover:from-primary-600 hover:to-secondary-600 transition shadow-lg"
+              >
+                <Settings className="w-5 h-5" />
+                Update Level Span
+              </button>
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-indigo-600 transition shadow-lg"
+              >
+                <Settings className="w-5 h-5" />
+                Configure Parameters
+              </button>
+            </div>
           </div>
           <div>
             <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
@@ -2029,6 +2040,38 @@ const PatientAnalytics = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Game Parameter Config Modal */}
+        {showConfigModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+              <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary-500/10 p-2 rounded-xl">
+                    <Settings className="w-5 h-5 text-primary-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                      Game Parameters
+                    </h2>
+                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                      Configure patient-specific game difficulty and tracking zones
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowConfigModal(false)}
+                  className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto">
+                <PatientConfigPanel patientId={patientId} userRole="doctor" />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Level Span Update Modal */}

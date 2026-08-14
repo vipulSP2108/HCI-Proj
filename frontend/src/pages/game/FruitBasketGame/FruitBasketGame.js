@@ -33,6 +33,7 @@ import {
   TESTING_FRUIT_BASKET_SEQUENCE,
 } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
+import { patientConfigService } from "../../../services/patientConfigService";
 
 // ==================== MEDIAPIPE MODULE-LEVEL SINGLETONS ====================
 // Stored outside the component so React StrictMode's double-mount does NOT
@@ -68,6 +69,24 @@ const FruitBasketGame = () => {
   const { user, isDarkMode } = useAuth();
   const navigate = useNavigate();
   const { globalSettings } = useSettings();
+  const [patientConfig, setPatientConfig] = useState(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      const pId = user.id || user._id;
+      console.log(`[FruitBasketGame] Fetching config for Patient ID: ${pId}`);
+      patientConfigService.getConfig(pId).then(res => {
+        console.log(`[FruitBasketGame] Received Config:`, res.config);
+        setPatientConfig(res.config);
+        setConfigLoaded(true);
+      }).catch(err => {
+        console.error(err);
+        setConfigLoaded(true);
+      });
+    } else {
+      setConfigLoaded(true);
+    }
+  }, [user?.id || user?._id]);
   
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
@@ -149,23 +168,61 @@ const FruitBasketGame = () => {
   const isPausedRef = useRef(false);
   const pausedTimeRef = useRef(0); // ms elapsed at the moment of pause
 
-  // ── Live admin settings ref — always up-to-date inside callbacks ──
+  // ── Live game settings ref — doctor config > admin config > defaults ──
   const gameConfigRef = useRef({
-    cooldownSeconds:          globalSettings?.fruitBasketCooldownSeconds          ?? 3,
-    trialTimeoutMs:           (globalSettings?.fruitBasketAttemptTimeoutSeconds   ?? 10) * 1000,
-    maxAttempts:              globalSettings?.fruitBasketMaxAttempts               ?? 3,
-    testingMode:              globalSettings?.testingMode                          ?? true,
-    testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence        ?? [],
+    cooldownSeconds:            globalSettings?.fruitBasketCooldownSeconds          ?? 3,
+    trialTimeoutMs:             (globalSettings?.fruitBasketAttemptTimeoutSeconds   ?? 10) * 1000,
+    maxAttempts:                globalSettings?.fruitBasketMaxAttempts               ?? 3,
+    testingMode:                globalSettings?.testingMode                          ?? false,
+    testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence           ?? [],
   });
+  const patientFreedomStr = patientConfig?.games?.fruitBasket?.patientFreedom?.value || "";
+  const patientFreedom = patientFreedomStr.split(',').filter(Boolean);
+  const hasAssistiveFreedom = patientFreedom.includes('assistiveMode');
+
   useEffect(() => {
+    // Priority: Admin Testing Mode > Doctor Config > Default
+    const isTesting = globalSettings?.testingMode ?? false;
+
+    const effectiveTimeoutMs = isTesting 
+      ? (globalSettings?.fruitBasketAttemptTimeoutSeconds ?? 10) * 1000
+      : (patientConfig?.games?.fruitBasket?.trialTimeoutSeconds?.value ?? 10) * 1000;
+
+    const effectiveCooldown = isTesting
+      ? (globalSettings?.fruitBasketCooldownSeconds ?? 3)
+      : (patientConfig?.games?.fruitBasket?.cooldownSeconds?.value ?? 3);
+
+    const effectiveMaxAttempts = isTesting
+      ? (globalSettings?.fruitBasketMaxAttempts ?? 3)
+      : (patientConfig?.games?.fruitBasket?.maxAttempts?.value ?? 3);
+
     gameConfigRef.current = {
-      cooldownSeconds:          globalSettings?.fruitBasketCooldownSeconds          ?? 3,
-      trialTimeoutMs:           (globalSettings?.fruitBasketAttemptTimeoutSeconds   ?? 10) * 1000,
-      maxAttempts:              globalSettings?.fruitBasketMaxAttempts               ?? 3,
-      testingMode:              globalSettings?.testingMode                          ?? true,
-      testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence        ?? [],
+      cooldownSeconds:            effectiveCooldown,
+      trialTimeoutMs:             effectiveTimeoutMs,
+      maxAttempts:                effectiveMaxAttempts,
+      testingMode:                isTesting,
+      testingFruitBasketSequence: globalSettings?.testingFruitBasketSequence ?? [],
     };
-  }, [globalSettings]);
+    
+    // Fix initial 5:00 flicker
+    if (patientConfig) {
+      const sessionSecs = isTesting
+        ? (globalSettings?.fruitBasketSessionSeconds || CONFIG.SESSION_SECONDS)
+        : (patientConfig?.games?.fruitBasket?.sessionLength?.value || CONFIG.SESSION_SECONDS);
+      setTimeRemaining(sessionSecs);
+
+      const doctorAssistiveVal = patientConfig?.games?.fruitBasket?.assistiveMode?.value;
+      if (!isTesting && doctorAssistiveVal !== undefined && doctorAssistiveVal !== 2) {
+        const val = doctorAssistiveVal === 1;
+        setAssistiveMode(val);
+        assistiveModeRef.current = val;
+        setAssistiveModeLeft(val);
+        assistiveModeLeftRef.current = val;
+        setAssistiveModeRight(val);
+        assistiveModeRightRef.current = val;
+      }
+    }
+  }, [globalSettings, patientConfig]);
 
   // Game State Refs
   const handStateRef = useRef({
@@ -1395,8 +1452,18 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     setCalibrationDone(true);
     
     // Determine assistive mode per hand
-    const lAssist = !(calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose);
-    const rAssist = !(calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose);
+    const doctorAssistiveVal = patientConfig?.games?.fruitBasket?.assistiveMode?.value;
+    const isTesting = globalSettings?.testingMode ?? false;
+
+    let lAssist, rAssist;
+    if (doctorAssistiveVal === 0 && !isTesting) {
+      lAssist = false; rAssist = false;
+    } else if (doctorAssistiveVal === 1 && !isTesting) {
+      lAssist = true; rAssist = true;
+    } else {
+      lAssist = !(calibrationRef.current.leftCanOpen && calibrationRef.current.leftCanClose);
+      rAssist = !(calibrationRef.current.rightCanOpen && calibrationRef.current.rightCanClose);
+    }
     
     setAssistiveModeLeft(lAssist);
     setAssistiveModeRight(rAssist);
@@ -1544,6 +1611,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       if (!window.confirm("Calibration recommended. Continue anyway?")) return;
     }
 
+    const isTesting = globalSettings?.testingMode ?? false;
+    const sessionSeconds = isTesting
+      ? (globalSettings?.fruitBasketSessionSeconds || CONFIG.SESSION_SECONDS)
+      : (patientConfig?.games?.fruitBasket?.sessionLength?.value || CONFIG.SESSION_SECONDS);
+
     setScore(0);
     scoreRef.current = 0;
     setAratTotalScore(0);
@@ -1554,7 +1626,6 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     successesRef.current = 0;
     logsRef.current = [];
     
-    const sessionSeconds = globalSettings?.fruitBasketSessionSeconds || CONFIG.SESSION_SECONDS;
     setTimeRemaining(sessionSeconds);
     sessionStartRef.current = Date.now();
     
@@ -1872,6 +1943,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   _setupMPRef.current = setupMediaPipe;
 
   useEffect(() => {
+    if (!configLoaded) return;
     _setupGridRef.current();
     _setupMPRef.current();
 
@@ -1946,8 +2018,9 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       cameraRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount/unmount only
+  }, [configLoaded]); // Run when configLoaded becomes true
   // ==================== RENDER ====================
+  const isTesting = globalSettings?.testingMode ?? false;
   const themeStyles = {
     container: {
       ...styles.container,
@@ -1966,7 +2039,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     title: {
       ...styles.title,
-      color: isDarkMode ? "#4ade80" : "#2f7a2f",
+      color: isDarkMode ? "#e6a817" : "#e6a817",
     },
     muted: {
       ...styles.muted,
@@ -1984,7 +2057,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     statValue: {
       ...styles.statValue,
-      color: isDarkMode ? "#4ade80" : "#2f7a2f",
+      color: isDarkMode ? "#e6a817" : "#e6a817",
     },
     statLabel: {
       ...styles.statLabel,
@@ -2009,6 +2082,17 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       border: isDarkMode ? "1px solid #4ade80" : "none",
     },
   };
+
+  if (!configLoaded) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-black text-white" : "bg-white text-gray-900"}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading Game Configuration...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={themeStyles.container}>
@@ -2157,7 +2241,7 @@ Calibration:
             <input
               type="checkbox"
               checked={assistiveMode}
-              disabled={isSessionActive}
+              disabled={isSessionActive || (!isTesting && !hasAssistiveFreedom && patientConfig?.games?.fruitBasket?.assistiveMode?.value !== undefined)}
               onChange={(e) => {
                 const val = e.target.checked;
                 setAssistiveMode(val);
@@ -2169,7 +2253,9 @@ Calibration:
               }}
               style={styles.checkbox}
             />
-            <span>Assistive Mode (Dwell pick/drop)</span>
+            <span>Assistive Mode (Dwell pick/drop) 
+              {(!isTesting && !hasAssistiveFreedom && patientConfig?.games?.fruitBasket?.assistiveMode?.value !== undefined) && " 🔒"}
+            </span>
           </label>
           {/* <label style={styles.checkboxLabel}>
             <input

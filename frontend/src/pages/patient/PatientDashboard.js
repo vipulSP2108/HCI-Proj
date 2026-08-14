@@ -221,23 +221,24 @@ export default function PatientDashboard({ userId }) {
 
           {/* Profile */}
 
-          {!isCollapsed && (
-            <div
-              className={`px-6 pt-6 pb-2 flex items-center space-x-3 transition-all ${isCollapsed ? "space-x-0 justify-center" : ""}`}
-            >
-              <img
-                src="https://via.placeholder.com/40"
-                alt="Profile"
-                className="w-10 h-10 bg-black rounded-full flex-shrink-0"
-              />
-              <div>
-                <h1 className="text-lg font-semibold text-[#2B91D4]">
+          {/* Profile */}
+          <div
+            className={`px-6 pt-6 pb-2 flex items-center space-x-3 transition-all ${isCollapsed ? "space-x-0 justify-center px-2" : ""}`}
+          >
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-white font-black shadow-lg">
+              {(userData?.name || user?.email || "U")?.[0]?.toUpperCase()}
+            </div>
+            {!isCollapsed && (
+              <div className="overflow-hidden">
+                <h1 className="text-sm font-black dark:text-white truncate uppercase tracking-wider">
                   {userData?.name || "Your Name"}
                 </h1>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+                <p className="text-[10px] font-bold text-gray-400 truncate uppercase tracking-widest">
+                  {user?.email}
+                </p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Nav */}
           <nav className="mt-4 flex-1 overflow-y-auto px-2">

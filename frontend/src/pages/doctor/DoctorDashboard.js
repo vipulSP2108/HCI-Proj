@@ -27,8 +27,10 @@ import {
   Clock,
   AlertCircle,
   User,
+  X,
 } from "lucide-react";
 import ChatPage from "../common/ChatPage";
+import PatientConfigPanel from "../../components/dashboard/PatientConfigPanel";
 import DoctorProfileForm from "./DoctorProfileForm"; // This remains unchanged
 import SchedulePage from "./SchedulePage";
 
@@ -86,21 +88,17 @@ const Sidebar = ({
 
       {/* Profile */}
       <div
-        className={`px-6 pt-6 pb-2 flex items-center space-x-3 transition-all ${isCollapsed ? "space-x-0 justify-center" : ""}`}
+        className={`px-6 mb-8 flex items-center space-x-4 transition-all ${isCollapsed ? "justify-center ml-0" : "ml-2"}`}
       >
-        <img
-          src="https://via.placeholder.com/150" // Placeholder
-          alt="Profile"
-          className="w-10 h-10 bg-black rounded-full flex-shrink-0"
-        />
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-white font-black shadow-lg">
+          {(doctorProfile?.name || "D")?.[0]?.toUpperCase()}
+        </div>
         {!isCollapsed && (
           <div className="overflow-hidden">
-            <h1 className="text-base font-semibold text-[#2B91D4] truncate">
-              {profileLoading
-                ? "Loading..."
-                : doctorProfile.name || "DemoDoctor"}
+            <h1 className="text-sm font-black dark:text-white truncate uppercase tracking-wider">
+              {profileLoading ? "Loading..." : doctorProfile.name || "DemoDoctor"}
             </h1>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-[10px] font-bold text-gray-400 truncate uppercase tracking-widest">
               {profileLoading ? "..." : doctorProfile.degree || "Doctor"}
             </p>
           </div>
@@ -242,6 +240,7 @@ const MainDashboardView = ({
   user,
   doctorProfile, // Pass this for the welcome message
   onProfileUpdate,
+  onOpenSettings,
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(true); // Default to false
   // const [editProfile, setEditProfile] = useState(false); // Default to false
@@ -485,11 +484,11 @@ const MainDashboardView = ({
 // These components remain unchanged internally, but they will now render
 // inside the new, styled layout.
 
-const PatientView = ({ patients, caretakers, isDarkMode }) => (
+const PatientView = ({ patients, caretakers, isDarkMode, onOpenSettings }) => (
   <div className="space-y-6">
     {/* <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Manage Patients</h1> */}
     {/* <AssignPatientForm patients={patients} caretakers={caretakers} isDarkMode={isDarkMode} /> */}
-    <PatientList patients={patients} isDarkMode={isDarkMode} />
+    <PatientList patients={patients} isDarkMode={isDarkMode} onOpenSettings={onOpenSettings} />
     <QuickReminders patients={patients} isDarkMode={isDarkMode} />
   </div>
 );
@@ -598,27 +597,6 @@ const CaretakerView = ({ patients, caretakers, isDarkMode }) => (
   </div>
 );
 
-// const SchedulePage = () => {
-//   const [loading, setLoading] = useState(true);
-//   useEffect(() => {
-//     const timer = setTimeout(() => setLoading(false), 500);
-//     return () => clearTimeout(timer);
-//   }, []);
-
-//   return (
-//     <div className="flex flex-col h-full bg-white rounded-lg shadow p-6">
-//       <h1 className="text-3xl font-bold text-gray-800 mb-6">My Schedule</h1>
-//       {loading ? (
-//         <div className="flex justify-center items-center h-48">
-//           <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-//         </div>
-//       ) : (
-//         <div>Your schedule content, tables, and booking logic would go here.</div>
-//       )}
-//     </div>
-//   );
-// };
-
 const PlaceholderView = ({ title }) => (
   <div>
     <h1 className="text-3xl font-bold text-gray-800">{title}</h1>
@@ -720,7 +698,7 @@ const AssignPatientForm = ({ patients, caretakers, isDarkMode }) => {
   );
 };
 
-const PatientList = ({ patients, isDarkMode }) => {
+const PatientList = ({ patients, isDarkMode, onOpenSettings }) => {
   const navigate = useNavigate();
   const viewPatientAnalytics = (patientId) => {
     navigate(`/doctor/patient/${patientId}`);
@@ -786,12 +764,20 @@ const PatientList = ({ patients, isDarkMode }) => {
               </div>
             </div>
 
-            <button
-              onClick={() => viewPatientAnalytics(patient._id)}
-              className="w-full py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-primary-500 hover:text-white hover:border-primary-500 dark:hover:bg-primary-500 dark:hover:text-white transition-all font-black uppercase tracking-widest text-[10px] shadow-sm flex items-center justify-center gap-2"
-            >
-              <Activity className="w-4 h-4" /> View Full Analytics
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => viewPatientAnalytics(patient._id)}
+                className="flex-1 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-primary-500 hover:text-white hover:border-primary-500 dark:hover:bg-primary-500 dark:hover:text-white transition-all font-black uppercase tracking-widest text-[10px] shadow-sm flex items-center justify-center gap-2"
+              >
+                <Activity className="w-4 h-4" /> Full Analytics
+              </button>
+              <button
+                onClick={() => onOpenSettings(patient._id)}
+                className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-purple-500 hover:text-white hover:border-purple-500 dark:hover:bg-purple-500 dark:hover:text-white transition-all font-black uppercase tracking-widest text-[10px] shadow-sm flex items-center justify-center"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))}
         {patients.length === 0 && (
@@ -990,6 +976,7 @@ const DoctorDashboard = () => {
   const [showEditFile, setShowEditFile] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
   const [isCollapsed, setIsCollapsed] = useState(false); // Sidebar collapse state
+  const [configModalPatientId, setConfigModalPatientId] = useState(null);
 
   // State for patients/caretakers
   const [patients, setPatients] = useState([]);
@@ -1090,6 +1077,7 @@ const DoctorDashboard = () => {
               user={user}
               doctorProfile={doctorProfile}
               onProfileUpdate={fetchProfileDetails}
+              onOpenSettings={(pid) => setConfigModalPatientId(pid)}
             />
           )}
 
@@ -1098,6 +1086,7 @@ const DoctorDashboard = () => {
               patients={patients}
               caretakers={caretakers}
               isDarkMode={isDarkMode}
+              onOpenSettings={(pid) => setConfigModalPatientId(pid)}
             />
           )}
 
@@ -1113,18 +1102,41 @@ const DoctorDashboard = () => {
           {activeView === "messages" && <ChatPage />}
           {activeView === "medicines" && <MedicinesView />}
 
-          {/* <div className=' mt-3'></div>
-          {showEditFile && (
-            <DoctorProfileForm
-              // We pass the already-fetched data to the form
-              initialData={doctorProfile}
-              // We pass the refetch function so the sidebar updates on save
-              onProfileUpdate={fetchProfileDetails}
-            />
-          )}
-<div className=' mt-3'></div> */}
+          {/* <div className=' mt-3'></div> */}
         </main>
       </div>
+
+      {/* Game Parameter Config Modal */}
+      {configModalPatientId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary-500/10 p-2 rounded-xl">
+                  <Settings className="w-5 h-5 text-primary-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                    Game Parameters
+                  </h2>
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                    Configure patient-specific game difficulty and tracking zones
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setConfigModalPatientId(null)}
+                className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <PatientConfigPanel patientId={configModalPatientId} userRole="doctor" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
