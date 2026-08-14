@@ -6,13 +6,15 @@ import {
   UserPlus,
   Loader2,
   Search,
+  ChevronLeft,
+  Menu,
 } from "lucide-react";
 import { Dialog } from "@headlessui/react";
 import { chatService } from "../../services/chatService";
 import { userService } from "../../services/userService";
 import { useAuth } from "../../context/AuthContext";
 
-const ChatPage = ({ type: initialType }) => {
+const ChatPage = ({ type: initialType, onToggleMobileMenu }) => {
   const { user, isDarkMode } = useAuth();
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -21,6 +23,7 @@ const ChatPage = ({ type: initialType }) => {
   const [search, setSearch] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingChats, setLoadingChats] = useState(false);
+  const [activeMobileView, setActiveMobileView] = useState("list"); // 'list' | 'chat'
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [type, setType] = useState(
@@ -36,9 +39,12 @@ const ChatPage = ({ type: initialType }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, selectedChat]);
 
-  const openChat = useCallback(async (chat) => {
+  const openChat = useCallback(async (chat, navigateOnMobile = true) => {
     setLoadingMessages(true);
     setSelectedChat(chat);
+    if (navigateOnMobile) {
+      setActiveMobileView("chat");
+    }
     setMessages([]); // Clear old messages immediately to show it's loading fresh
     try {
       const res = await chatService.getMessages(chat._id);
@@ -65,7 +71,10 @@ const ChatPage = ({ type: initialType }) => {
 
         if (filtered.length > 0) {
           // Only auto-open if no chat is currently selected or if it's the first load
-          if (!selectedChat) openChat(filtered[0]);
+          if (!selectedChat) {
+            const isMobile = window.innerWidth < 768;
+            openChat(filtered[0], !isMobile);
+          }
         } else {
           setSelectedChat(null);
         }
@@ -259,13 +268,21 @@ const ChatPage = ({ type: initialType }) => {
 
   return (
     <div
-      className={`flex h-[calc(100vh-40px)] mt-6 ml-6 transition-all duration-500 ${isDarkMode ? "bg-black" : "bg-white"} overflow-hidden rounded-[2.5rem] shadow-2xl border border-transparent dark:border-gray-800/50`}
+      className={`flex h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] mt-2 ml-2 md:mt-6 md:ml-6 transition-all duration-500 ${isDarkMode ? "bg-black" : "bg-white"} overflow-hidden rounded-2xl md:rounded-[2.5rem] shadow-2xl border border-transparent dark:border-gray-800/50`}
     >
       {/* Sidebar */}
-      <div className="w-1/3 max-w-xs border-r border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex flex-col">
+      <div className={`${activeMobileView === "list" ? "flex" : "hidden"} md:flex w-full md:w-1/3 md:max-w-xs border-r border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3">
+            {onToggleMobileMenu && (
+              <button
+                onClick={onToggleMobileMenu}
+                className="md:hidden p-2 -ml-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+              >
+                <Menu size={24} />
+              </button>
+            )}
             <h2 className="text-2xl font-black dark:text-white tracking-tight">
               Messages
             </h2>
@@ -389,7 +406,7 @@ const ChatPage = ({ type: initialType }) => {
             filteredChats.map((chat) => (
               <div
                 key={chat._id}
-                onClick={() => openChat(chat)}
+                onClick={() => openChat(chat, true)}
                 className={`flex items-start gap-4 p-4 cursor-pointer rounded-2xl transition-all duration-300 ${
                   selectedChat?._id === chat._id
                     ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
@@ -441,11 +458,17 @@ const ChatPage = ({ type: initialType }) => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+      <div className={`${activeMobileView === "chat" ? "flex" : "hidden"} md:flex flex-1 flex-col bg-white dark:bg-gray-900 w-full`}>
         {selectedChat ? (
           <>
-            <div className="flex items-center justify-between px-8 py-5 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-5 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
+              <div className="flex items-center gap-3 md:gap-4">
+                <button
+                  onClick={() => setActiveMobileView("list")}
+                  className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                >
+                  <ChevronLeft size={24} />
+                </button>
                 <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-black">
                   {selectedChat.participants
                     ?.find((p) => p._id !== user?.id)
@@ -506,7 +529,7 @@ const ChatPage = ({ type: initialType }) => {
               })}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t border-gray-100 dark:border-gray-800">
+            <div className="p-4 md:p-6 pb-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 shrink-0 mt-auto">
               <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-2 rounded-[2rem] border border-transparent focus-within:ring-4 focus-within:ring-primary-500/10 transition-all">
                 <input
                   type="text"

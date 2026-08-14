@@ -282,6 +282,14 @@ export default function PatientDashboard({ userId }) {
 
         {/* Bottom Section */}
         <div className="border-t dark:border-gray-800 py-4 pt-5 space-y-2 px-2">
+          <div className="md:hidden">
+            <SidebarItem
+              icon={isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              label={isDarkMode ? "Light Mode" : "Dark Mode"}
+              onClick={() => toggleDarkMode(!isDarkMode)}
+              collapsed={isCollapsed}
+            />
+          </div>
           <SidebarItem
             icon={<LifeBuoy size={18} />}
             label="Help Center"
@@ -296,6 +304,14 @@ export default function PatientDashboard({ userId }) {
             onClick={() => changeSection("Settings")}
             collapsed={isCollapsed}
           />
+          <div className="md:hidden">
+            <SidebarItem
+              icon={<LogOut size={18} className="text-red-500" />}
+              label="Logout"
+              onClick={handleLogout}
+              collapsed={isCollapsed}
+            />
+          </div>
         </div>
       </aside>
 
@@ -335,7 +351,12 @@ export default function PatientDashboard({ userId }) {
           {activeSection === "Record" && (
             <RecordContent isDarkMode={isDarkMode} />
           )}
-          {activeSection === "Chat" && <ChatPage isDarkMode={isDarkMode} />}
+          {activeSection === "Chat" && (
+            <ChatPage 
+              isDarkMode={isDarkMode} 
+              onToggleMobileMenu={() => setIsMobileMenuOpen(true)} 
+            />
+          )}
           {activeSection === "Calendar" && (
             <CalendarContent
               isDarkMode={isDarkMode}
@@ -2911,7 +2932,9 @@ const TopBar = ({
       </div>
 
       <div className="flex items-center gap-3 md:gap-4 relative z-40">
-        <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={toggleDarkMode} />
+        <div className="hidden md:block">
+          <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={toggleDarkMode} />
+        </div>
 
         <div className="relative" ref={dropdownRef}>
           <button
@@ -3002,7 +3025,7 @@ const TopBar = ({
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-2 md:px-5 md:py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-all md:ml-2"
+          className="hidden md:flex items-center gap-2 px-3 py-2 md:px-5 md:py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-all md:ml-2"
         >
           <LogOut size={18} />
           <span className="hidden sm:inline">Logout</span>
@@ -3078,8 +3101,8 @@ const RecordContent = ({ userData, isDarkMode }) => {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-10 fade-in pb-20">
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-10 shadow-xl border border-transparent dark:border-gray-800/50">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-10 fade-in pb-20">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-4 md:p-10 shadow-xl border border-transparent dark:border-gray-800/50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-black dark:text-white tracking-tight">
@@ -3105,7 +3128,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
           {filteredRecords.map((record) => (
             <div
               key={record.id}
-              className="p-6 rounded-[2rem] bg-gray-50/50 dark:bg-gray-800/20 border border-transparent dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all group flex flex-col md:flex-row md:items-center justify-between gap-6"
+              className="p-4 md:p-6 rounded-2xl md:rounded-[2rem] bg-gray-50/50 dark:bg-gray-800/20 border border-transparent dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-xl transition-all group flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6"
             >
               <div className="flex items-center gap-5">
                 <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900 flex items-center justify-center text-primary-500 shadow-sm group-hover:scale-110 transition-transform">
@@ -3127,7 +3150,7 @@ const RecordContent = ({ userData, isDarkMode }) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-8">
+              <div className="flex items-center justify-between w-full md:w-auto md:justify-end flex-wrap gap-4 md:gap-8 mt-2 md:mt-0">
                 <div className="hidden lg:block text-right">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
                     Doctor
@@ -3439,8 +3462,8 @@ const CalendarContent = ({ isDarkMode, reminders, userData }) => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 fade-in pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-gray-900 p-8 rounded-xl shadow-xl shadow-gray-100 dark:shadow-none border border-transparent dark:border-gray-800/50">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-8 fade-in pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-gray-900 p-4 md:p-8 rounded-xl shadow-xl shadow-gray-100 dark:shadow-none border border-transparent dark:border-gray-800/50">
         <div>
           <h1 className="text-4xl font-black dark:text-white tracking-tight">
             Health <span className="text-primary-500">Calendar</span>
@@ -3450,26 +3473,26 @@ const CalendarContent = ({ isDarkMode, reminders, userData }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl border dark:border-gray-700/50">
+        <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto mt-4 md:mt-0 justify-between md:justify-end">
+          <div className="flex flex-1 md:flex-none items-center bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl border dark:border-gray-700/50 overflow-x-auto">
             {["Today", "Week", "Month"].map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${view === v ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm" : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                className={`flex-1 md:flex-none px-3 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${view === v ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm" : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"}`}
               >
                 {v}
               </button>
             ))}
           </div>
-          <button className="bg-primary-500 text-white p-3 rounded-2xl hover:bg-primary-600 transition-all shadow-lg shadow-primary-100 dark:shadow-none">
+          <button className="flex-shrink-0 bg-primary-500 text-white p-3 rounded-2xl hover:bg-primary-600 transition-all shadow-lg shadow-primary-100 dark:shadow-none">
             <Plus size={24} />
           </button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl shadow-gray-100 dark:shadow-none border border-transparent dark:border-gray-800/50 overflow-hidden">
-        <div className="flex items-center justify-between p-8 border-b dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-800/20">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-4 md:p-8 gap-4 sm:gap-0 border-b dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-800/20">
           <h2 className="text-2xl font-black dark:text-white tracking-tight">
             {view === "Month"
               ? `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
@@ -3499,9 +3522,9 @@ const CalendarContent = ({ isDarkMode, reminders, userData }) => {
           </div>
         </div>
 
-        <div>
+        <div className="overflow-x-auto">
           {view === "Month" ? (
-            <div className="grid grid-cols-7 border-collapse">
+            <div className="grid grid-cols-7 border-collapse min-w-[600px]">
               {dayNames.map((d) => (
                 <div
                   key={d}
@@ -3542,7 +3565,7 @@ const SettingsContent = ({ isDarkMode }) => {
     return () => clearInterval(interval);
   }, []);
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-12 fade-in pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8 md:space-y-12 fade-in pb-20">
       <div className="space-y-4">
         <h1 className="text-4xl font-black dark:text-white tracking-tight">
           Account <span className="text-primary-500">Settings</span>
@@ -3553,7 +3576,7 @@ const SettingsContent = ({ isDarkMode }) => {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <div className="premium-card p-10 space-y-10">
+        <div className="premium-card p-4 md:p-10 space-y-8 md:space-y-10">
           {/* Profile Section */}
           <section className="space-y-8">
             <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
@@ -3589,10 +3612,10 @@ const SettingsContent = ({ isDarkMode }) => {
               General Preferences
             </h2>
             <div className="space-y-6">
-              <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800 rounded-[2rem] border border-transparent dark:border-gray-700/50">
-                <div className="flex items-center gap-6">
-                  <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl text-primary-500 shadow-sm">
-                    <Bell size={24} />
+              <div className="flex items-center justify-between p-4 md:p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl md:rounded-[2rem] border border-transparent dark:border-gray-700/50 gap-2 md:gap-0">
+                <div className="flex items-center gap-4 md:gap-6">
+                  <div className="p-3 md:p-4 bg-white dark:bg-gray-900 rounded-2xl text-primary-500 shadow-sm shrink-0">
+                    <Bell size={20} className="md:w-6 md:h-6" />
                   </div>
                   <div>
                     <h4 className="text-lg font-bold dark:text-white">
@@ -3603,15 +3626,15 @@ const SettingsContent = ({ isDarkMode }) => {
                     </p>
                   </div>
                 </div>
-                <div className="w-14 h-8 bg-primary-500 rounded-full flex items-center px-1 cursor-pointer">
-                  <div className="w-6 h-6 bg-white rounded-full shadow-md ml-auto" />
+                <div className="w-14 h-8 shrink-0 bg-primary-500 rounded-full flex items-center px-1 cursor-pointer">
+                  <div className="w-6 h-6 bg-white rounded-full shadow-md ml-auto shrink-0" />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800 rounded-[2rem] border border-transparent dark:border-gray-700/50">
-                <div className="flex items-center gap-6">
-                  <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl text-secondary-500 shadow-sm">
-                    <Shield size={24} />
+              <div className="flex items-center justify-between p-4 md:p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl md:rounded-[2rem] border border-transparent dark:border-gray-700/50 gap-2 md:gap-0">
+                <div className="flex items-center gap-4 md:gap-6">
+                  <div className="p-3 md:p-4 bg-white dark:bg-gray-900 rounded-2xl text-secondary-500 shadow-sm shrink-0">
+                    <Shield size={20} className="md:w-6 md:h-6" />
                   </div>
                   <div>
                     <h4 className="text-lg font-bold dark:text-white">
@@ -3622,8 +3645,8 @@ const SettingsContent = ({ isDarkMode }) => {
                     </p>
                   </div>
                 </div>
-                <div className="w-14 h-8 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center px-1 cursor-pointer">
-                  <div className="w-6 h-6 bg-white rounded-full shadow-md" />
+                <div className="w-14 h-8 shrink-0 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center px-1 cursor-pointer">
+                  <div className="w-6 h-6 bg-white rounded-full shadow-md shrink-0" />
                 </div>
               </div>
             </div>
@@ -3633,7 +3656,7 @@ const SettingsContent = ({ isDarkMode }) => {
 
           {/* Offline Game Sessions Buffer */}
           <section className="space-y-8">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6">
               <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
                 <WifiOff className="text-indigo-500" />
                 Offline Game Sessions Buffer
@@ -3649,7 +3672,7 @@ const SettingsContent = ({ isDarkMode }) => {
                     setAutoSyncEnabled(newVal);
                     localStorage.setItem('hci_auto_sync_buffer', newVal.toString());
                   }}
-                  className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${
+                  className={`w-12 h-6 shrink-0 rounded-full relative transition-colors duration-300 ${
                     autoSyncEnabled ? "bg-green-500" : "bg-gray-300 dark:bg-gray-700"
                   }`}
                 >
