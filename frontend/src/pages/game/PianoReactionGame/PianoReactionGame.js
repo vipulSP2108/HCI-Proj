@@ -1351,6 +1351,16 @@ const PianoReactionGame = () => {
 
   const handleExitDiscard = () => {
     setShowExitModal(false);
+    
+    if (sectionTimerRef.current) {
+      clearTimeout(sectionTimerRef.current);
+      sectionTimerRef.current = null;
+    }
+    if (overallTimerRef.current) {
+      clearInterval(overallTimerRef.current);
+      overallTimerRef.current = null;
+    }
+    
     gameSessionBuffer.discard();
     navigate(user?.type === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
   };

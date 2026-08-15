@@ -9,6 +9,7 @@ import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
+import { Minimize2, Maximize2, RotateCcw, X, GripHorizontal } from "lucide-react";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   BOARD_DRAWING_COORD_SAMPLE_MS,
@@ -252,11 +253,11 @@ const getMinDistanceToShapeOutline = (pos, points) => {
 
 // ==================== MAIN COMPONENT ====================
 const BoardDrawingGame = () => {
-  const { user } = useAuth();
+  const { user, isDarkMode } = useAuth();
   const navigate = useNavigate();
 
   // Settings
-  const { globalSettings, isDarkMode } = useSettings();
+  const { globalSettings } = useSettings();
   const [patientConfig, setPatientConfig] = useState(null);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
   
@@ -279,6 +280,19 @@ const BoardDrawingGame = () => {
     }
   }, [user?.id || user?._id]);
   
+  // Mobile / PiP State
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [pipMinimized, setPipMinimized] = useState(false);
+  const [pipPos, setPipPos] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
@@ -772,6 +786,17 @@ const BoardDrawingGame = () => {
 
   const handleEndSession = useCallback(async () => {
     setIsSessionActive(false);
+    // Exit fullscreen when returning to lobby
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     finalizeActiveDrawingAttempt();
     logsRef.current.push({
       timestamp: nowSec(),
@@ -1886,6 +1911,16 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     setSuccessRate(0);
     setIsSessionActive(true);
 
+    // On mobile: place PiP at top-right, go fullscreen to hide browser chrome
+    if (window.innerWidth <= 768 || window.screen.width <= 768) {
+      const w = window.innerWidth;
+      setPipPos({ x: w - 180, y: 10 });
+      setPipMinimized(false);
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+
     // Start a local storage game record
     localGameIdRef.current = GameStorage.startGame(shapeRef.current?.points ?? []);
     setShowAnalyticsBtn(false);
@@ -1916,14 +1951,13 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   // Store how much time was left on each timer when modal opens
   const _exitModalTimerSave = React.useRef(null);
 
-  const openExitModal = () => {
+  const pauseBoardTimers = () => {
     const now = Date.now();
     // Freeze shape timer — remember remaining ms
     let shapeRemaining = null;
     if (shapeTimerRef.current) {
       clearTimeout(shapeTimerRef.current);
       shapeTimerRef.current = null;
-      // shapeTimerStartRef stores when the current shape timer was set
       shapeRemaining = shapeTimerRef._deadline
         ? Math.max(0, shapeTimerRef._deadline - now)
         : null;
@@ -1934,9 +1968,12 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       timerIntervalRef.current = null;
     }
     _exitModalTimerSave.current = { shapeRemaining, openedAt: now };
-    setShowExitModal(true);
   };
 
+  const openExitModal = () => {
+    pauseBoardTimers();
+    setShowExitModal(true);
+  };
   const _resumeBoardTimers = () => {
     const save = _exitModalTimerSave.current;
     if (!save) return;
@@ -1975,6 +2012,35 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     }
     _exitModalTimerSave.current = null;
   };
+
+  const isRotatedPausedRef = useRef(false);
+  const pauseBoardTimersRef = useRef(pauseBoardTimers);
+  pauseBoardTimersRef.current = pauseBoardTimers;
+  const resumeBoardTimersRef = useRef(_resumeBoardTimers);
+  resumeBoardTimersRef.current = _resumeBoardTimers;
+
+  useEffect(() => {
+    if (!isMobile || !isSessionActive) return;
+    const handleResize = () => {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      // Pause if rotated to portrait and not already paused (exit modal acts as manual pause here)
+      if (isPortrait && !_exitModalTimerSave.current) {
+        isRotatedPausedRef.current = true;
+        pauseBoardTimersRef.current();
+      } 
+      // Resume if rotated back to landscape and we were the ones who paused it
+      else if (!isPortrait && isRotatedPausedRef.current) {
+        isRotatedPausedRef.current = false;
+        // only resume if exit modal isn't open
+        if (_exitModalTimerSave.current && !showExitModal) {
+          resumeBoardTimersRef.current();
+        }
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // check immediately
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile, isSessionActive, showExitModal]);
 
   const handleExitSave = async () => {
     setShowExitModal(false);
@@ -2141,7 +2207,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     title: {
       ...styles.title,
-      color: isDarkMode ? "#4ade80" : "#2f7a2f",
+      color: isDarkMode ? "#60a5fa" : "#2563eb",
     },
     muted: {
       ...styles.muted,
@@ -2159,7 +2225,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     statValue: {
       ...styles.statValue,
-      color: isDarkMode ? "#4ade80" : "#2f7a2f",
+      color: isDarkMode ? "#60a5fa" : "#2563eb",
     },
     statLabel: {
       ...styles.statLabel,
@@ -2180,8 +2246,8 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       background: isDarkMode
         ? "rgba(17, 24, 39, 0.95)"
         : "rgba(255, 255, 255, 0.95)",
-      color: isDarkMode ? "#4ade80" : "#2f7a2f",
-      border: isDarkMode ? "1px solid #4ade80" : "none",
+      color: isDarkMode ? "#60a5fa" : "#2563eb",
+      border: isDarkMode ? "1px solid #60a5fa" : "none",
     },
     actionButton: {
       ...styles.actionButton,
@@ -2201,274 +2267,229 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     );
   }
 
+  // === Single always-mounted webcam container styles ===
+  // This keeps the video element in the DOM at all times so MediaPipe never loses its video source.
+  const isMobileActive = isMobile && isSessionActive;
+  const pipContainerStyle = isMobileActive ? {
+    // Mobile in-game: fixed PiP window — always left/top so pipPos fully controls position
+    position: 'fixed',
+    zIndex: 9994,
+    width: pipMinimized ? '52px' : '170px',
+    height: pipMinimized ? '52px' : '128px',
+    left: `${pipPos.x}px`,
+    top: `${pipPos.y}px`,
+    borderRadius: pipMinimized ? '50%' : '10px',
+    overflow: 'hidden',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    border: '2px solid rgba(255,255,255,0.3)',
+    background: '#000',
+    transition: isDragging ? 'none' : 'left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.2s ease, height 0.2s ease, border-radius 0.2s ease',
+    touchAction: 'none',
+  } : {
+    // Pre-game / desktop: embedded in the side panel, normal size
+    position: 'relative',
+    height: '260px',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    background: '#111',
+    border: '2px solid ' + (isDarkMode ? '#1f2937' : '#ddd'),
+    marginBottom: 0,
+  };
+
   return (
-    <div style={themeStyles.container}>
+    <div style={{
+      ...themeStyles.container,
+      ...(isMobile && !isSessionActive ? {
+        flexDirection: 'column', padding: 0, gap: 0, height: '100%', minHeight: '100vh', overflow: 'auto'
+      } : {}),
+      ...(isMobileActive ? {
+        position: 'fixed', inset: 0, padding: 0, gap: 0, height: '100%', overflow: 'hidden', zIndex: 9990,
+        background: 'linear-gradient(135deg, #cfead1, #86c98a)',
+      } : {})
+    }}>
       <FullScreenLoader isSaving={isSavingLocal} />
-      <aside style={themeStyles.panel}>
-        <h1 style={themeStyles.title}>Shape Tracer</h1>
-        <p style={themeStyles.muted}>
-          A surgical-grade motor rehabilitation module. Follow the patterns with
-          high precision.
-        </p>
 
-        <div style={themeStyles.videoWrap}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={styles.video}
+      {/* Portrait rotation nag */}
+      {isMobileActive && window.innerHeight > window.innerWidth && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', color: 'white', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <RotateCcw size={48} style={{ marginBottom: 16 }} />
+          <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px' }}>Rotate your device</h2>
+          <p style={{ opacity: 0.8 }}>Please hold your phone in Landscape mode for the therapy session.</p>
+        </div>
+      )}
+
+      {/* ── Mobile in-game overlay: game canvas + controls ── */}
+      {isMobileActive && (
+        <>
+          <canvas
+            ref={gameCanvasRef}
+            style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+            onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
           />
-          <canvas ref={overlayRef} style={styles.overlay} />
+          {statusMessage.visible && <div style={{ ...themeStyles.statusMessage, zIndex: 9995 }}>{statusMessage.text}</div>}
+          <button onClick={handleEndSession} style={{ position: 'fixed', top: 10, left: 10, zIndex: 9996, background: 'rgba(220, 53, 69, 0.9)', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.35)', fontSize: 13 }}>
+            <X size={15} /> Quit
+          </button>
+        </>
+      )}
 
-          {isCalibrating && (
-            <div style={themeStyles.statusMessage}>
-              Calibrating... {calibTimeLeft}s
+      {/* ── Desktop side panel + canvas layout (and mobile pre-game lobby) ── */}
+      <aside style={{
+        ...(isMobileActive ? {
+          display: 'block', padding: 0, margin: 0, width: 0, height: 0, border: 'none', background: 'transparent', overflow: 'visible'
+        } : {
+          ...themeStyles.panel, width: isMobile ? '100%' : '360px', flexShrink: 0, borderRadius: isMobile ? 0 : '10px', overflowY: 'auto'
+        })
+      }}>
+        {!isMobileActive && (
+          <>
+            <h1 style={themeStyles.title}>Shape Tracer</h1>
+            <p style={themeStyles.muted}>A surgical-grade motor rehabilitation module. Follow the patterns with high precision.</p>
+          </>
+        )}
+
+        {/* ── ALWAYS-MOUNTED webcam PiP container (video never unmounts = MediaPipe stays alive) ── */}
+        <div style={pipContainerStyle}>
+          {/* Drag + minimize handle — only active during mobile game */}
+          {isMobileActive && (
+            <div
+              style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={(e) => { setIsDragging(true); dragStartRef.current = { x: e.clientX - pipPos.x, y: e.clientY - pipPos.y }; e.currentTarget.setPointerCapture(e.pointerId); }}
+              onPointerMove={(e) => { 
+                if (isDragging) {
+                  const pipW = pipMinimized ? 52 : 170;
+                  const pipH = pipMinimized ? 52 : 128;
+                  let newX = e.clientX - dragStartRef.current.x;
+                  let newY = e.clientY - dragStartRef.current.y;
+                  newX = Math.max(0, Math.min(newX, window.innerWidth - pipW));
+                  newY = Math.max(0, Math.min(newY, window.innerHeight - pipH));
+                  setPipPos({ x: newX, y: newY });
+                }
+              }}
+              onPointerUp={(e) => { 
+                setIsDragging(false); 
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                setPipPos((currentPos) => {
+                  const pipW = pipMinimized ? 52 : 170;
+                  const pipH = pipMinimized ? 52 : 128;
+                  const padding = 10;
+                  let finalX = currentPos.x;
+                  let finalY = currentPos.y;
+                  
+                  const distLeft = currentPos.x;
+                  const distRight = window.innerWidth - (currentPos.x + pipW);
+                  const distTop = currentPos.y;
+                  const distBottom = window.innerHeight - (currentPos.y + pipH);
+                  
+                  const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+                  
+                  if (minDist === distLeft) {
+                    finalX = padding;
+                  } else if (minDist === distRight) {
+                    finalX = window.innerWidth - pipW - padding;
+                  } else if (minDist === distTop) {
+                    finalY = padding;
+                  } else {
+                    finalY = window.innerHeight - pipH - padding;
+                  }
+                  
+                  finalX = Math.max(padding, Math.min(finalX, window.innerWidth - pipW - padding));
+                  finalY = Math.max(padding, Math.min(finalY, window.innerHeight - pipH - padding));
+                  return { x: finalX, y: finalY };
+                });
+              }}
+              onClick={() => setPipMinimized(m => !m)}
+            />
+          )}
+          <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', display: 'block' }} />
+          <canvas ref={overlayRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: isMobileActive ? 'none' : 'auto' }} />
+          {/* Calibration overlay (pre-game) */}
+          {!isMobileActive && isCalibrating && (
+            <div style={themeStyles.statusMessage}>Calibrating... {calibTimeLeft}s</div>
+          )}
+          {/* Hand status pills (pre-game) */}
+          {!isMobileActive && (
+            <div style={styles.handStatus}>
+              {(() => {
+                const leftCanDraw = handPoseMode === 'any' ? leftHandVisible : (leftHandVisible && leftHandClosed);
+                const rightCanDraw = handPoseMode === 'any' ? rightHandVisible : (rightHandVisible && rightHandClosed);
+                return (
+                  <>
+                    {leftHandVisible && <div style={{ ...styles.handIndicator, ...(leftCanDraw ? styles.handOpen : styles.handClosed) }}><span style={styles.dot} /><span>Left {leftCanDraw ? '🟢 Can Draw' : '🔴 Cannot Draw'}</span></div>}
+                    {rightHandVisible && <div style={{ ...styles.handIndicator, ...(rightCanDraw ? styles.handOpen : styles.handClosed) }}><span style={styles.dot} /><span>Right {rightCanDraw ? '🟢 Can Draw' : '🔴 Cannot Draw'}</span></div>}
+                  </>
+                );
+              })()}
             </div>
           )}
-
-          <div style={styles.handStatus}>
-            {(() => {
-              const leftCanDraw = handPoseMode === "any" ? leftHandVisible : (leftHandVisible && leftHandClosed);
-              const rightCanDraw = handPoseMode === "any" ? rightHandVisible : (rightHandVisible && rightHandClosed);
-              return (
-                <>
-                  {leftHandVisible && (
-                    <div
-                      style={{
-                        ...styles.handIndicator,
-                        ...(leftCanDraw ? styles.handOpen : styles.handClosed),
-                      }}
-                    >
-                      <span style={styles.dot}></span>
-                      <span>Left {leftCanDraw ? "🟢 Can Draw" : "🔴 Cannot Draw"}</span>
-                    </div>
-                  )}
-                  {rightHandVisible && (
-                    <div
-                      style={{
-                        ...styles.handIndicator,
-                        ...(rightCanDraw ? styles.handOpen : styles.handClosed),
-                      }}
-                    >
-                      <span style={styles.dot}></span>
-                      <span>Right {rightCanDraw ? "🟢 Can Draw" : "🔴 Cannot Draw"}</span>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
+          {/* PiP minimize icon */}
+          {isMobileActive && <div style={{ position: 'absolute', bottom: 2, right: 4, color: 'white', fontSize: 10, opacity: 0.7, pointerEvents: 'none' }}>{pipMinimized ? '⛶' : '⊖'}</div>}
         </div>
 
-        <div style={styles.controls}>
-          <button
-            onClick={handleStartCalibration}
-            style={styles.controlButton}
-            disabled={isCalibrating}
-          >
-            📏 Calibrate System
-          </button>
-          <button onClick={handleStartSession} style={styles.controlButton}>
-            {isSessionActive ? "⏸ Pause" : "▶️ Start Therapy"}
-          </button>
-          <div
-            onClick={() => {
-              if (isTesting || hasAssistiveFreedom) toggleHandPoseMode();
-            }}
-            style={{
-              ...styles.controlButton, 
-              background: handPoseMode === "strict" ? "#ff922b" : "#51cf66", 
-              marginTop: '10px', 
-              opacity: (isTesting || hasAssistiveFreedom) ? 1 : 0.8, 
-              cursor: (isTesting || hasAssistiveFreedom) ? 'pointer' : 'not-allowed', 
-              textAlign: 'center'
-            }}
-          >
-            {handPoseMode === "strict" 
-              ? `✊ Posture: Strict ${(isTesting || hasAssistiveFreedom) ? "(Click to Change)" : "(Locked)"}`
-              : `✋ Posture: Any ${(isTesting || hasAssistiveFreedom) ? "(Click to Change)" : "(Locked)"}`}
-          </div>
-          
-          <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
-            <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
-              🎯 Target Figure/Shape
-            </div>
-            <select
-              value={selectedShape}
-              onChange={(e) => setSelectedShape(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid ' + (isDarkMode ? '#475569' : '#cbd5e1'),
-                background: isDarkMode ? '#0f172a' : '#ffffff',
-                color: isDarkMode ? '#f8fafc' : '#0f172a',
-                fontSize: '13px',
-                fontWeight: '600',
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="random">Randomize (Change Each Round)</option>
-              {SHAPES.filter(s => allowedShapes.includes(s) || allowedShapes.includes('random')).map(s => (
-                <option key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
-            <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>
-              🔧 Tracing Zone Adjustments
-            </div>
-          {/* Tracing Zone Adjustments */}
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
-                  🟢 Safe Zone: {(safeZoneRadius * 100).toFixed(1)}%
-                </span>
-                <input
-                  type="range"
-                  min="0.01"
-                  max="0.06"
-                  step="0.005"
-                  value={safeZoneRadius}
-                  disabled={!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setSafeZoneRadius(val);
-                    safeZoneRadiusRef.current = val;
-                    if (val > warningZoneRadius) {
-                      setWarningZoneRadius(val + 0.01);
-                      warningZoneRadiusRef.current = val + 0.01;
-                    }
-                  }}
-                  style={{ flex: 1, accentColor: '#51cf66', cursor: (!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined) ? 'not-allowed' : 'pointer', opacity: (!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined) ? 0.5 : 1 }}
-                />
+        {!isMobileActive && (
+          <>
+
+            {/* Controls */}
+            <div style={styles.controls}>
+              <button onClick={handleStartCalibration} style={styles.controlButton} disabled={isCalibrating}>📏 Calibrate System</button>
+              <button onClick={handleStartSession} style={styles.controlButton}>{isSessionActive ? '⏸ Pause' : '▶️ Start Therapy'}</button>
+              <div onClick={() => { if (isTesting || hasAssistiveFreedom) toggleHandPoseMode(); }} style={{ ...styles.controlButton, background: handPoseMode === 'strict' ? '#ff922b' : '#51cf66', marginTop: '10px', opacity: (isTesting || hasAssistiveFreedom) ? 1 : 0.8, cursor: (isTesting || hasAssistiveFreedom) ? 'pointer' : 'not-allowed', textAlign: 'center' }}>
+                {handPoseMode === 'strict' ? `✊ Posture: Strict ${(isTesting || hasAssistiveFreedom) ? '(Click to Change)' : '(Locked)'}` : `✋ Posture: Any ${(isTesting || hasAssistiveFreedom) ? '(Click to Change)' : '(Locked)'}`}
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px', textAlign: 'left' }}>
-                  🟡 Warning: {(warningZoneRadius * 100).toFixed(1)}%
-                </span>
-                <input
-                  type="range"
-                  min="0.02"
-                  max="0.12"
-                  step="0.005"
-                  value={warningZoneRadius}
-                  disabled={!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    if (val >= safeZoneRadius) {
-                      setWarningZoneRadius(val);
-                      warningZoneRadiusRef.current = val;
-                    }
-                  }}
-                  style={{ flex: 1, accentColor: '#fcc419', cursor: (!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined) ? 'not-allowed' : 'pointer', opacity: (!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined) ? 0.5 : 1 }}
-                />
+              <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
+                <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🎯 Target Figure/Shape</div>
+                <select value={selectedShape} onChange={(e) => setSelectedShape(e.target.value)} style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid ' + (isDarkMode ? '#475569' : '#cbd5e1'), background: isDarkMode ? '#0f172a' : '#ffffff', color: isDarkMode ? '#f8fafc' : '#0f172a', fontSize: '13px', fontWeight: '600', outline: 'none', cursor: 'pointer' }}>
+                  <option value="random">Randomize (Change Each Round)</option>
+                  {SHAPES.filter(s => allowedShapes.includes(s) || allowedShapes.includes('random')).map(s => (<option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>))}
+                </select>
               </div>
-            </>
-          </div>
-        </div>
+              <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px', background: isDarkMode ? '#1e293b' : '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid ' + (isDarkMode ? '#334155' : '#e2e8f0'), width: '100%' }}>
+                <div style={{ fontSize: '10px', fontWeight: 'bold', color: isDarkMode ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🔧 Tracing Zone Adjustments</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px' }}>🟢 Safe Zone: {(safeZoneRadius * 100).toFixed(1)}%</span>
+                  <input type="range" min="0.01" max="0.06" step="0.005" value={safeZoneRadius} disabled={!isTesting && !hasGreenFreedom && doctorBoardConfig?.greenZone?.value !== undefined} onChange={(e) => { const val = parseFloat(e.target.value); setSafeZoneRadius(val); safeZoneRadiusRef.current = val; if (val > warningZoneRadius) { setWarningZoneRadius(val + 0.01); warningZoneRadiusRef.current = val + 0.01; } }} style={{ flex: 1, accentColor: '#51cf66' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#334155', minWidth: '110px' }}>🟡 Warning: {(warningZoneRadius * 100).toFixed(1)}%</span>
+                  <input type="range" min="0.02" max="0.12" step="0.005" value={warningZoneRadius} disabled={!isTesting && !hasYellowFreedom && doctorBoardConfig?.yellowZone?.value !== undefined} onChange={(e) => { const val = parseFloat(e.target.value); if (val >= safeZoneRadius) { setWarningZoneRadius(val); warningZoneRadiusRef.current = val; } }} style={{ flex: 1, accentColor: '#fcc419' }} />
+                </div>
+              </div>
+            </div>
 
-        <div style={themeStyles.stats}>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Total Score</div>
-            <div style={themeStyles.statValue}>{score}</div>
-          </div>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Success Rate</div>
-            <div style={themeStyles.statValue}>{Math.round(successRate)}%</div>
-          </div>
-          {/* <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Shapes Done</div>
-            <div style={themeStyles.statValue}>{reps}</div>
-          </div> */}
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Session Timer</div>
-            <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>
-          </div>
-        </div>
-
-        <div style={styles.actions}>
-          <button
-            onClick={handleQuitOrBack}
-            style={themeStyles.actionButton}
-          >
-            Quit Session
-          </button>
-          <button onClick={handleReset} style={themeStyles.actionButton}>
-            Reset
-          </button>
-        </div>
-
-        {showAnalyticsBtn && (
-          <button
-            onClick={() => {
-              // Open analytics in a new tab passing the game id
-              const url = `/analytics?gameId=${localGameIdRef.current}`;
-              window.open(url, '_blank');
-            }}
-            style={{
-              ...styles.controlButton,
-              marginTop: '10px',
-              background: '#1565c0',
-              width: '100%',
-            }}
-          >
-            📊 View Game Analytics
-          </button>
+            <div style={themeStyles.stats}>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>Total Score</div><div style={themeStyles.statValue}>{score}</div></div>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>Success Rate</div><div style={themeStyles.statValue}>{Math.round(successRate)}%</div></div>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>Session Timer</div><div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div></div>
+            </div>
+            <div style={styles.actions}>
+              <button onClick={handleQuitOrBack} style={themeStyles.actionButton}>Quit Session</button>
+              <button onClick={handleReset} style={themeStyles.actionButton}>Reset</button>
+            </div>
+            {showAnalyticsBtn && (<button onClick={() => { window.open(`/analytics?gameId=${localGameIdRef.current}`, '_blank'); }} style={{ ...styles.controlButton, marginTop: '10px', background: '#1565c0', width: '100%' }}>📊 View Game Analytics</button>)}
+            <button onClick={() => window.open('/analytics', '_blank')} style={{ ...themeStyles.actionButton, marginTop: '8px', width: '100%', fontSize: '12px', padding: '7px' }}>🗂 All Games History</button>
+            <div style={themeStyles.note}><strong style={themeStyles.statValue}>Clinical Focus:</strong> Fine motor precision and distal control.</div>
+          </>
         )}
-
-        <button
-          onClick={() => window.open('/analytics', '_blank')}
-          style={{
-            ...themeStyles.actionButton,
-            marginTop: '8px',
-            width: '100%',
-            fontSize: '12px',
-            padding: '7px',
-          }}
-        >
-          🗂 All Games History
-        </button>
-
-        <div style={themeStyles.note}>
-          <strong style={themeStyles.statValue}>Clinical Focus:</strong> Fine
-          motor precision and distal control.
-        </div>
       </aside>
 
-      <main style={styles.gameArea}>
-        <canvas 
-          ref={gameCanvasRef} 
-          style={styles.gameCanvas} 
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        />
-        {statusMessage.visible && (
-          <div style={themeStyles.statusMessage}>{statusMessage.text}</div>
-        )}
-      </main>
-      <SaveExitButton onBeforeSave={() => {
-        finalizeActiveDrawingAttempt();
-        persistBoardDrawingBuffer();
-      }} />
-      <ExitConfirmModal
-        isOpen={showExitModal}
-        hasPending={gameSessionBuffer.hasPending()}
-        onSave={handleExitSave}
-        onDiscard={handleExitDiscard}
-        onCancel={handleExitCancel}
-      />
+      {!isMobileActive && (
+        <>
+          <main style={{ ...styles.gameArea, flex: 1, position: 'relative' }}>
+            <canvas
+              ref={gameCanvasRef}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', borderRadius: '10px', background: 'linear-gradient(135deg, #cfead1, #86c98a)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+            />
+            {statusMessage.visible && <div style={themeStyles.statusMessage}>{statusMessage.text}</div>}
+          </main>
+
+          <SaveExitButton onBeforeSave={() => { finalizeActiveDrawingAttempt(); persistBoardDrawingBuffer(); }} />
+        </>
+      )}
+
+      <ExitConfirmModal isOpen={showExitModal} hasPending={gameSessionBuffer.hasPending()} onSave={handleExitSave} onDiscard={handleExitDiscard} onCancel={handleExitCancel} />
     </div>
   );
 };
@@ -2595,7 +2616,7 @@ const styles = {
     padding: "11px",
     borderRadius: "8px",
     border: 0,
-    background: "#2f7a2f",
+    background: "#3b82f6",
     color: "white",
     cursor: "pointer",
     fontSize: "14px",
@@ -2641,7 +2662,7 @@ const styles = {
   statValue: {
     fontSize: "20px",
     fontWeight: 700,
-    color: "#2f7a2f",
+    color: "#2563eb",
   },
   actions: {
     display: "flex",
@@ -2668,10 +2689,10 @@ const styles = {
     background: "#f9f9f9",
     borderRadius: "6px",
     lineHeight: 1.6,
-    borderLeft: "3px solid #2f7a2f",
+    borderLeft: "3px solid #2563eb",
   },
   noteTitle: {
-    color: "#2f7a2f",
+    color: "#2563eb",
     display: "block",
     marginBottom: "6px",
   },
@@ -2682,7 +2703,10 @@ const styles = {
     position: "relative",
   },
   gameCanvas: {
-    flex: 1,
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
     borderRadius: "10px",
     background: "linear-gradient(135deg, #cfead1, #86c98a)",
     display: "block",

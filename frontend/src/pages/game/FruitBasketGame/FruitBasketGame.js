@@ -9,6 +9,7 @@ import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
+import { Minimize2, Maximize2, RotateCcw, X, GripHorizontal } from "lucide-react";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   FRUIT_BASKET_COORD_SAMPLE_MS,
@@ -128,6 +129,19 @@ const FruitBasketGame = () => {
   const [trialTimeLeft, setTrialTimeLeft] = useState(10);
   const [isCooldown, setIsCooldown] = useState(false);
   const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
+
+  // Mobile / PiP State
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [pipMinimized, setPipMinimized] = useState(false);
+  const [pipPos, setPipPos] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Refs
   const videoRef = useRef(null);
@@ -1272,9 +1286,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       const py = hole.y * h;
       const isBasket = !isCooldown && idx === basketIdxRef.current;
       // Basket is drawn 2× larger so it is easy to see and aim for
+      const minBasketR = isMobile ? 45 : 70;
+      const minHoleR = isMobile ? 25 : 35;
       const r = isBasket
-        ? Math.max(70 * scale, CONFIG.DROP_DISTANCE * Math.min(w, h))
-        : Math.max(35 * scale, CONFIG.PICK_DISTANCE * Math.min(w, h));
+        ? Math.max(minBasketR * scale, CONFIG.DROP_DISTANCE * Math.min(w, h))
+        : Math.max(minHoleR * scale, CONFIG.PICK_DISTANCE * Math.min(w, h));
       ctx.beginPath();
       ctx.fillStyle =
         isBasket
@@ -1637,6 +1653,17 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     sequenceIndexRef.current = 0;
     spawnFruit();
     setSuccessRate(0);
+
+    // On mobile: position PiP at top-right corner, then go fullscreen to hide browser chrome
+    if (window.innerWidth <= 768 || window.screen.width <= 768) {
+      const w = window.innerWidth;
+      setPipPos({ x: w - 180, y: 10 });
+      setPipMinimized(false);
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+
     setIsSessionActive(true);
 
     timerIntervalRef.current = setInterval(() => {
@@ -1695,6 +1722,28 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       showStatus("▶️ Session resumed!", 2000);
     }
   };
+
+  const isRotatedPausedRef = useRef(false);
+  const handlePauseResumeRef = useRef(handlePauseResume);
+  handlePauseResumeRef.current = handlePauseResume;
+
+  useEffect(() => {
+    if (!isMobile || !isSessionActive) return;
+    const handleResize = () => {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (isPortrait && !isPausedRef.current) {
+        isRotatedPausedRef.current = true;
+        handlePauseResumeRef.current();
+      } else if (!isPortrait && isRotatedPausedRef.current) {
+        isRotatedPausedRef.current = false;
+        if (isPausedRef.current) handlePauseResumeRef.current();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // check immediately
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile, isSessionActive]);
+
   useEffect(() => {
     // We intentionally do not write to localStorage continuously to avoid frame drops.
     // Data is stored in memory via refs and written on Save & Exit.
@@ -1702,10 +1751,20 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
   const handleEndSession = async () => {
     setIsSessionActive(false);
+    // Exit fullscreen when returning to lobby
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
 
     if (trialTimeoutIdRef.current) {
       clearTimeout(trialTimeoutIdRef.current);
       trialTimeoutIdRef.current = null;
+    }
+
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
     }
 
     setCooldownTimeLeft(0);
@@ -2039,7 +2098,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     title: {
       ...styles.title,
-      color: isDarkMode ? "#e6a817" : "#e6a817",
+      color: isDarkMode ? "#60a5fa" : "#2563eb",
     },
     muted: {
       ...styles.muted,
@@ -2057,7 +2116,7 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     },
     statValue: {
       ...styles.statValue,
-      color: isDarkMode ? "#e6a817" : "#e6a817",
+      color: isDarkMode ? "#60a5fa" : "#2563eb",
     },
     statLabel: {
       ...styles.statLabel,
@@ -2094,238 +2153,190 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     );
   }
 
+  const isMobileActive = isMobile && isSessionActive;
+
+  // Keep video always mounted — MediaPipe must not lose its video source
+  // PiP uses left/top always so position is fully controlled by pipPos state (no snap-back)
+  const pipContainerStyle = isMobileActive ? {
+    position: 'fixed', zIndex: 9994,
+    width: pipMinimized ? '52px' : '170px',
+    height: pipMinimized ? '52px' : '128px',
+    left: `${pipPos.x}px`,
+    top: `${pipPos.y}px`,
+    borderRadius: pipMinimized ? '50%' : '10px',
+    overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    border: '2px solid rgba(255,255,255,0.3)', background: '#000',
+    transition: isDragging ? 'none' : 'left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.2s ease, height 0.2s ease, border-radius 0.2s ease',
+    touchAction: 'none',
+  } : {
+    position: 'relative', height: '260px', borderRadius: '8px',
+    overflow: 'hidden', background: '#000',
+    border: '2px solid ' + (isDarkMode ? '#1f2937' : '#eee'), marginBottom: 0,
+  };
+
   return (
-    <div style={themeStyles.container}>
+    <div style={{
+      ...themeStyles.container,
+      ...(isMobile && !isSessionActive ? { flexDirection: 'column', padding: 0, gap: 0, height: '100%', minHeight: '100vh', overflow: 'auto' } : {}),
+      ...(isMobileActive ? { position: 'fixed', inset: 0, padding: 0, gap: 0, height: '100%', overflow: 'hidden', zIndex: 9990, background: 'linear-gradient(135deg, #cfead1, #86c98a)' } : {})
+    }}>
       <FullScreenLoader isSaving={isSavingLocal} />
-      <aside style={themeStyles.panel}>
-        <h1 style={themeStyles.title}>🍏 Arm Orchard</h1>
-        <p style={themeStyles.muted}>
-          Grasp, transport, and release fruits into the basket to improve
-          coordination.
-        </p>
-        
-        {/* Side panel calibration instructions overlay */}
-        {isCalibrating && (
-          <div style={styles.calibOverlaySide}>
-            <div style={styles.stepCounter}>
-              Step {calibrationStep === 'left_open' ? '1' : 
-                    calibrationStep === 'left_close' ? '2' : 
-                    calibrationStep === 'right_open' ? '3' : 
-                    calibrationStep === 'right_close' ? '4' : '5'}/5
-            </div>
-            <strong style={{ fontSize: '14px', display: 'block', margin: '4px 0', color: '#fff' }}>
-              {calibrationStep === 'left_open' && "LEFT HAND: OPEN PALM ✋"}
-              {calibrationStep === 'left_close' && "LEFT HAND: CLOSED FIST ✊"}
-              {calibrationStep === 'right_open' && "RIGHT HAND: OPEN PALM ✋"}
-              {calibrationStep === 'right_close' && "RIGHT HAND: CLOSED FIST ✊"}
-              {calibrationStep === 'movement' && "MOVE BOTH HANDS TO CORNERS"}
-            </strong>
-            <em style={{ fontStyle: 'normal', opacity: 0.9, fontSize: '12px' }}>
-              {calibrationStep === 'movement' 
-                ? `${calibTimeLeft} seconds remaining...`
-                : `Hold for ${calibTimeLeft}s...`}
-            </em>
-          </div>
+
+      {/* Portrait rotation nag */}
+      {isMobileActive && window.innerHeight > window.innerWidth && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', color: 'white', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <RotateCcw size={48} style={{ marginBottom: 16 }} />
+          <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px' }}>Rotate your device</h2>
+          <p style={{ opacity: 0.8 }}>Please hold your phone in Landscape mode for the therapy session.</p>
+        </div>
+      )}
+
+      {/* Mobile in-game overlay */}
+      {isMobileActive && (
+        <>
+          <canvas ref={gameCanvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
+          {isSessionActive && !isCooldown && <div style={{ ...styles.trialTimer, zIndex: 9995 }}>Timer: {trialTimeLeft}s</div>}
+          {statusMessage.visible && <div style={{ ...themeStyles.statusMessage, zIndex: 9995 }}>{statusMessage.text}</div>}
+          <button onClick={handleEndSession} style={{ position: 'fixed', top: 10, left: 10, zIndex: 9996, background: 'rgba(220, 53, 69, 0.9)', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.35)', fontSize: 13 }}>
+            <X size={15} /> Quit
+          </button>
+        </>
+      )}
+
+      {/* Desktop + mobile pre-game lobby */}
+      <aside style={{
+        ...(isMobileActive ? {
+          display: 'block', padding: 0, margin: 0, width: 0, height: 0, border: 'none', background: 'transparent', overflow: 'visible'
+        } : {
+          ...themeStyles.panel, width: isMobile ? '100%' : '360px', flexShrink: 0, borderRadius: isMobile ? 0 : '10px', overflowY: 'auto'
+        })
+      }}>
+        {!isMobileActive && (
+          <>
+            <h1 style={themeStyles.title}>Arm Orchard</h1>
+            <p style={themeStyles.muted}>Grasp, transport, and release fruits into the basket to improve coordination.</p>
+
+            {isCalibrating && (
+              <div style={styles.calibOverlaySide}>
+                <div style={styles.stepCounter}>Step {calibrationStep === 'left_open' ? '1' : calibrationStep === 'left_close' ? '2' : calibrationStep === 'right_open' ? '3' : calibrationStep === 'right_close' ? '4' : '5'}/5</div>
+                <strong style={{ fontSize: '14px', display: 'block', margin: '4px 0', color: '#fff' }}>
+                  {calibrationStep === 'left_open' && 'LEFT HAND: OPEN PALM'}
+                  {calibrationStep === 'left_close' && 'LEFT HAND: CLOSED FIST'}
+                  {calibrationStep === 'right_open' && 'RIGHT HAND: OPEN PALM'}
+                  {calibrationStep === 'right_close' && 'RIGHT HAND: CLOSED FIST'}
+                  {calibrationStep === 'movement' && 'MOVE BOTH HANDS TO CORNERS'}
+                </strong>
+                <em style={{ fontStyle: 'normal', opacity: 0.9, fontSize: '12px' }}>{calibrationStep === 'movement' ? `${calibTimeLeft} seconds remaining...` : `Hold for ${calibTimeLeft}s...`}</em>
+              </div>
+            )}
+          </>
         )}
 
-        <div style={themeStyles.videoWrap}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={styles.video}
+        {/* ALWAYS-MOUNTED webcam container */}
+        <div style={pipContainerStyle}>
+          {isMobileActive && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: 'grab', touchAction: 'none' }}
+              onPointerDown={(e) => { setIsDragging(true); dragStartRef.current = { x: e.clientX - pipPos.x, y: e.clientY - pipPos.y }; e.currentTarget.setPointerCapture(e.pointerId); }}
+              onPointerMove={(e) => { 
+                if (isDragging) {
+                  const pipW = pipMinimized ? 52 : 170;
+                  const pipH = pipMinimized ? 52 : 128;
+                  let newX = e.clientX - dragStartRef.current.x;
+                  let newY = e.clientY - dragStartRef.current.y;
+                  newX = Math.max(0, Math.min(newX, window.innerWidth - pipW));
+                  newY = Math.max(0, Math.min(newY, window.innerHeight - pipH));
+                  setPipPos({ x: newX, y: newY });
+                }
+              }}
+              onPointerUp={(e) => { 
+                setIsDragging(false); 
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                setPipPos((currentPos) => {
+                  const pipW = pipMinimized ? 52 : 170;
+                  const pipH = pipMinimized ? 52 : 128;
+                  const padding = 10;
+                  let finalX = currentPos.x;
+                  let finalY = currentPos.y;
+                  
+                  const distLeft = currentPos.x;
+                  const distRight = window.innerWidth - (currentPos.x + pipW);
+                  const distTop = currentPos.y;
+                  const distBottom = window.innerHeight - (currentPos.y + pipH);
+                  
+                  const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+                  
+                  if (minDist === distLeft) {
+                    finalX = padding;
+                  } else if (minDist === distRight) {
+                    finalX = window.innerWidth - pipW - padding;
+                  } else if (minDist === distTop) {
+                    finalY = padding;
+                  } else {
+                    finalY = window.innerHeight - pipH - padding;
+                  }
+                  
+                  finalX = Math.max(padding, Math.min(finalX, window.innerWidth - pipW - padding));
+                  finalY = Math.max(padding, Math.min(finalY, window.innerHeight - pipH - padding));
+                  return { x: finalX, y: finalY };
+                });
+              }}
+              onClick={() => setPipMinimized(m => !m)}
+            />
+          )}
+          <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', display: 'block' }} />
+          <canvas ref={overlayRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: isMobileActive ? 'none' : 'auto' }}
+            onMouseMove={handleOverlayMouseMove} onMouseDown={handleOverlayMouseDown} onMouseUp={handleOverlayMouseUp}
           />
-          <canvas
-            ref={overlayRef}
-            style={styles.overlay}
-            onMouseMove={handleOverlayMouseMove}
-            onMouseDown={handleOverlayMouseDown}
-            onMouseUp={handleOverlayMouseUp}
-          />
-
-          {/* Posture check pill */}
-          <div style={styles.positionIndicator}>
-            {isPositionedCorrectly ? (
-              <div style={{ ...styles.posStatus, color: "#28a745" }}>
-                🟢 Position OK
-              </div>
-            ) : (
-              <div style={{ ...styles.posStatus, color: "#dc3545" }}>
-                🔴 Align Posture
-              </div>
-            )}
-          </div>
-
-          {/* Floating Debug Panel */}
-          {showDebug && (
-            <div style={styles.debugPanel}>
-              <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: '9px', lineHeight: '1.2' }}>
-                {`DEBUG TELEMETRY:
-Left Hand:
-  Visible: ${leftHandVisible ? "YES" : "NO"}
-  Closed: ${leftHandClosed ? "YES" : "NO"}
-  Elbow Angle: ${handStateRef.current.Left.elbowAngle ?? "--"}°
-  Shoulder Angle: ${handStateRef.current.Left.shoulderAngle ?? "--"}°
-  Trunk Twist: ${handStateRef.current.Left.trunkTwist ?? "--"}°
-  Pick Dwell: ${Math.round(handStateRef.current.Left.assistivePickTimer)}ms
-  Drop Dwell: ${Math.round(handStateRef.current.Left.assistiveDropTimer)}ms
-
-Right Hand:
-  Visible: ${rightHandVisible ? "YES" : "NO"}
-  Closed: ${rightHandClosed ? "YES" : "NO"}
-  Elbow Angle: ${handStateRef.current.Right.elbowAngle ?? "--"}°
-  Shoulder Angle: ${handStateRef.current.Right.shoulderAngle ?? "--"}°
-  Trunk Twist: ${handStateRef.current.Right.trunkTwist ?? "--"}°
-  Pick Dwell: ${Math.round(handStateRef.current.Right.assistivePickTimer)}ms
-  Drop Dwell: ${Math.round(handStateRef.current.Right.assistiveDropTimer)}ms
-
-Calibration:
-  Step: ${calibrationStep}
-  Left Assist: ${assistiveModeLeft ? "YES" : "NO"}
-  Right Assist: ${assistiveModeRight ? "YES" : "NO"}
-`}
-              </pre>
+          {!isMobileActive && (
+            <div style={styles.positionIndicator}>
+              {isPositionedCorrectly ? <div style={{ ...styles.posStatus, color: '#28a745' }}>&#128994; Position OK</div> : <div style={{ ...styles.posStatus, color: '#dc3545' }}>&#128308; Align Posture</div>}
             </div>
           )}
-
-          <div style={styles.handStatus}>
-            {leftHandVisible && (
-              <div
-                style={{
-                  ...styles.handIndicator,
-                  ...(leftHandClosed ? styles.handClosed : styles.handOpen),
-                }}
-              >
-                <span style={styles.dot}></span>
-                <span>Left {leftHandClosed ? "🔴" : "🟢"}</span>
-              </div>
-            )}
-            {rightHandVisible && (
-              <div
-                style={{
-                  ...styles.handIndicator,
-                  ...(rightHandClosed ? styles.handClosed : styles.handOpen),
-                }}
-              >
-                <span style={styles.dot}></span>
-                <span>Right {rightHandClosed ? "🔴" : "🟢"}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        <div style={styles.controls}>
-          <button
-            onClick={handleStartCalibration}
-            style={styles.controlButton}
-            disabled={isCalibrating}
-          >
-            📏 Calibrate
-          </button>
-          <button onClick={handleStartSession} style={styles.controlButton} disabled={isSessionActive}>
-            Start Session
-          </button>
-          {isSessionActive && (
-            <button
-              onClick={handlePauseResume}
-              style={{
-                ...styles.controlButton,
-                background: isPaused ? "#2f7a2f" : "#e6a817",
-              }}
-            >
-              {isPaused ? "▶️ Resume" : "⏸️ Pause"}
-            </button>
+          {!isMobileActive && (
+            <div style={styles.handStatus}>
+              {leftHandVisible && <div style={{ ...styles.handIndicator, ...(leftHandClosed ? styles.handClosed : styles.handOpen) }}><span style={styles.dot} /><span>Left {leftHandClosed ? 'Closed' : 'Open'}</span></div>}
+              {rightHandVisible && <div style={{ ...styles.handIndicator, ...(rightHandClosed ? styles.handClosed : styles.handOpen) }}><span style={styles.dot} /><span>Right {rightHandClosed ? 'Closed' : 'Open'}</span></div>}
+            </div>
           )}
-          
-          <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={assistiveMode}
-              disabled={isSessionActive || (!isTesting && !hasAssistiveFreedom && patientConfig?.games?.fruitBasket?.assistiveMode?.value !== undefined)}
-              onChange={(e) => {
-                const val = e.target.checked;
-                setAssistiveMode(val);
-                assistiveModeRef.current = val;
-                setAssistiveModeLeft(val);
-                assistiveModeLeftRef.current = val;
-                setAssistiveModeRight(val);
-                assistiveModeRightRef.current = val;
-              }}
-              style={styles.checkbox}
-            />
-            <span>Assistive Mode (Dwell pick/drop) 
-              {(!isTesting && !hasAssistiveFreedom && patientConfig?.games?.fruitBasket?.assistiveMode?.value !== undefined) && " 🔒"}
-            </span>
-          </label>
-          {/* <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={usingMouseFallback}
-              disabled={isSessionActive}
-              onChange={(e) => {
-                const val = e.target.checked;
-                setUsingMouseFallback(val);
-                usingMouseFallbackRef.current = val;
-              }}
-              style={styles.checkbox}
-            />
-            <span>Mouse Fallback (Test without Webcam)</span>
-          </label> */}
+          {isMobileActive && <div style={{ position: 'absolute', bottom: 2, right: 4, color: 'white', fontSize: 10, opacity: 0.7, pointerEvents: 'none' }}>{pipMinimized ? '+' : '-'}</div>}
         </div>
-        
-        <div style={themeStyles.stats}>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Score</div>
-            <div style={themeStyles.statValue}>{score}</div>
-          </div>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>ARAT Score</div>
-            <div style={themeStyles.statValue}>{aratTotalScore}</div>
-          </div>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Reps</div>
-            <div style={themeStyles.statValue}>{reps}</div>
-          </div>
-          <div style={themeStyles.statItem}>
-            <div style={themeStyles.statLabel}>Timer</div>
-            <div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div>
-          </div>
-          <div style={{ ...themeStyles.statItem, gridColumn: "span 2", textAlign: "center" }}>
-            <div style={themeStyles.statLabel}>Success Rate</div>
-            <div style={themeStyles.statValue}>{successRate}%</div>
-          </div>
-        </div>
-        
-        <div style={styles.actions}>
-          <button
-            onClick={handleQuitOrBack}
-            style={styles.actionButton}
-          >
-            Quit
-          </button>
-          <button onClick={handleReset} style={styles.actionButton}>
-            Reset
-          </button>
-        </div>
-        <div style={themeStyles.note}>
-          <strong style={themeStyles.statValue}>Pro-tip:</strong> Watch the
-          skeletal feedback for grip status. Toggles debug telemetry with 'D' key.
-        </div>
+
+        {!isMobileActive && (
+          <>
+
+            <div style={styles.controls}>
+              <button onClick={handleStartCalibration} style={styles.controlButton} disabled={isCalibrating}>Calibrate</button>
+              <button onClick={handleStartSession} style={styles.controlButton} disabled={isSessionActive}>Start Session</button>
+              {isSessionActive && (
+                <button onClick={handlePauseResume} style={{ ...styles.controlButton, background: isPaused ? '#2f7a2f' : '#e6a817' }}>{isPaused ? 'Resume' : 'Pause'}</button>
+              )}
+            </div>
+
+            <div style={themeStyles.stats}>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>ARAT Score</div><div style={themeStyles.statValue}>{aratTotalScore}</div></div>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>Reps</div><div style={themeStyles.statValue}>{reps}</div></div>
+              <div style={themeStyles.statItem}><div style={themeStyles.statLabel}>Timer</div><div style={themeStyles.statValue}>{formatTime(timeRemaining)}</div></div>
+              <div style={{ ...themeStyles.statItem, gridColumn: 'span 2', textAlign: 'center' }}><div style={themeStyles.statLabel}>Success Rate</div><div style={themeStyles.statValue}>{successRate}%</div></div>
+            </div>
+            <div style={styles.actions}>
+              <button onClick={handleQuitOrBack} style={styles.actionButton}>Quit</button>
+              <button onClick={handleReset} style={styles.actionButton}>Reset</button>
+            </div>
+            <div style={themeStyles.note}><strong style={themeStyles.statValue}>Pro-tip:</strong> Watch the skeletal feedback for grip status.</div>
+          </>
+        )}
       </aside>
-      <main style={styles.gameArea}>
-        <canvas ref={gameCanvasRef} style={styles.gameCanvas} />
-        
-        {isSessionActive && !isCooldown && (
-          <div style={styles.trialTimer}>
-            ⏱️ {trialTimeLeft}s
-          </div>
-        )}
 
-        {statusMessage.visible && (
-          <div style={themeStyles.statusMessage}>{statusMessage.text}</div>
-        )}
-      </main>
-      <SaveExitButton onBeforeSave={() => {
+      {!isMobileActive && (
+        <>
+          <main style={{ ...styles.gameArea, flex: 1, position: 'relative' }}>
+            <canvas ref={gameCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', borderRadius: '10px', background: 'linear-gradient(135deg, #cfead1, #86c98a)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+            {isSessionActive && !isCooldown && <div style={styles.trialTimer}>Timer: {trialTimeLeft}s</div>}
+            {statusMessage.visible && <div style={themeStyles.statusMessage}>{statusMessage.text}</div>}
+          </main>
+
+          <SaveExitButton onBeforeSave={() => {
+
         const playData = logsRef.current.map(log => {
           let correct = undefined;
           let responseTimeVal = log.timestamp;
@@ -2383,6 +2394,9 @@ Calibration:
           coordinates: coordinateLogRef.current.map(p => ({ ...p }))
         });
       }} />
+        </>
+      )}
+
       <ExitConfirmModal
         isOpen={showExitModal}
         hasPending={gameSessionBuffer.hasPending()}
@@ -2393,6 +2407,7 @@ Calibration:
     </div>
   );
 };
+
 // ==================== STYLES ====================
 const styles = {
   container: {
@@ -2413,7 +2428,7 @@ const styles = {
     overflowY: "auto",
   },
   title: {
-    color: "#2f7a2f",
+    color: "#2563eb",
     margin: "0 0 8px",
     fontSize: "22px",
   },
@@ -2446,26 +2461,17 @@ const styles = {
     pointerEvents: "auto",
   },
   calibOverlaySide: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    background: "#2f7a2f",
-    color: "white",
     padding: "10px 14px",
-    borderRadius: "0 0 6px 6px",
-    zIndex: 15,
+    background: "rgba(230, 168, 23, 0.9)",
+    borderRadius: "6px",
+    marginBottom: "10px",
+    color: "#fff",
     fontSize: "13px",
-    fontWeight: "600",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-    textAlign: "center",
   },
   stepCounter: {
-    display: "inline-block",
-    background: "rgba(255, 255, 255, 0.2)",
-    padding: "2px 8px",
-    borderRadius: "10px",
     fontSize: "11px",
+    fontWeight: "bold",
+    opacity: 0.8,
     marginBottom: "4px",
   },
   positionIndicator: {
@@ -2540,29 +2546,24 @@ const styles = {
     padding: "11px",
     borderRadius: "8px",
     border: 0,
-    background: "#2f7a2f",
+    background: "#3b82f6",
     color: "white",
     cursor: "pointer",
     fontSize: "14px",
     fontWeight: 600,
     transition: "all 0.2s",
   },
-  buttonDisabled: {
-    background: "#ccc",
-    cursor: "not-allowed",
-    opacity: 0.6,
-  },
-  checkboxLabel: {
+  actionButton: {
+    flex: 1,
+    padding: "9px",
+    borderRadius: "8px",
+    border: 0,
+    background: "#e8e8e8",
+    color: "#333",
+    cursor: "pointer",
     fontSize: "13px",
-    color: "#575f56",
-    marginTop: "6px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    cursor: "pointer",
-  },
-  checkbox: {
-    cursor: "pointer",
+    fontWeight: 500,
+    transition: "background 0.2s",
   },
   stats: {
     marginTop: "12px",
@@ -2586,24 +2587,12 @@ const styles = {
   statValue: {
     fontSize: "20px",
     fontWeight: 700,
-    color: "#2f7a2f",
+    color: "#2563eb",
   },
   actions: {
     display: "flex",
     gap: "8px",
     marginTop: "12px",
-  },
-  actionButton: {
-    flex: 1,
-    padding: "9px",
-    borderRadius: "8px",
-    border: 0,
-    background: "#e8e8e8",
-    color: "#333",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 500,
-    transition: "background 0.2s",
   },
   note: {
     fontSize: "12px",
@@ -2613,12 +2602,7 @@ const styles = {
     background: "#f9f9f9",
     borderRadius: "6px",
     lineHeight: 1.6,
-    borderLeft: "3px solid #2f7a2f",
-  },
-  noteTitle: {
-    color: "#2f7a2f",
-    display: "block",
-    marginBottom: "6px",
+    borderLeft: "3px solid #2563eb",
   },
   gameArea: {
     flex: 1,
@@ -2627,12 +2611,13 @@ const styles = {
     position: "relative",
   },
   gameCanvas: {
-    flex: 1,
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
     borderRadius: "10px",
     background: "linear-gradient(135deg, #cfead1, #86c98a)",
     display: "block",
-    width: "100%",
-    height: "100%",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
   },
   statusMessage: {
@@ -2645,26 +2630,27 @@ const styles = {
     borderRadius: "8px",
     fontSize: "16px",
     fontWeight: 600,
-    color: "#2f7a2f",
+    color: "#2563eb",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
     zIndex: 10,
     pointerEvents: "none",
     animation: "slideDown 0.3s ease",
   },
   trialTimer: {
-    position: "absolute",
-    top: "20px",
-    right: "20px",
-    background: "rgba(255, 255, 255, 0.95)",
-    padding: "12px 24px",
-    borderRadius: "8px",
-    fontSize: "24px",
-    fontWeight: "700",
+    position: "fixed",
+    top: "10px",
+    right: "10px",
+    background: "rgba(255, 255, 255, 0.65)",
+    backdropFilter: "blur(4px)",
+    padding: "8px 14px",
+    borderRadius: "10px",
+    fontSize: "13px",
+    fontWeight: "bold",
     color: "#dc3545",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-    zIndex: 9,
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.35)",
+    zIndex: 9996,
     pointerEvents: "none",
-    minWidth: "80px",
+    minWidth: "60px",
     textAlign: "center",
   },
 };
