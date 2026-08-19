@@ -31,6 +31,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import CreatePatientForm from "./components/admin/CreatePatientForm";
 import DoctorProfileForm from "./pages/doctor/DoctorProfileForm";
 import PatientSetting from "./pages/patient/PatientSetting";
+import GameCalibrationPage from "./pages/game/GameCalibrationPage";
 import GameAnalytics from "./pages/game/BoardDrawingGame/GameAnalytics";
 import AccessibilityWidget from "./components/common/AccessibilityWidget";
 
@@ -178,6 +179,14 @@ function App() {
               element={
                 <ProtectedRoute allowedTypes={["patient", "caretaker"]}>
                   <InCamGame />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calibration"
+              element={
+                <ProtectedRoute allowedTypes={["patient", "caretaker"]}>
+                  <GameCalibrationPage />
                 </ProtectedRoute>
               }
             />

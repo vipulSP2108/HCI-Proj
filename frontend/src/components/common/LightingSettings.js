@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Cpu, Sliders, CheckCircle2, RotateCcw } from 'lucide-react';
+import { 
+  Sun, 
+  Moon, 
+  Cpu, 
+  Sliders, 
+  CheckCircle2, 
+  RotateCcw, 
+  Compass, 
+  FastForward, 
+  Hand, 
+  Target, 
+  UserCheck,
+  ToggleLeft,
+  ToggleRight
+} from 'lucide-react';
 import {
   ENABLE_LIGHTING_DETECTION,
   LIGHTING_DETECTION_THRESHOLD,
   LIGHTING_DETECTION_ONLY_ON_START,
-  LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS
+  LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS,
+  ENABLE_CALIBRATION_MODAL,
+  CALIBRATION_AUTO_ADVANCE,
+  CALIBRATION_ENABLE_POSITIONING,
+  CALIBRATION_ENABLE_REACHABILITY_TEST,
+  CALIBRATION_ENABLE_HAND_GESTURE_TEST
 } from '../../constants';
 
 export const getLightingDetectionSettings = () => {
@@ -30,57 +49,116 @@ export const getLightingDetectionSettings = () => {
   }
 };
 
+export const getCalibrationSettings = () => {
+  try {
+    const savedEnabled = localStorage.getItem('hci_calibration_enabled');
+    const savedAutoAdvance = localStorage.getItem('hci_calibration_auto_advance');
+    const savedPositioning = localStorage.getItem('hci_calibration_enable_positioning');
+    const savedReach = localStorage.getItem('hci_calibration_enable_reachability');
+    const savedGrasp = localStorage.getItem('hci_calibration_enable_grasp');
+
+    return {
+      enabled: savedEnabled !== null ? savedEnabled === 'true' : ENABLE_CALIBRATION_MODAL,
+      autoAdvance: savedAutoAdvance !== null ? savedAutoAdvance === 'true' : CALIBRATION_AUTO_ADVANCE,
+      enablePositioning: savedPositioning !== null ? savedPositioning === 'true' : CALIBRATION_ENABLE_POSITIONING,
+      enableReachability: savedReach !== null ? savedReach === 'true' : CALIBRATION_ENABLE_REACHABILITY_TEST,
+      enableGrasp: savedGrasp !== null ? savedGrasp === 'true' : CALIBRATION_ENABLE_HAND_GESTURE_TEST,
+    };
+  } catch (err) {
+    return {
+      enabled: ENABLE_CALIBRATION_MODAL,
+      autoAdvance: CALIBRATION_AUTO_ADVANCE,
+      enablePositioning: CALIBRATION_ENABLE_POSITIONING,
+      enableReachability: CALIBRATION_ENABLE_REACHABILITY_TEST,
+      enableGrasp: CALIBRATION_ENABLE_HAND_GESTURE_TEST,
+    };
+  }
+};
+
 const LightingSettings = ({ isDarkMode }) => {
+  // Lighting State
   const [enabled, setEnabled] = useState(ENABLE_LIGHTING_DETECTION);
   const [threshold, setThreshold] = useState(LIGHTING_DETECTION_THRESHOLD);
   const [onlyOnStart, setOnlyOnStart] = useState(LIGHTING_DETECTION_ONLY_ON_START);
   const [frames, setFrames] = useState(LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS);
+  
+  // Calibration State
+  const [calibEnabled, setCalibEnabled] = useState(ENABLE_CALIBRATION_MODAL);
+  const [autoAdvance, setAutoAdvance] = useState(CALIBRATION_AUTO_ADVANCE);
+  const [calibPositioning, setCalibPositioning] = useState(CALIBRATION_ENABLE_POSITIONING);
+  const [calibReach, setCalibReach] = useState(CALIBRATION_ENABLE_REACHABILITY_TEST);
+  const [calibGrasp, setCalibGrasp] = useState(CALIBRATION_ENABLE_HAND_GESTURE_TEST);
+
   const [savedMessage, setSavedMessage] = useState(false);
 
   useEffect(() => {
-    const s = getLightingDetectionSettings();
-    setEnabled(s.enabled);
-    setThreshold(s.threshold);
-    setOnlyOnStart(s.onlyOnStart);
-    setFrames(s.framesBetweenChecks);
+    const l = getLightingDetectionSettings();
+    setEnabled(l.enabled);
+    setThreshold(l.threshold);
+    setOnlyOnStart(l.onlyOnStart);
+    setFrames(l.framesBetweenChecks);
+
+    const c = getCalibrationSettings();
+    setCalibEnabled(c.enabled);
+    setAutoAdvance(c.autoAdvance);
+    setCalibPositioning(c.enablePositioning);
+    setCalibReach(c.enableReachability);
+    setCalibGrasp(c.enableGrasp);
   }, []);
 
-  const saveSettings = (newEnabled, newThreshold, newOnlyOnStart, newFrames) => {
+  const triggerSavedFeedback = () => {
+    setSavedMessage(true);
+    setTimeout(() => setSavedMessage(false), 2000);
+  };
+
+  const saveLighting = (newEnabled, newThreshold, newOnlyOnStart, newFrames) => {
     try {
       localStorage.setItem('hci_lighting_enabled', String(newEnabled));
       localStorage.setItem('hci_lighting_threshold', String(newThreshold));
       localStorage.setItem('hci_lighting_only_on_start', String(newOnlyOnStart));
       localStorage.setItem('hci_lighting_frames', String(newFrames));
-
-      setSavedMessage(true);
-      setTimeout(() => setSavedMessage(false), 2000);
+      triggerSavedFeedback();
     } catch (e) {
-      console.error("Failed to save lighting settings to localStorage:", e);
+      console.error(e);
     }
   };
 
-  const handleToggleEnabled = () => {
-    const next = !enabled;
-    setEnabled(next);
-    saveSettings(next, threshold, onlyOnStart, frames);
+  const saveCalibration = (newEnabled, newAutoAdvance, newPos, newReach, newGrasp) => {
+    try {
+      localStorage.setItem('hci_calibration_enabled', String(newEnabled));
+      localStorage.setItem('hci_calibration_auto_advance', String(newAutoAdvance));
+      localStorage.setItem('hci_calibration_enable_positioning', String(newPos));
+      localStorage.setItem('hci_calibration_enable_reachability', String(newReach));
+      localStorage.setItem('hci_calibration_enable_grasp', String(newGrasp));
+      triggerSavedFeedback();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleToggleOnlyOnStart = () => {
-    const next = !onlyOnStart;
-    setOnlyOnStart(next);
-    saveSettings(enabled, threshold, next, frames);
+  const handleToggleAutoAdvance = (mode) => {
+    setAutoAdvance(mode);
+    saveCalibration(calibEnabled, mode, calibPositioning, calibReach, calibGrasp);
   };
 
-  const handleThresholdChange = (val) => {
-    const num = Math.max(1, Math.min(100, Number(val)));
-    setThreshold(num);
-    saveSettings(enabled, num, onlyOnStart, frames);
+  const handleToggleCalibEnabled = () => {
+    const next = !calibEnabled;
+    setCalibEnabled(next);
+    saveCalibration(next, autoAdvance, calibPositioning, calibReach, calibGrasp);
   };
 
-  const handleFramesChange = (val) => {
-    const num = Number(val);
-    setFrames(num);
-    saveSettings(enabled, threshold, onlyOnStart, num);
+  const handleToggleCalibStep = (step) => {
+    let p = calibPositioning;
+    let r = calibReach;
+    let g = calibGrasp;
+    if (step === 'positioning') p = !p;
+    if (step === 'reach') r = !r;
+    if (step === 'grasp') g = !g;
+
+    setCalibPositioning(p);
+    setCalibReach(r);
+    setCalibGrasp(g);
+    saveCalibration(calibEnabled, autoAdvance, p, r, g);
   };
 
   const handleResetDefaults = () => {
@@ -88,186 +166,270 @@ const LightingSettings = ({ isDarkMode }) => {
     setThreshold(LIGHTING_DETECTION_THRESHOLD);
     setOnlyOnStart(LIGHTING_DETECTION_ONLY_ON_START);
     setFrames(LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS);
-    saveSettings(
+    saveLighting(
       ENABLE_LIGHTING_DETECTION,
       LIGHTING_DETECTION_THRESHOLD,
       LIGHTING_DETECTION_ONLY_ON_START,
       LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS
     );
+
+    setCalibEnabled(ENABLE_CALIBRATION_MODAL);
+    setAutoAdvance(CALIBRATION_AUTO_ADVANCE);
+    setCalibPositioning(CALIBRATION_ENABLE_POSITIONING);
+    setCalibReach(CALIBRATION_ENABLE_REACHABILITY_TEST);
+    setCalibGrasp(CALIBRATION_ENABLE_HAND_GESTURE_TEST);
+    saveCalibration(
+      ENABLE_CALIBRATION_MODAL,
+      CALIBRATION_AUTO_ADVANCE,
+      CALIBRATION_ENABLE_POSITIONING,
+      CALIBRATION_ENABLE_REACHABILITY_TEST,
+      CALIBRATION_ENABLE_HAND_GESTURE_TEST
+    );
   };
 
   return (
-    <section className="space-y-6">
+    <div className="space-y-8">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black dark:text-white uppercase tracking-wider flex items-center gap-3">
-            <Sun className="text-amber-500 w-6 h-6" />
-            Camera Lighting & Quality Assurance
+            <Compass className="text-primary-500 w-6 h-6" />
+            Camera & Pre-Game Calibration Settings
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Configure real-time camera illumination analysis to ensure accurate hand tracking.
+            Configure markerless motion tracking, camera lighting, and step progression preferences.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {savedMessage && (
             <span className="text-xs font-bold text-green-500 flex items-center gap-1.5 animate-fade-in">
-              <CheckCircle2 size={14} /> Saved
+              <CheckCircle2 size={14} /> Settings Saved
             </span>
           )}
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
-            title="Reset to default values"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
           >
-            <RotateCcw size={13} /> Reset Defaults
+            <RotateCcw size={14} /> Reset Defaults
           </button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {/* Toggle 1: Enable Lighting Detection */}
-        <div className="flex items-center justify-between p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50">
-          <div className="flex items-center gap-4">
-            <div className={`p-3 md:p-4 rounded-2xl ${enabled ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'} transition-colors`}>
-              <Sun size={22} />
+      {/* ─── SECTION 1: PRE-GAME CALIBRATION WORKFLOW ─── */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary-50 dark:bg-primary-900/30 text-primary-500 rounded-xl">
+              <Target size={22} />
             </div>
             <div>
-              <h4 className="text-base md:text-lg font-bold dark:text-white">
-                Poor Lighting Alerts
-              </h4>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                Display warning when room is too dark for accurate MediaPipe hand tracking.
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                Pre-Game Calibration Flow
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Launch interactive calibration before games to map personalized reach and distance.
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleToggleEnabled}
-            className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${enabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
-              }`}
-          >
-            <div
-              className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${enabled ? 'translate-x-7' : 'translate-x-1'
-                }`}
+
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={calibEnabled}
+              onChange={handleToggleCalibEnabled}
+              className="sr-only peer"
             />
-          </button>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+          </label>
+        </div>
+
+        {calibEnabled && (
+          <div className="pt-4 border-t border-gray-100 dark:border-gray-700/60 space-y-6">
+            {/* Progression Mode Choice */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                Phase Progression Preference
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleToggleAutoAdvance(true)}
+                  className={`p-4 rounded-xl border text-left transition flex items-start gap-3.5 ${
+                    autoAdvance
+                      ? 'border-primary-500 bg-primary-50/40 dark:bg-primary-900/20 ring-2 ring-primary-500/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${autoAdvance ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    <FastForward size={18} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      Automatic Progression {autoAdvance && <CheckCircle2 size={14} className="text-primary-500" />}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                      Smoothly auto-advances to the next phase when posture, corner reach, and grasp are fulfilled.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleAutoAdvance(false)}
+                  className={`p-4 rounded-xl border text-left transition flex items-start gap-3.5 ${
+                    !autoAdvance
+                      ? 'border-primary-500 bg-primary-50/40 dark:bg-primary-900/20 ring-2 ring-primary-500/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${!autoAdvance ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    <Hand size={18} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      Manual Step Buttons {!autoAdvance && <CheckCircle2 size={14} className="text-primary-500" />}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                      Displays an explicit "Next Phase" confirmation button at every step for complete manual pacing.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Individual Calibration Steps */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                Included Calibration Steps
+              </label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <UserCheck size={18} className="text-primary-500" />
+                    <div>
+                      <div className="text-xs font-bold text-gray-900 dark:text-white">Step 1: Distance & Alignment Gauges</div>
+                      <div className="text-[11px] text-gray-500">Horizontal (X) and Lens Distance (Z) positioning checks</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={calibPositioning}
+                    onChange={() => handleToggleCalibStep('positioning')}
+                    className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <Target size={18} className="text-emerald-500" />
+                    <div>
+                      <div className="text-xs font-bold text-gray-900 dark:text-white">Step 2: 5-Point Reach Matrix</div>
+                      <div className="text-[11px] text-gray-500">4 corners + center interactive touch targets for Range of Motion</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={calibReach}
+                    onChange={() => handleToggleCalibStep('reach')}
+                    className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <Hand size={18} className="text-purple-500" />
+                    <div>
+                      <div className="text-xs font-bold text-gray-900 dark:text-white">Step 3: Hand Grasp & Mobility Assessment</div>
+                      <div className="text-[11px] text-gray-500">Open palm vs closed fist testing for automatic Assistive Mode</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={calibGrasp}
+                    onChange={() => handleToggleCalibStep('grasp')}
+                    className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ─── SECTION 2: LIGHTING ASSURANCE ─── */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-xl">
+              <Sun size={22} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                Ambient Lighting Verification
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Warns when ambient light is insufficient for reliable computer vision tracking.
+              </p>
+            </div>
+          </div>
+
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={() => {
+                const next = !enabled;
+                setEnabled(next);
+                saveLighting(next, threshold, onlyOnStart, frames);
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
+          </label>
         </div>
 
         {enabled && (
-          <>
-            {/* Toggle 2: Check Only at Start (CPU Optimization) */}
-            <div className="flex items-center justify-between p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 md:p-4 rounded-2xl ${onlyOnStart ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'} transition-colors`}>
-                  <Cpu size={22} />
+          <div className="pt-4 border-t border-gray-100 dark:border-gray-700/60">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-lg">
+                  <Cpu size={18} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-base md:text-lg font-bold dark:text-white">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
                       Check Only on Start (Power Saver)
-                    </h4>
-                    <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                    </span>
+                    <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-700/50">
                       Recommended
                     </span>
                   </div>
-                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
                     Verify lighting once at launch, then disable checks to free 100% of CPU for tracking.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleToggleOnlyOnStart}
-                className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${onlyOnStart ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-700'
-                  }`}
-              >
-                <div
-                  className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${onlyOnStart ? 'translate-x-7' : 'translate-x-1'
-                    }`}
-                />
-              </button>
-            </div>
-
-            {/* Slider: Darkness Threshold */}
-            {/* <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50 space-y-3">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-xl">
-                    <Sliders size={18} />
                   </div>
-                  <div>
-                    <h4 className="text-sm md:text-base font-bold dark:text-white">
-                      Darkness Sensitivity Threshold
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Lower values allow dimmer rooms before warning (0 = black, 255 = white).
-                    </p>
-                  </div>
-                </div>
-                <div className="px-3 py-1 bg-white dark:bg-gray-900 rounded-xl font-black text-sm text-blue-600 dark:text-blue-400 shadow-sm border border-gray-200 dark:border-gray-700">
-                  {threshold}
                 </div>
               </div>
 
-              <div className="space-y-1.5 pt-2">
+              <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
                 <input
-                  type="range"
-                  min="5"
-                  max="60"
-                  step="1"
-                  value={threshold}
-                  onChange={(e) => handleThresholdChange(e.target.value)}
-                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  type="checkbox"
+                  checked={onlyOnStart}
+                  onChange={() => {
+                    const next = !onlyOnStart;
+                    setOnlyOnStart(next);
+                    saveLighting(enabled, threshold, next, frames);
+                  }}
+                  className="sr-only peer"
                 />
-                <div className="flex justify-between text-[11px] font-bold text-gray-400 px-1">
-                  <span>5 (Pitch Dark)</span>
-                  <span className="text-blue-500">15 (Default)</span>
-                  <span>60 (Brightly Lit)</span>
-                </div>
-              </div>
-            </div> */}
-
-            {/* Selector: Ongoing Check Interval (Only visible if onlyOnStart is false) */}
-            {/* {!onlyOnStart && (
-              <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-sm md:text-base font-bold dark:text-white">
-                      Periodic Check Interval
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      How frequently lighting is sampled throughout active gameplay.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 pt-1">
-                  {[
-                    { label: 'Every ~3s (90 frames)', value: 90 },
-                    { label: 'Every ~5s (150 frames)', value: 150 },
-                    { label: 'Every ~10s (300 frames)', value: 300 },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => handleFramesChange(opt.value)}
-                      className={`py-2.5 px-3 rounded-xl font-bold text-xs transition-all border ${frames === opt.value
-                          ? 'bg-primary-500 text-white border-primary-500 shadow-md'
-                          : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )} */}
-          </>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
         )}
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

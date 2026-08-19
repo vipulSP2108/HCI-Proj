@@ -366,7 +366,7 @@ function PatientSetting() {
             ) : (
               <Save className="w-5 h-5" />
             )}
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? "Saving Profile..." : "Save Profile Details"}
           </button>
         </div>
       </form>

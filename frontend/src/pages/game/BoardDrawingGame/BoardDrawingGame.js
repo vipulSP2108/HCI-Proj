@@ -9,6 +9,7 @@ import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
+import GameCalibrationModal from "../../../components/common/GameCalibrationModal";
 import { Minimize2, Maximize2, RotateCcw, X, GripHorizontal } from "lucide-react";
 import { useLightingDetector } from "../../../hooks/useLightingDetector";
 import {
@@ -28,6 +29,8 @@ import {
   BOARD_DRAWING_DEFAULT_SAFE_ZONE_RADIUS,
   BOARD_DRAWING_DEFAULT_WARNING_ZONE_RADIUS,
   TESTING_SHAPE_SEQUENCE,
+  ENABLE_CALIBRATION_MODAL,
+  CALIBRATION_AUTO_LAUNCH
 } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
 import { patientConfigService } from "../../../services/patientConfigService";
@@ -297,6 +300,7 @@ const BoardDrawingGame = () => {
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
+  const [isCalibrationModalOpen, setIsCalibrationModalOpen] = useState(CALIBRATION_AUTO_LAUNCH);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -497,6 +501,28 @@ const BoardDrawingGame = () => {
     maxReachNorm: 0.2,
     level: 1,
   });
+
+  // Sync calibrated workspace bounds from GameCalibrationPage if present
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('hci_game_calibration');
+      if (saved) {
+        const d = JSON.parse(saved);
+        calibrationRef.current = {
+          ...calibrationRef.current,
+          done: true,
+          minX: d.minX ?? 0.1,
+          maxX: d.maxX ?? 0.9,
+          minY: d.minY ?? 0.1,
+          maxY: d.maxY ?? 0.9,
+          centerX: d.centerX ?? 0.5,
+          centerY: d.centerY ?? 0.5,
+          maxReachNorm: d.reachRadius ?? 0.35,
+        };
+        setCalibrationDone(true);
+      }
+    } catch (e) {}
+  }, []);
 
   const shapeRef = useRef(null);
   const currentTargetIdxRef = useRef(0);
@@ -1722,6 +1748,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
 
   // ==================== EVENT HANDLERS ====================
   const handleStartCalibration = () => {
+    if (ENABLE_CALIBRATION_MODAL) {
+      setIsCalibrationModalOpen(true);
+      return;
+    }
+
     calibrationRef.current.active = true;
     calibrationRef.current.minX = 1;
     calibrationRef.current.maxX = 0;
@@ -1751,6 +1782,25 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         return prev - 1;
       });
     }, 1000);
+  };
+
+  const handleCalibrationComplete = (data) => {
+    if (data) {
+      calibrationRef.current = {
+        ...calibrationRef.current,
+        active: false,
+        done: true,
+        minX: data.minX ?? 0.1,
+        maxX: data.maxX ?? 0.9,
+        minY: data.minY ?? 0.1,
+        maxY: data.maxY ?? 0.9,
+        centerX: data.centerX ?? 0.5,
+        centerY: data.centerY ?? 0.5,
+        maxReachNorm: data.reachRadius ?? 0.35,
+      };
+      setCalibrationDone(true);
+      showStatus("✓ Interactive Calibration complete! Ready to start.");
+    }
   };
 
   const finishCalibration = () => {
@@ -2502,6 +2552,16 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
       )}
 
       <ExitConfirmModal isOpen={showExitModal} hasPending={gameSessionBuffer.hasPending()} onSave={handleExitSave} onDiscard={handleExitDiscard} onCancel={handleExitCancel} />
+
+      <GameCalibrationModal
+        isOpen={isCalibrationModalOpen}
+        onClose={() => setIsCalibrationModalOpen(false)}
+        onComplete={handleCalibrationComplete}
+        handState={() => handStateRef.current}
+        poseLandmarks={() => lastPoseResultsRef.current?.poseLandmarks}
+        isDarkMode={isDarkMode}
+        gameTitle="Shape Tracer"
+      />
     </div>
   );
 };

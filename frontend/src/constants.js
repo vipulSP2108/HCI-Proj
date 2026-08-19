@@ -12,6 +12,28 @@ export const LIGHTING_DETECTION_ONLY_ON_START = false;
 // At ~30fps: 150 = ~5 sec, 90 = ~3 sec, 300 = ~10 sec. Higher = less CPU overhead.
 export const LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS = 150;
 
+// ─── Universal Pre-Game Calibration Configuration ──────────────────────────────
+// Master toggle: if false, the interactive calibration modal is completely disabled
+export const ENABLE_CALIBRATION_MODAL = true;
+
+// Individual calibration step toggles:
+// 1. Patient distance & posture framing check (shoulders & head centered in green zone)
+export const CALIBRATION_ENABLE_POSITIONING = true;
+// 2. Interactive 4-corner + center reachability test (Range of Motion mapping)
+export const CALIBRATION_ENABLE_REACHABILITY_TEST = true;
+// 3. Hand grasp / open-close gesture assessment (determines assistive mode)
+export const CALIBRATION_ENABLE_HAND_GESTURE_TEST = true;
+// 4. Ambient lighting quality check
+export const CALIBRATION_ENABLE_LIGHTING_CHECK = true;
+
+// Reachability assessment parameters:
+export const CALIBRATION_REACH_TARGET_RADIUS = 0.08; // Normalized radius of target bubbles
+export const CALIBRATION_REACH_DWELL_MS = 600;        // Dwell duration (ms) to confirm reaching target
+export const CALIBRATION_MIN_SHOULDER_WIDTH = 0.12;  // Minimum normalized shoulder width
+export const CALIBRATION_ALLOW_SKIP = true;          // Allow patient to skip calibration
+export const CALIBRATION_AUTO_LAUNCH = false;        // Auto-launch modal when game page loads
+export const CALIBRATION_AUTO_ADVANCE = true;        // Progression mode: auto-advance vs manual next button
+
 export const API_BASE_URL = IS_LOCAL
   ? "http://localhost:5001/api"
   : "https://hci-proj.vercel.app/api";

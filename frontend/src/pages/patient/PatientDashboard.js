@@ -77,6 +77,7 @@ import BoardDrawingTrajectoryReplay from "../game/BoardDrawingTrajectoryReplay";
 import DrawingPerformancePanel from "../../components/dashboard/DrawingPerformancePanel";
 import ArmReachVisualizer from "../game/ArmReachVisualizer";
 import LightingSettings from "../../components/common/LightingSettings";
+import { ENABLE_CALIBRATION_MODAL } from "../../constants";
 
 export default function PatientDashboard({ userId }) {
   const { user, logout, isDarkMode, toggleDarkMode } = useAuth();
@@ -1537,11 +1538,17 @@ const DashboardContent = ({
   const [viewMode, setViewMode] = useState("home"); // "home" or "details"
   const [pianoSubTab, setPianoSubTab] = useState("finger"); // "finger" or "ankle"
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const [editingReminder, setEditingReminder] = useState(null);
+
+  const handleLaunchGame = (gameObj) => {
+    if (!gameObj) return;
+    const isCameraGame = gameObj.path !== '/piano-reaction';
+    if (isCameraGame && ENABLE_CALIBRATION_MODAL) {
+      navigate(`/calibration?target=${encodeURIComponent(gameObj.path)}&game=${encodeURIComponent(gameObj.name)}`);
+    } else {
+      navigate(gameObj.path);
+    }
+  };
 
   const recentSessions = useMemo(() => {
     let sessions = [];
@@ -1989,7 +1996,7 @@ const DashboardContent = ({
                 <ChevronLeft className="w-4 h-4" /> Back to Home
               </button>
               <button
-                onClick={() => navigate(selectedGame?.path)}
+                onClick={() => handleLaunchGame(selectedGame)}
                 className="flex items-center gap-2 px-6 py-2.5 bg-white text-gray-900 rounded-xl text-sm font-black hover:shadow-lg transition-all active:scale-95"
               >
                 <Play className="w-4 h-4 fill-current" style={{ color: selectedGame?.accent }} /> Play Now
@@ -2375,7 +2382,7 @@ const DashboardContent = ({
               <p className="text-xl font-bold text-gray-400 mb-2">No sessions recorded yet</p>
               <p className="text-gray-500 mb-8 max-w-sm mx-auto">Play {selectedGame?.name} to start tracking your therapy progress and see your stats here.</p>
               <button
-                onClick={() => navigate(selectedGame?.path)}
+                onClick={() => handleLaunchGame(selectedGame)}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl text-white font-black hover:shadow-lg transition-all active:scale-95 text-sm"
                 style={{ background: `linear-gradient(135deg, ${selectedGame?.accent}, ${selectedGame?.accent}cc)` }}
               >
@@ -2510,7 +2517,7 @@ const DashboardContent = ({
                         <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 mb-5">{game.desc}</p>
                         <div className="space-y-3">
                           <button
-                            onClick={() => navigate(game.path)}
+                            onClick={() => handleLaunchGame(game)}
                             className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors"
                           >
                             <Play className="w-4 h-4 fill-white" /> Start Exercise
@@ -3791,9 +3798,31 @@ const SettingsContent = ({ isDarkMode }) => {
             </div>
           </section>
 
-          <button className="w-full py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:shadow-2xl hover:shadow-primary-500/20 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl">
-            Save All Changes
-          </button>
+          {offlineSessions.some(s => !s.isPushed) && (
+            <button
+              type="button"
+              onClick={async () => {
+                const unpushed = offlineSessions.filter(s => !s.isPushed);
+                for (const session of unpushed) {
+                  try {
+                    if (session.gameType === 'board_drawing') {
+                      await gameService.saveBoardDrawingSession(session.payload);
+                    } else {
+                      await gameService.saveGameSession(session.payload);
+                    }
+                    offlineBuffer.markAsPushed(session.id);
+                  } catch (e) {
+                    console.error("Sync failed for", session.id, e);
+                  }
+                }
+                setOfflineSessions(offlineBuffer.getSessions());
+                window.dispatchEvent(new Event('refresh_user_data'));
+              }}
+              className="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-wider text-xs hover:shadow-xl transition-all active:scale-95 shadow-md flex items-center justify-center gap-2"
+            >
+              <UploadCloud size={16} /> Sync All Offline Sessions to Server
+            </button>
+          )}
         </div>
       </div>
     </div>

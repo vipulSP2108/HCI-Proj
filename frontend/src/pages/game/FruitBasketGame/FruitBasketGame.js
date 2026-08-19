@@ -9,6 +9,7 @@ import offlineBuffer from "../../../services/offlineBuffer";
 import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
+import GameCalibrationModal from "../../../components/common/GameCalibrationModal";
 import { Minimize2, Maximize2, RotateCcw, X, GripHorizontal } from "lucide-react";
 import { useLightingDetector } from "../../../hooks/useLightingDetector";
 import {
@@ -33,6 +34,8 @@ import {
   FRUIT_BASKET_IDEAL_SHOULDER_Y_RANGE,
   FRUIT_BASKET_MIN_SHOULDER_WIDTH,
   TESTING_FRUIT_BASKET_SEQUENCE,
+  ENABLE_CALIBRATION_MODAL,
+  CALIBRATION_AUTO_LAUNCH
 } from "../../../constants";
 import { useSettings } from "../../../context/SettingsContext";
 import { patientConfigService } from "../../../services/patientConfigService";
@@ -93,6 +96,7 @@ const FruitBasketGame = () => {
   // State Management
   const [isInitialized, setIsInitialized] = useState(false);
   const [calibrationDone, setCalibrationDone] = useState(false);
+  const [isCalibrationModalOpen, setIsCalibrationModalOpen] = useState(CALIBRATION_AUTO_LAUNCH);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibTimeLeft, setCalibTimeLeft] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -297,6 +301,32 @@ const FruitBasketGame = () => {
     currentHand: null,
     currentAction: null,
   });
+
+  // Sync calibrated workspace bounds from GameCalibrationPage if present
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('hci_game_calibration');
+      if (saved) {
+        const d = JSON.parse(saved);
+        calibrationRef.current = {
+          ...calibrationRef.current,
+          done: true,
+          minX: d.minX ?? 0.1,
+          maxX: d.maxX ?? 0.9,
+          minY: d.minY ?? 0.1,
+          maxY: d.maxY ?? 0.9,
+          centerX: d.centerX ?? 0.5,
+          centerY: d.centerY ?? 0.5,
+          maxReachNorm: d.reachRadius ?? 0.35,
+          assistiveMode: d.assistiveModeRecommended ?? false
+        };
+        setCalibrationDone(true);
+        if (d.assistiveModeRecommended) {
+          setAssistiveMode(true);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   const gridHolesRef = useRef([]);
   const fruitRef = useRef(null);
@@ -1615,6 +1645,11 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
   }, [monitorHandForDuration, finishCalibration]);
 
   const handleStartCalibration = useCallback(() => {
+    if (ENABLE_CALIBRATION_MODAL) {
+      setIsCalibrationModalOpen(true);
+      return;
+    }
+
     calibrationRef.current.active = true;
     calibrationRef.current.done = false;
     calibrationRef.current.step = 'left_open';
@@ -1626,6 +1661,29 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
     setIsCalibrating(true);
     runCalibrationStep();
   }, [runCalibrationStep]);
+
+  const handleCalibrationComplete = useCallback((data) => {
+    if (data) {
+      calibrationRef.current = {
+        ...calibrationRef.current,
+        active: false,
+        done: true,
+        minX: data.minX ?? 0.1,
+        maxX: data.maxX ?? 0.9,
+        minY: data.minY ?? 0.1,
+        maxY: data.maxY ?? 0.9,
+        centerX: data.centerX ?? 0.5,
+        centerY: data.centerY ?? 0.5,
+        maxReachNorm: data.reachRadius ?? 0.35,
+        assistiveMode: data.assistiveModeRecommended ?? false
+      };
+      setCalibrationDone(true);
+      if (data.assistiveModeRecommended) {
+        setAssistiveMode(true);
+      }
+      showStatus("✓ Interactive Calibration complete! Ready to start.");
+    }
+  }, []);
   const handleStartSession = () => {
     if (!calibrationDone) {
       if (!window.confirm("Calibration recommended. Continue anyway?")) return;
@@ -2415,6 +2473,16 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
         onSave={handleExitSave}
         onDiscard={handleExitDiscard}
         onCancel={handleExitCancel}
+      />
+
+      <GameCalibrationModal
+        isOpen={isCalibrationModalOpen}
+        onClose={() => setIsCalibrationModalOpen(false)}
+        onComplete={handleCalibrationComplete}
+        handState={() => handStateRef.current}
+        poseLandmarks={() => lastPoseResultsRef.current?.poseLandmarks}
+        isDarkMode={isDarkMode}
+        gameTitle="Arm Orchard"
       />
     </div>
   );
