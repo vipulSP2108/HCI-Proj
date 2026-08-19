@@ -20,6 +20,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import offlineBuffer from "../../services/offlineBuffer";
 import { gameService } from "../../services/gameService";
+import LightingSettings from "../../components/common/LightingSettings";
 
 function PatientSetting() {
   const navigate = useNavigate();
@@ -227,6 +228,11 @@ function PatientSetting() {
               track physical progress over time.
             </div>
           </div>
+        </div>
+
+        {/* Camera Lighting & Quality Settings */}
+        <div className="premium-card p-8 mt-8">
+          <LightingSettings />
         </div>
 
         {/* Offline Game Sessions Buffer */}

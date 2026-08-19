@@ -145,14 +145,12 @@ const LightingSettings = ({ isDarkMode }) => {
           <button
             type="button"
             onClick={handleToggleEnabled}
-            className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${
-              enabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
-            }`}
+            className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${enabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
+              }`}
           >
             <div
-              className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${
-                enabled ? 'translate-x-7' : 'translate-x-1'
-              }`}
+              className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${enabled ? 'translate-x-7' : 'translate-x-1'
+                }`}
             />
           </button>
         </div>
@@ -182,20 +180,18 @@ const LightingSettings = ({ isDarkMode }) => {
               <button
                 type="button"
                 onClick={handleToggleOnlyOnStart}
-                className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${
-                  onlyOnStart ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-700'
-                }`}
+                className={`w-14 h-8 shrink-0 rounded-full relative transition-colors duration-300 ${onlyOnStart ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-700'
+                  }`}
               >
                 <div
-                  className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${
-                    onlyOnStart ? 'translate-x-7' : 'translate-x-1'
-                  }`}
+                  className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${onlyOnStart ? 'translate-x-7' : 'translate-x-1'
+                    }`}
                 />
               </button>
             </div>
 
             {/* Slider: Darkness Threshold */}
-            <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50 space-y-3">
+            {/* <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50 space-y-3">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-xl">
@@ -231,10 +227,10 @@ const LightingSettings = ({ isDarkMode }) => {
                   <span>60 (Brightly Lit)</span>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Selector: Ongoing Check Interval (Only visible if onlyOnStart is false) */}
-            {!onlyOnStart && (
+            {/* {!onlyOnStart && (
               <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/80 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700/50 space-y-3">
                 <div className="flex justify-between items-center">
                   <div>
@@ -257,18 +253,17 @@ const LightingSettings = ({ isDarkMode }) => {
                       key={opt.value}
                       type="button"
                       onClick={() => handleFramesChange(opt.value)}
-                      className={`py-2.5 px-3 rounded-xl font-bold text-xs transition-all border ${
-                        frames === opt.value
+                      className={`py-2.5 px-3 rounded-xl font-bold text-xs transition-all border ${frames === opt.value
                           ? 'bg-primary-500 text-white border-primary-500 shadow-md'
                           : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                     >
                       {opt.label}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </>
         )}
       </div>

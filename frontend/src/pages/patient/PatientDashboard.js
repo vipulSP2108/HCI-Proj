@@ -76,6 +76,7 @@ import PatientAppointments from "./PatientAppointments";
 import BoardDrawingTrajectoryReplay from "../game/BoardDrawingTrajectoryReplay";
 import DrawingPerformancePanel from "../../components/dashboard/DrawingPerformancePanel";
 import ArmReachVisualizer from "../game/ArmReachVisualizer";
+import LightingSettings from "../../components/common/LightingSettings";
 
 export default function PatientDashboard({ userId }) {
   const { user, logout, isDarkMode, toggleDarkMode } = useAuth();
@@ -3651,6 +3652,11 @@ const SettingsContent = ({ isDarkMode }) => {
               </div>
             </div>
           </section>
+
+          <div className="h-px bg-gray-100 dark:bg-gray-800" />
+
+          {/* Camera Lighting & Quality Settings */}
+          <LightingSettings isDarkMode={isDarkMode} />
 
           <div className="h-px bg-gray-100 dark:bg-gray-800" />
 
