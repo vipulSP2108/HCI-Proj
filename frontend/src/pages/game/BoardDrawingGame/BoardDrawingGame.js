@@ -10,6 +10,7 @@ import SaveExitButton from "../SaveExitButton";
 import ExitConfirmModal from "../ExitConfirmModal";
 import FullScreenLoader from "../../../components/common/FullScreenLoader";
 import { Minimize2, Maximize2, RotateCcw, X, GripHorizontal } from "lucide-react";
+import { useLightingDetector } from "../../../hooks/useLightingDetector";
 import {
   COORD_SAMPLE_INTERVAL_MS,
   BOARD_DRAWING_COORD_SAMPLE_MS,
@@ -432,6 +433,7 @@ const BoardDrawingGame = () => {
 
   // Refs
   const videoRef = useRef(null);
+  const { isPoorLighting, checkFrame: checkLightingFrame } = useLightingDetector();
   const overlayRef = useRef(null);
   const gameCanvasRef = useRef(null);
   const handsModuleRef = useRef(null);
@@ -948,6 +950,8 @@ const BoardDrawingGame = () => {
 
   // ==================== MEDIAPIPE HANDLERS ====================
   const onHandsResults = useCallback((results) => {
+    // Piggyback lighting check on existing MediaPipe frame loop — zero extra camera cost
+    checkLightingFrame(videoRef.current);
     const handState = handStateRef.current;
 
     handState.Left.visible = false;
@@ -2315,6 +2319,14 @@ State: ${isClosed ? "🔴 CLOSED" : "🟢 OPEN"}`);
           <RotateCcw size={48} style={{ marginBottom: 16 }} />
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px' }}>Rotate your device</h2>
           <p style={{ opacity: 0.8 }}>Please hold your phone in Landscape mode for the therapy session.</p>
+        </div>
+      )}
+
+      {/* Poor physical lighting alert via Canvas Pixel Brightness Analyzer */}
+      {isPoorLighting && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(220,53,69,0.92)', color: 'white', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px' }}>Poor Room Lighting Detected</h2>
+          <p style={{ opacity: 0.9 }}>Your room is physically too dark. Please turn on more lights so the camera can track your movements.</p>
         </div>
       )}
 

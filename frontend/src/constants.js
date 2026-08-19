@@ -1,6 +1,16 @@
 // Toggle this to false when pushing to production/Vercel
 export const IS_LOCAL = false;
 
+// ─── Lighting Detection Configuration ────────────────────────────────────────
+// Toggle poor lighting detection on/off globally
+export const ENABLE_LIGHTING_DETECTION = true;
+// Threshold for poor lighting (0 = black, 255 = white). Lowered to 15 to allow very dim rooms.
+export const LIGHTING_DETECTION_THRESHOLD = 15;
+// If true, detection stops permanently once good lighting is confirmed (saves CPU).
+export const LIGHTING_DETECTION_ONLY_ON_START = false;
+// When ONLY_ON_START is false, how many MediaPipe frames to skip between checks.
+// At ~30fps: 150 = ~5 sec, 90 = ~3 sec, 300 = ~10 sec. Higher = less CPU overhead.
+export const LIGHTING_DETECTION_FRAMES_BETWEEN_CHECKS = 150;
 
 export const API_BASE_URL = IS_LOCAL
   ? "http://localhost:5001/api"
